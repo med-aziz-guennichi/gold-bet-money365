@@ -1,0 +1,25 @@
+{
+  "name": "@gold-bet-clean-money365/api",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "check-types": "tsc -b"
+  },
+  "dependencies": {
+    "@gold-bet-clean-money365/auth": "workspace:*",
+    "@gold-bet-clean-money365/db": "workspace:*",
+    "@orpc/client": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
+    "@orpc/zod": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@gold-bet-clean-money365/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

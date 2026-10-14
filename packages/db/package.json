@@ -1,0 +1,21 @@
+{
+  "name": "@gold-bet-clean-money365/db",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "check-types": "tsc -b"
+  },
+  "dependencies": {
+    "mongoose": "^9.9.5",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@gold-bet-clean-money365/config": "workspace:*",
+    "typescript": "catalog:",
+    "varlock": "catalog:"
+  }
+}

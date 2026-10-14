@@ -1,0 +1,3 @@
+{
+  "extends": "@gold-bet-clean-money365/config/tsconfig.base.json"
+}
