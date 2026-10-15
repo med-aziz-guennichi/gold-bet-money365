@@ -1,47 +1,44 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
 
-import { orpc } from "@/utils/orpc";
+import { HeroSection, HighlightsSection, SiteHeader } from "@/components/sports/page-chrome";
+import { MatchCenter } from "@/components/sports/match-center";
+import { useDemoBetting } from "@/features/sports/use-demo-betting";
+import { useFlashscoreMatches } from "@/features/sports/use-flashscore-matches";
 
-const TITLE_TEXT = `
- ██████╗ ███████╗████████╗████████╗███████╗██████╗
- ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
- ██████╔╝█████╗     ██║      ██║   █████╗  ██████╔╝
- ██╔══██╗██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗
- ██████╔╝███████╗   ██║      ██║   ███████╗██║  ██║
- ╚═════╝ ╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝
-
- ████████╗    ███████╗████████╗ █████╗  ██████╗██╗  ██╗
- ╚══██╔══╝    ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
-    ██║       ███████╗   ██║   ███████║██║     █████╔╝
-    ██║       ╚════██║   ██║   ██╔══██║██║     ██╔═██╗
-    ██║       ███████║   ██║   ██║  ██║╚██████╗██║  ██╗
-    ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- `;
-
+/** Route composition: data and betting behavior live in feature hooks. */
 export default function Home() {
-  const healthCheck = useQuery(orpc.healthCheck.queryOptions());
+  const football = useFlashscoreMatches();
+  const betting = useDemoBetting();
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-2">
-      <pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
-      <div className="grid gap-6">
-        <section className="rounded-lg border p-4">
-          <h2 className="mb-2 font-medium">API Status</h2>
-          <div className="flex items-center gap-2">
-            <div
-              className={`h-2 w-2 rounded-full ${healthCheck.data ? "bg-green-500" : "bg-red-500"}`}
-            />
-            <span className="text-sm text-muted-foreground">
-              {healthCheck.isLoading
-                ? "Checking..."
-                : healthCheck.data
-                  ? "Connected"
-                  : "Disconnected"}
-            </span>
-          </div>
-        </section>
+    <main className="min-h-screen bg-[#080b0a] text-[#f4f5f2]">
+      <SiteHeader />
+      <div id="top" className="mx-auto max-w-[1440px] px-4 pb-16 pt-8 sm:px-8 sm:pt-10">
+        <HeroSection featuredMatch={football.featuredMatch} />
+        <MatchCenter
+          matches={football.pricedMatches}
+          regions={football.regions}
+          loading={football.matchesQuery.isLoading}
+          error={football.matchesQuery.error?.message}
+          oddsLoading={football.oddsLoading}
+          oddsError={football.oddsError}
+          selected={betting.selected}
+          onPick={betting.togglePick}
+          slip={{
+            selected: betting.selected,
+            balance: betting.balance,
+            bets: betting.bets,
+            stake: betting.stake,
+            notice: betting.notice,
+            totalOdds: betting.totalOdds,
+            potentialReturn: betting.potentialReturn,
+            onStakeChange: betting.setStake,
+            onRemove: betting.removePick,
+            onPlace: betting.placeBet,
+          }}
+        />
+        <HighlightsSection />
       </div>
-    </div>
+    </main>
   );
 }

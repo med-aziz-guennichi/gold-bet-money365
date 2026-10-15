@@ -1,1 +1,23 @@
 @import "@gold-bet-clean-money365/ui/globals.css";
+
+html[lang="ar"] body {
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
+html[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+html[dir="rtl"] .pr-9 {
+  padding-right: 0.75rem;
+  padding-left: 2.25rem;
+}
+
+html[dir="rtl"] .right-3 {
+  right: auto;
+  left: 0.75rem;
+}
+
+html[dir="rtl"] .rtl-mirror {
+  transform: rotate(180deg);
+}

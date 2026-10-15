@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Outfit, Figtree } from "next/font/google";
 
 import "../index.css";
-import Header from "@/components/header";
 import Providers from "@/components/providers";
+
+const figtreeHeading = Figtree({ subsets: ["latin"], variable: "--font-heading" });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "gold-bet-clean-money365",
-  description: "gold-bet-clean-money365",
+  title: "Fieldhouse — Sports, with a little more soul",
+  description: "A cleaner way to follow the moments that matter. Explore sports matchups and illustrative odds in demo mode.",
 };
 
 export default function RootLayout({
@@ -26,13 +28,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" dir="ltr" suppressHydrationWarning className={`${outfit.variable} ${figtreeHeading.variable}`}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
-          <div className="grid grid-rows-[auto_1fr] h-svh">
-            <Header />
-            {children}
-          </div>
+          {children}
         </Providers>
       </body>
     </html>

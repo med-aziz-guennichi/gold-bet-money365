@@ -42,6 +42,27 @@ pnpm run dev
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
 The API is running at [http://localhost:3000](http://localhost:3000).
 
+## Local Football Feed
+
+The web app reads football fixtures, live matches, bookmaker markets and prices, final scores, match statistics, and incident summaries from the local [Flashscore scraper](https://github.com/omkarcloud/flashscore-scraper). Run it in its own terminal:
+
+```powershell
+git clone https://github.com/omkarcloud/flashscore-scraper
+Set-Location flashscore-scraper
+py -m pip install -r requirements.txt
+py run.py
+```
+
+Keep that scraper running at `http://127.0.0.1:8000` while using this app. The server uses that address by default. To use another address, set `FLASHSCORE_API_URL` in `apps/server/.env`; if your scraper requires authentication, set `FLASHSCORE_API_KEY` there as well. These values stay on the server and are never sent to the browser. The web client accesses the feed through typed oRPC procedures.
+
+### Football data flow
+
+The browser calls `flashscore.matches`, `flashscore.odds`, and `flashscore.results` through oRPC. Their input and output types live in `packages/api`; `apps/server/src/services/flashscore.ts` is the only layer that talks to the scraper and maps its response into the app's football models. The match odds request returns every market offered by the scraper and detail pages group those markets into collapsed accordions. Finalized demo picks can use match statistics and summary incidents for markets such as corners and cards; unknown markets remain pending instead of being settled from the score alone. Keep scraper credentials in `apps/server/.env` only.
+
+## Languages
+
+The web interface supports English, French, and Arabic. Use the language selector in the header or sign-in screen; the choice is saved in the browser. Arabic automatically switches the page to right-to-left layout. UI copy and language mappings live in `apps/web/src/features/i18n`; add new interface labels to both the French and Arabic dictionaries so they do not fall back to English. Match and competition names are supplied by the Flashscore feed and remain in the source language.
+
 ## UI Customization
 
 React web apps in this stack share shadcn/ui primitives through `packages/ui`.

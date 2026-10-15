@@ -13,8 +13,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
+import { useI18n } from "@/features/i18n/locale-provider";
 
 export default function UserMenu() {
+  const { t } = useI18n();
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
@@ -25,7 +27,7 @@ export default function UserMenu() {
   if (!session) {
     return (
       <Link href="/login">
-        <Button variant="outline">Sign In</Button>
+        <Button variant="outline">{t("Sign In")}</Button>
       </Link>
     );
   }
@@ -37,7 +39,7 @@ export default function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-card">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("My Account")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
           <DropdownMenuItem
@@ -52,7 +54,7 @@ export default function UserMenu() {
               });
             }}
           >
-            Sign Out
+            {t("Sign Out")}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

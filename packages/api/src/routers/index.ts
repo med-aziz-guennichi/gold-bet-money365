@@ -1,8 +1,10 @@
 import type { RouterClient } from "@orpc/server";
 
 import { protectedProcedure, publicProcedure } from "../index";
+import { flashscoreRouter } from "./flashscore";
 
 export const appRouter = {
+  flashscore: flashscoreRouter,
   healthCheck: publicProcedure.handler(() => {
     return "OK";
   }),
