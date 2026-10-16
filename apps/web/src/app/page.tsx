@@ -1,6 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@gold-bet-clean-money365/ui/components/select";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { MatchCenter } from "@/components/sports/match-center";
 import {
 	HeroSection,
@@ -13,7 +21,34 @@ import { usePricedEvents } from "@/features/sports/use-priced-events";
 
 /** Route composition: data and betting behavior live in feature hooks. */
 export default function Home() {
-	const [sport, setSport] = useState("football");
+	return (
+		<Suspense
+			fallback={
+				<main className="min-h-screen bg-[#080b0a] text-white">
+					<SiteHeader />
+					<div className="p-8" role="status">
+						Loading…
+					</div>
+				</main>
+			}
+		>
+			<HomeContent />
+		</Suspense>
+	);
+}
+
+function HomeContent() {
+	const params = useSearchParams();
+	const router = useRouter();
+	const requested = params.get("sport") ?? "football";
+	const sport = /^[a-z][a-z-]{0,40}$/.test(requested) ? requested : "football";
+	function setSport(value: string | null) {
+		if (!value) return;
+		const next = new URLSearchParams(params.toString());
+		next.set("sport", value);
+		router.push(`/?${next.toString()}`, { scroll: false });
+	}
+
 	const eventsFeed = usePricedEvents(sport);
 	const { t } = useI18n();
 	const betting = useBetting();
@@ -30,21 +65,37 @@ export default function Home() {
 					<label htmlFor="sport-filter" className="font-bold text-sm">
 						{t("Sport")}
 					</label>
-					<select
-						id="sport-filter"
+					<Select
 						value={sport}
-						onChange={(event) => setSport(event.target.value)}
-						className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#111713] px-4 py-3 text-sm sm:max-w-sm"
+						onValueChange={setSport}
+						items={(
+							eventsFeed.sports.data?.sports ?? [{ slug: sport, name: sport }]
+						).map((item) => ({ value: item.slug, label: t(item.name) }))}
 					>
-						{!eventsFeed.sports.data && (
-							<option value="football">{t("Football")}</option>
-						)}
-						{eventsFeed.sports.data?.sports.map((item) => (
-							<option key={item.slug} value={item.slug}>
-								{t(item.name)}
-							</option>
-						))}
-					</select>
+						<SelectTrigger
+							id="sport-filter"
+							aria-label={t("Sport")}
+							className="h-11 min-w-0 flex-1 rounded-xl border-white/10 bg-[#111713] px-4 text-sm text-white sm:max-w-sm"
+						>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent
+							alignItemWithTrigger={false}
+							className="max-h-80 rounded-xl border border-white/10 bg-[#111713] text-white"
+						>
+							{(
+								eventsFeed.sports.data?.sports ?? [{ slug: sport, name: sport }]
+							).map((item) => (
+								<SelectItem
+									key={item.slug}
+									value={item.slug}
+									className="focus:bg-[#c6f36b]/15 focus:text-[#d8ff9d]"
+								>
+									{t(item.name)}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 					<span className="text-white/50 text-xs">
 						{t("Only games with active odds are shown.")}
 					</span>

@@ -4,6 +4,18 @@ export type Locale = (typeof locales)[number];
 /** English is the source copy; localized dictionaries intentionally fall back to it. */
 const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 	fr: {
+		"Betting is closed or suspended for this event.":
+			"Les paris sont fermés ou suspendus pour cet événement.",
+		"View only: this market does not support bet settlement yet.":
+			"Consultation uniquement : le règlement des paris de ce marché n’est pas encore pris en charge.",
+		"This bookmaker is not accepting live bets on this market.":
+			"Ce bookmaker n’accepte pas de paris en direct sur ce marché.",
+		"Only markets supported for betting are shown by default. Other prices are available to view.":
+			"Seuls les marchés pris en charge sont affichés par défaut. Les autres cotes restent consultables.",
+		"Show view-only markets": "Afficher les marchés consultables uniquement",
+		"Hide view-only markets": "Masquer les marchés consultables uniquement",
+		"No supported betting markets are available. You can still view the other prices.":
+			"Aucun marché de pari pris en charge n’est disponible. Vous pouvez consulter les autres cotes.",
 		Sport: "Sport",
 		Football: "Football",
 		"Only games with active odds are shown.":
@@ -338,6 +350,18 @@ const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 		"Full time over time": "Temps réglementaire et prolongations",
 	},
 	ar: {
+		"Betting is closed or suspended for this event.":
+			"المراهنة مغلقة أو معلقة لهذا الحدث.",
+		"View only: this market does not support bet settlement yet.":
+			"للعرض فقط: تسوية الرهانات لهذا السوق غير مدعومة بعد.",
+		"This bookmaker is not accepting live bets on this market.":
+			"لا يقبل مقدم الأسعار رهانات مباشرة على هذا السوق.",
+		"Only markets supported for betting are shown by default. Other prices are available to view.":
+			"تظهر الأسواق المدعومة للمراهنة افتراضيًا. يمكن عرض الأسعار الأخرى.",
+		"Show view-only markets": "عرض الأسواق المخصصة للعرض فقط",
+		"Hide view-only markets": "إخفاء الأسواق المخصصة للعرض فقط",
+		"No supported betting markets are available. You can still view the other prices.":
+			"لا تتوفر أسواق مدعومة للمراهنة. يمكنك عرض الأسعار الأخرى.",
 		Sport: "الرياضة",
 		Football: "كرة القدم",
 		"Only games with active odds are shown.":

@@ -1,7 +1,10 @@
 "use client";
 
 import type { FootballOddsMarket } from "@gold-bet-clean-money365/api/football";
+import { marketRestriction } from "@gold-bet-clean-money365/api/market-availability";
+import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import { ChevronDown } from "lucide-react";
+import { useId, useState } from "react";
 import { useI18n } from "@/features/i18n/locale-provider";
 import type { Match, Selection } from "@/features/sports/types";
 
@@ -21,10 +24,12 @@ export function MarketOffers({
 	) => void;
 }) {
 	const { t } = useI18n();
-	const availableMarkets = match.odds.markets.filter(
-		(market) =>
-			!isUnavailable(match.status) &&
-			market.selections.some((price) => price.active && price.value !== null),
+	const [showViewOnly, setShowViewOnly] = useState(false);
+	const hasViewOnly = match.odds.markets.some(
+		(market) => marketRestriction(match.sport, "TRADING", market) !== null,
+	);
+	const availableMarkets = match.odds.markets.filter((market) =>
+		market.selections.some((price) => price.active && price.value !== null),
 	);
 
 	if (!availableMarkets.length)
@@ -38,6 +43,8 @@ export function MarketOffers({
 	// shown as sections inside it, instead of repeating the same accordion.
 	const groups = new Map<string, Map<string, FootballOddsMarket[]>>();
 	for (const market of availableMarkets) {
+		if (!showViewOnly && marketRestriction(match.sport, "TRADING", market))
+			continue;
 		const periods = groups.get(market.betType) ?? new Map();
 		periods.set(market.scope, [...(periods.get(market.scope) ?? []), market]);
 		groups.set(market.betType, periods);
@@ -45,6 +52,35 @@ export function MarketOffers({
 
 	return (
 		<div className="space-y-3">
+			{hasViewOnly && (
+				<div className="rounded-xl border border-white/10 bg-[#111713] p-4 text-sm">
+					<p className="mb-3 text-white/60">
+						{t(
+							"Only markets supported for betting are shown by default. Other prices are available to view.",
+						)}
+					</p>
+					<Button
+						type="button"
+						variant="outline"
+						aria-pressed={showViewOnly}
+						onClick={() => setShowViewOnly((value) => !value)}
+						className="h-auto whitespace-normal rounded-lg border-white/15 bg-transparent px-3 py-2 text-white"
+					>
+						{t(
+							showViewOnly
+								? "Hide view-only markets"
+								: "Show view-only markets",
+						)}
+					</Button>
+				</div>
+			)}
+			{groups.size === 0 && (
+				<p role="status" className="p-4 text-sm text-white/60">
+					{t(
+						"No supported betting markets are available. You can still view the other prices.",
+					)}
+				</p>
+			)}
 			{[...groups.entries()].map(([type, periods]) => {
 				const markets = [...periods.values()].flat();
 				const offerCount = markets.length;
@@ -121,11 +157,18 @@ function MarketCard({
 }) {
 	const { t } = useI18n();
 	const scope = formatScope(market.scope);
+	const restriction = marketRestriction(match.sport, match.status, market);
+	const restrictionId = useId();
 	return (
 		<section className="rounded-xl border border-white/[.07] bg-black/10 p-3 sm:p-4">
 			<header className="mb-3">
 				<p className="font-bold text-white/75 text-xs">{market.bookmaker}</p>
 				<p className="mt-1 text-[10px] text-white/40">{t(scope)}</p>
+				{restriction && (
+					<p id={restrictionId} className="mt-2 text-amber-200 text-xs">
+						{t(restriction)}
+					</p>
+				)}
 			</header>
 			<div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
 				{market.selections
@@ -137,11 +180,7 @@ function MarketCard({
 						const isSelected = selected.some(
 							(pick) => pick.match.id === match.id && pick.outcome === outcome,
 						);
-						const allowed =
-							!isUnavailable(match.status) &&
-							(match.sport === "Football" ||
-								(market.betType === "HOME_AWAY" &&
-									market.scope === "FULL_TIME"));
+						const allowed = restriction === null;
 						const metadata = {
 							type: market.betType,
 							bookmaker: market.bookmaker,
@@ -153,7 +192,9 @@ function MarketCard({
 							score: price.score ? cleanScraperValue(price.score) : null,
 						};
 						return (
-							<button
+							<Button
+								variant="outline"
+								aria-describedby={restriction ? restrictionId : undefined}
 								key={`${price.selection}-${price.handicap}-${price.score}-${index}`}
 								type="button"
 								disabled={!allowed}
@@ -166,7 +207,7 @@ function MarketCard({
 									if (price.value)
 										onPick(match, outcome, price.value, metadata);
 								}}
-								className={`rounded-xl border p-3 text-left transition ${
+								className={`h-auto flex-col items-stretch whitespace-normal rounded-xl border bg-transparent hover:bg-white/[.05] hover:text-white p-3 text-left transition ${
 									isSelected
 										? "border-[#c6f36b]/50 bg-[#c6f36b]/10"
 										: "border-white/[.07] bg-black/10 hover:border-white/20"
@@ -183,7 +224,7 @@ function MarketCard({
 										{t("Opening")} {price.openingValue}
 									</span>
 								)}
-							</button>
+							</Button>
 						);
 					})}
 			</div>
@@ -271,15 +312,4 @@ function normalizeLabel(value: string) {
 		.replace(/\bYES\b/gi, "Yes")
 		.replace(/\bNO\b/gi, "No")
 		.trim();
-}
-
-function isUnavailable(status: string) {
-	return [
-		"RESULTED",
-		"CLOSED",
-		"CANCELLED",
-		"AWAITING_RESULTS",
-		"POST_TRADING",
-		"INTERRUPTED",
-	].includes(status.toUpperCase());
 }

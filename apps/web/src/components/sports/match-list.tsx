@@ -5,6 +5,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, Globe2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/features/i18n/locale-provider";
+import { sportSlug } from "@/features/sports/navigation";
 import type { Selection } from "@/features/sports/types";
 import { formatKickoff } from "@/features/sports/utils";
 import { PrimaryOdds } from "./primary-odds";
@@ -278,7 +279,7 @@ function MatchRow({
 				disabled={disabled}
 			/>
 			<Link
-				href={`/match/${encodeURIComponent(String(match.id))}`}
+				href={`/match/${encodeURIComponent(String(match.id))}?sport=${sportSlug(match.sport)}`}
 				className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-white/[.07] bg-white/[.025] px-2 py-2 font-bold text-[10px] text-white/65 transition hover:border-[#c6f36b]/30 hover:text-[#d8ff9d]"
 				aria-label={`${t("View all offers for")} ${match.home} ${t("vs")} ${match.away}`}
 			>

@@ -9,6 +9,7 @@ import { MarketOffers } from "@/components/sports/market-offers";
 import { SiteHeader } from "@/components/sports/page-chrome";
 import { PrimaryOdds } from "@/components/sports/primary-odds";
 import { useI18n } from "@/features/i18n/locale-provider";
+import { sportsHomeHref } from "@/features/sports/navigation";
 import { useBetting } from "@/features/sports/use-betting";
 import { useFlashscoreMatches } from "@/features/sports/use-flashscore-matches";
 import { useMatchResult } from "@/features/sports/use-match-result";
@@ -37,7 +38,7 @@ export default function MatchPage() {
 			<SiteHeader />
 			<div className="mx-auto max-w-[1100px] space-y-6 px-4 pt-8 pb-16 sm:px-8">
 				<Link
-					href="/"
+					href={sportsHomeHref(match?.sport)}
 					className="inline-flex items-center gap-2 font-semibold text-sm text-white/55 transition hover:text-white"
 				>
 					<ArrowLeft size={15} /> {t("Back to matches")}
