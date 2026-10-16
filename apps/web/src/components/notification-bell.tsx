@@ -3,6 +3,7 @@ import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -112,76 +113,78 @@ export default function NotificationBell() {
 				align="end"
 				className="w-[min(360px,calc(100vw-2rem))] border-white/15 bg-[#111713] text-white"
 			>
-				<DropdownMenuLabel>
-					{t("Notifications")} · {t(connected ? "Live" : "Reconnecting…")}
-				</DropdownMenuLabel>
-				<DropdownMenuSeparator />
-				<div className="max-h-[60vh] overflow-y-auto">
-					{notifications.isPending ? (
-						<p className="p-3 text-sm">{t("Loading…")}</p>
-					) : notifications.isError ? (
-						<p role="alert" className="p-3 text-sm">
-							{t("Could not load notifications.")}
-						</p>
-					) : !notifications.data?.items.length ? (
-						<p className="p-3 text-sm text-white/60">
-							{t("No notifications yet.")}
-						</p>
-					) : (
-						notifications.data.items.map((item) => (
-							<DropdownMenuItem
-								key={item.id}
-								className="block whitespace-normal p-3 text-white focus:bg-white/10 focus:text-white"
-								onClick={async () => {
-									try {
-										await orpc.notifications.read.call({ id: item.id });
-									} catch {
-										toast(t("Could not mark notification as read."));
-										return;
-									}
-									void queryClient.invalidateQueries({
-										queryKey: ["notifications", userId],
-									});
-									router.push(item.href);
-								}}
-							>
-								<p className="font-semibold text-sm">
-									{!item.readAt && (
-										<span
-											role="img"
-											aria-label={t("Unread")}
-											className="me-2 inline-block h-2 w-2 rounded-full bg-[#c6f36b]"
-										/>
-									)}
-									{t(item.title)}
-								</p>
-								<p className="mt-1 text-white/65 text-xs">{item.message}</p>
-								<time
-									className="mt-1 block text-[10px] text-white/45"
-									dateTime={item.createdAt}
+				<DropdownMenuGroup>
+					<DropdownMenuLabel>
+						{t("Notifications")} · {t(connected ? "Live" : "Reconnecting…")}
+					</DropdownMenuLabel>
+					<DropdownMenuSeparator />
+					<div className="max-h-[60vh] overflow-y-auto">
+						{notifications.isPending ? (
+							<p className="p-3 text-sm">{t("Loading…")}</p>
+						) : notifications.isError ? (
+							<p role="alert" className="p-3 text-sm">
+								{t("Could not load notifications.")}
+							</p>
+						) : !notifications.data?.items.length ? (
+							<p className="p-3 text-sm text-white/60">
+								{t("No notifications yet.")}
+							</p>
+						) : (
+							notifications.data.items.map((item) => (
+								<DropdownMenuItem
+									key={item.id}
+									className="block whitespace-normal p-3 text-white focus:bg-white/10 focus:text-white"
+									onClick={async () => {
+										try {
+											await orpc.notifications.read.call({ id: item.id });
+										} catch {
+											toast(t("Could not mark notification as read."));
+											return;
+										}
+										void queryClient.invalidateQueries({
+											queryKey: ["notifications", userId],
+										});
+										router.push(item.href);
+									}}
 								>
-									{new Date(item.createdAt).toLocaleString()}
-								</time>
-							</DropdownMenuItem>
-						))
-					)}
-				</div>
-				<div className="flex justify-between p-2">
-					<Button
-						variant="ghost"
-						disabled={page === 1}
-						onClick={() => setPage((p) => p - 1)}
-					>
-						{t("Previous")}
-					</Button>
-					<Button
-						variant="ghost"
-						disabled={!notifications.data?.hasMore}
-						onClick={() => setPage((p) => p + 1)}
-					>
-						{t("Next")}
-					</Button>
-				</div>
+									<p className="font-semibold text-sm">
+										{!item.readAt && (
+											<span
+												role="img"
+												aria-label={t("Unread")}
+												className="me-2 inline-block h-2 w-2 rounded-full bg-[#c6f36b]"
+											/>
+										)}
+										{t(item.title)}
+									</p>
+									<p className="mt-1 text-white/65 text-xs">{item.message}</p>
+									<time
+										className="mt-1 block text-[10px] text-white/45"
+										dateTime={item.createdAt}
+									>
+										{new Date(item.createdAt).toLocaleString()}
+									</time>
+								</DropdownMenuItem>
+							))
+						)}
+					</div>
+					<div className="flex justify-between p-2">
+						<Button
+							variant="ghost"
+							disabled={page === 1}
+							onClick={() => setPage((p) => p - 1)}
+						>
+							{t("Previous")}
+						</Button>
+						<Button
+							variant="ghost"
+							disabled={!notifications.data?.hasMore}
+							onClick={() => setPage((p) => p + 1)}
+						>
+							{t("Next")}
+						</Button>
+					</div>
+				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
