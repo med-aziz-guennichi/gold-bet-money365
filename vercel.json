@@ -1,27 +1,93 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "server": {
-      "root": "apps/server",
-      "framework": "hono"
-    },
-    "web": {
-      "root": "apps/web",
-      "framework": "nextjs"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": {
-        "service": "server"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "web"
-      }
-    }
-  ]
+	"$schema": "https://openapi.vercel.sh/vercel.json",
+	"services": {
+		"server": {
+			"root": "apps/server",
+			"framework": "hono",
+			"bindings": [
+				{
+					"type": "service",
+					"service": "scraper",
+					"format": "url",
+					"env": "FLASHSCORE_API_URL"
+				}
+			],
+			"functions": {
+				"src/index.ts": {
+					"maxDuration": 300,
+					"includeFiles": ".env.schema"
+				}
+			}
+		},
+		"web": {
+			"root": "apps/web",
+			"framework": "nextjs",
+			"buildCommand": "pnpm run build",
+			"bindings": [
+				{
+					"type": "service",
+					"service": "server",
+					"format": "url",
+					"env": "SERVER_URL"
+				}
+			]
+		},
+		"scraper": {
+			"root": "apps/scraper",
+			"runtime": "python3.12",
+			"entrypoint": "app:app",
+			"functions": {
+				"app.py": {
+					"maxDuration": 60,
+					"excludeFiles": "{**/test_*.py,**/fixtures/**}"
+				}
+			}
+		}
+	},
+	"daemons": {
+		"settlement": {
+			"root": "workers/settlement",
+			"entrypoint": "Dockerfile",
+			"instances": {
+				"cdg1": 0
+			},
+			"resources": {
+				"requests": {
+					"memory": "1Gi"
+				}
+			}
+		}
+	},
+	"rewrites": [
+		{
+			"source": "/api/(.*)",
+			"destination": {
+				"service": "server"
+			}
+		},
+		{
+			"source": "/rpc/(.*)",
+			"destination": {
+				"service": "server"
+			}
+		},
+		{
+			"source": "/internal/settle",
+			"destination": {
+				"service": "server"
+			}
+		},
+		{
+			"source": "/health/ready",
+			"destination": {
+				"service": "server"
+			}
+		},
+		{
+			"source": "/(.*)",
+			"destination": {
+				"service": "web"
+			}
+		}
+	]
 }

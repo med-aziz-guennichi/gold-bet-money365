@@ -1,155 +1,204 @@
 "use client";
 
+import { ArrowLeft, Clock3 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Clock3 } from "lucide-react";
 
 import { BetSlip } from "@/components/sports/bet-slip";
 import { MarketOffers } from "@/components/sports/market-offers";
 import { SiteHeader } from "@/components/sports/page-chrome";
-import { useDemoBetting } from "@/features/sports/use-demo-betting";
-import { useFlashscoreMatches } from "@/features/sports/use-flashscore-matches";
-import { formatKickoff } from "@/features/sports/utils";
 import { useI18n } from "@/features/i18n/locale-provider";
+import { useBetting } from "@/features/sports/use-betting";
+import { useFlashscoreMatches } from "@/features/sports/use-flashscore-matches";
+import { useMatchResult } from "@/features/sports/use-match-result";
+import { formatKickoff } from "@/features/sports/utils";
 
 export default function MatchPage() {
-  const { t, locale } = useI18n();
-  const params = useParams<{ id: string }>();
-  const matchId = decodeURIComponent(params.id);
-  const football = useFlashscoreMatches(matchId);
-  const betting = useDemoBetting();
-  const match = football.matches.find(
-    (item) => String(item.id) === matchId,
-  );
-  const isLive = match?.status === "TRADING_LIVE";
+	const { t, locale } = useI18n();
+	const params = useParams<{ id: string }>();
+	const matchId = decodeURIComponent(params.id);
+	const football = useFlashscoreMatches(matchId);
+	const betting = useBetting();
+	const resultQuery = useMatchResult(matchId);
+	const result = resultQuery.data?.results[0];
+	const fixture = football.matches.find((item) => String(item.id) === matchId);
+	const match = fixture
+		? {
+				...fixture,
+				status: result?.status ?? fixture.status,
+				score: result?.score ?? fixture.score,
+			}
+		: undefined;
+	const isLive = match?.status === "TRADING_LIVE";
 
-  return (
-    <main className="min-h-screen bg-[#080b0a] text-[#f4f5f2]">
-      <SiteHeader />
-      <div className="mx-auto max-w-[1100px] space-y-6 px-4 pb-16 pt-8 sm:px-8">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-white/55 transition hover:text-white"
-        >
-          <ArrowLeft size={15} /> {t("Back to matches")}
-        </Link>
+	return (
+		<main className="min-h-screen bg-[#080b0a] text-[#f4f5f2]">
+			<SiteHeader />
+			<div className="mx-auto max-w-[1100px] space-y-6 px-4 pt-8 pb-16 sm:px-8">
+				<Link
+					href="/"
+					className="inline-flex items-center gap-2 font-semibold text-sm text-white/55 transition hover:text-white"
+				>
+					<ArrowLeft size={15} /> {t("Back to matches")}
+				</Link>
 
-        {football.matchesQuery.isLoading ? (
-          <PanelMessage>{t("Loading match details…")}</PanelMessage>
-        ) : football.matchesQuery.error ? (
-          <PanelMessage>{football.matchesQuery.error.message}</PanelMessage>
-        ) : !match ? (
-          <PanelMessage>
-            {t("This match is no longer in the current Flashscore fixture feed. Go back to the match list and open a current fixture.")}
-          </PanelMessage>
-        ) : (
-          <>
-            <section className="rounded-2xl border border-white/[.08] bg-[#111713] p-5 sm:p-8">
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-white/45">
-                <span>{match.categoryName}</span>
-                <span>·</span>
-                <span>{match.league}</span>
-                <span className="ms-auto inline-flex items-center gap-1.5">
-                  {isLive ? (
-                    <span className="inline-flex items-center gap-1.5 text-[#ff867a]">
-                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ff867a]" />
-                      {t("LIVE")}
-                    </span>
-                  ) : (
-                    <>
-                      <Clock3 size={13} /> {formatKickoff(match.time, locale)}
-                    </>
-                  )}
-                </span>
-              </div>
-              <div className="mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
-                <div className="text-right">
-                  <p className="text-lg font-extrabold sm:text-2xl">{match.home}</p>
-                  <p className="mt-1 text-xs text-white/40">{t("Home team")}</p>
-                </div>
-                <span className="text-xs font-bold uppercase tracking-widest text-white/30">{t("vs")}</span>
-                <div>
-                  <p className="text-lg font-extrabold sm:text-2xl">{match.away}</p>
-                  <p className="mt-1 text-xs text-white/40">{t("Away")}</p>
-                </div>
-              </div>
-              <div className="mt-7 grid grid-cols-3 gap-2">
-                {match.odds.result.map((odd, index) => {
-                  const label = ["1", "X", "2"][index]!;
-                  const outcome = `${label} · ${match.league}`;
-                  const selected = betting.selected.some(
-                    (pick) => pick.match.id === match.id && pick.outcome === outcome,
-                  );
-                  const disabled = odd === "—" || [
-                    "RESULTED", "CLOSED", "CANCELLED", "POST_TRADING", "INTERRUPTED",
-                  ].includes(match.status.toUpperCase());
-                  return (
-                    <button
-                      key={label}
-                      type="button"
-                      disabled={disabled}
-                      onClick={() =>
-                        betting.togglePick(match, outcome, odd, {
-                          type: "HOME_DRAW_AWAY",
-                          scope: "FULL_TIME",
-                          selection: label === "1" ? "home" : label === "X" ? "draw" : "away",
-                        })
-                      }
-                      className={`rounded-xl border p-3 text-center transition ${selected ? "border-[#c6f36b]/50 bg-[#c6f36b]/10" : "border-white/[.08] bg-black/10 hover:border-white/20"} ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
-                    >
-                      <span className="block text-xs text-white/45">{label}</span>
-                      <span className="mt-1 block font-extrabold tabular-nums text-[#d8ff9d]">{odd}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
+				{football.matchesQuery.isLoading ? (
+					<PanelMessage>{t("Loading match details…")}</PanelMessage>
+				) : football.matchesQuery.error ? (
+					<PanelMessage>{football.matchesQuery.error.message}</PanelMessage>
+				) : !match ? (
+					<PanelMessage>
+						{t(
+							"This match is no longer in the current Flashscore fixture feed. Go back to the match list and open a current fixture.",
+						)}
+					</PanelMessage>
+				) : (
+					<>
+						<section className="rounded-2xl border border-white/[.08] bg-[#111713] p-5 sm:p-8">
+							<div className="flex flex-wrap items-center gap-2 font-semibold text-white/45 text-xs">
+								<span>{match.categoryName}</span>
+								<span>·</span>
+								<span>{match.league}</span>
+								<span className="ms-auto inline-flex items-center gap-1.5">
+									{isLive ? (
+										<span className="inline-flex items-center gap-1.5 text-[#ff867a]">
+											<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ff867a]" />
+											{t("LIVE")} {result?.stage ? ` · ${t(result.stage)}` : ""}
+										</span>
+									) : (
+										<>
+											<Clock3 size={13} /> {formatKickoff(match.time, locale)}
+										</>
+									)}
+								</span>
+							</div>
+							<div className="mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
+								<div className="text-right">
+									<p className="font-extrabold text-lg sm:text-2xl">
+										{match.home}
+									</p>
+									<p className="mt-1 text-white/40 text-xs">{t("Home team")}</p>
+								</div>
+								<span className="font-extrabold text-2xl text-white tabular-nums">
+									{match.score.home !== null && match.score.away !== null
+										? `${match.score.home} – ${match.score.away}`
+										: t("vs")}
+								</span>
+								<div>
+									<p className="font-extrabold text-lg sm:text-2xl">
+										{match.away}
+									</p>
+									<p className="mt-1 text-white/40 text-xs">{t("Away")}</p>
+								</div>
+							</div>
+							{isLive && (
+								<p
+									className="mt-4 text-center text-white/55 text-xs"
+									aria-live="polite"
+								>
+									{result?.latestEventMinute
+										? `${t("Latest event")}: ${result.latestEventMinute}′`
+										: t("Waiting for match minute from provider.")}
+								</p>
+							)}
+							{match.status === "RESULTED" && (
+								<p className="mt-4 text-center text-[#c6f36b] text-xs">
+									{t("Match finished")}
+								</p>
+							)}
+							{resultQuery.isError && (
+								<p className="mt-3 text-center text-amber-300 text-xs">
+									{t("Live update unavailable. Showing last reported score.")}
+								</p>
+							)}
+							<div className="mt-7 grid grid-cols-3 gap-2">
+								{match.odds.result.map((odd, index) => {
+									const label = ["1", "X", "2"][index]!;
+									const outcome = `${label} · ${match.league}`;
+									const selected = betting.selected.some(
+										(pick) =>
+											pick.match.id === match.id && pick.outcome === outcome,
+									);
+									const disabled =
+										odd === "—" ||
+										[
+											"RESULTED",
+											"CLOSED",
+											"CANCELLED",
+											"POST_TRADING",
+											"INTERRUPTED",
+										].includes(match.status.toUpperCase());
+									return (
+										<button
+											key={label}
+											type="button"
+											disabled={disabled}
+											onClick={() =>
+												betting.togglePick(match, outcome, odd, {
+													type: "HOME_DRAW_AWAY",
+													scope: "FULL_TIME",
+													selection:
+														label === "1"
+															? "home"
+															: label === "X"
+																? "draw"
+																: "away",
+												})
+											}
+											className={`rounded-xl border p-3 text-center transition ${selected ? "border-[#c6f36b]/50 bg-[#c6f36b]/10" : "border-white/[.08] bg-black/10 hover:border-white/20"} ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
+										>
+											<span className="block text-white/45 text-xs">
+												{label}
+											</span>
+											<span className="mt-1 block font-extrabold text-[#d8ff9d] tabular-nums">
+												{odd}
+											</span>
+										</button>
+									);
+								})}
+							</div>
+						</section>
 
-            {football.oddsError && (
-              <PanelMessage>{t("Could not refresh additional prices")}: {football.oddsError}</PanelMessage>
-            )}
-            <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-              <section className="space-y-3">
-                <div>
-                  <h1 className="text-xl font-extrabold tracking-tight">{t("All offers")}</h1>
-                  <p className="mt-1 text-xs text-white/45">
-                    {t("Prices and markets supplied by the local Flashscore feed.")}
-                  </p>
-                </div>
-                {football.oddsLoading && match.odds.markets.length === 0 ? (
-                  <PanelMessage>{t("Loading Flashscore offers…")}</PanelMessage>
-                ) : (
-                  <MarketOffers
-                    match={match}
-                    selected={betting.selected}
-                    onPick={betting.togglePick}
-                  />
-                )}
-              </section>
-              <BetSlip
-                selected={betting.selected}
-                balance={betting.balance}
-                bets={betting.bets}
-                stake={betting.stake}
-                notice={betting.notice}
-                totalOdds={betting.totalOdds}
-                potentialReturn={betting.potentialReturn}
-                onStakeChange={betting.setStake}
-                onRemove={betting.removePick}
-                onPlace={betting.placeBet}
-              />
-            </div>
-          </>
-        )}
-      </div>
-    </main>
-  );
+						{football.oddsError && (
+							<PanelMessage>
+								{t("Could not refresh additional prices")}: {football.oddsError}
+							</PanelMessage>
+						)}
+						<div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+							<section className="space-y-3">
+								<div>
+									<h1 className="font-extrabold text-xl tracking-tight">
+										{t("All offers")}
+									</h1>
+									<p className="mt-1 text-white/45 text-xs">
+										{t(
+											"Prices and markets supplied by the local Flashscore feed.",
+										)}
+									</p>
+								</div>
+								{football.oddsLoading && match.odds.markets.length === 0 ? (
+									<PanelMessage>{t("Loading Flashscore offers…")}</PanelMessage>
+								) : (
+									<MarketOffers
+										match={match}
+										selected={betting.selected}
+										onPick={betting.togglePick}
+									/>
+								)}
+							</section>
+							<BetSlip {...betting.slipProps} />
+						</div>
+					</>
+				)}
+			</div>
+		</main>
+	);
 }
 
 function PanelMessage({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-white/[.08] bg-[#111014] p-6 text-sm text-white/55">
-      {children}
-    </div>
-  );
+	return (
+		<div className="rounded-2xl border border-white/[.08] bg-[#111014] p-6 text-sm text-white/55">
+			{children}
+		</div>
+	);
 }

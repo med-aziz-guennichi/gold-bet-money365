@@ -1,89 +1,188 @@
 import { appRouter } from "@gold-bet-clean-money365/api/routers/index";
+import { createAuthHttpHandler } from "@gold-bet-clean-money365/auth/http";
+import { createRateLimiter } from "@gold-bet-clean-money365/auth/rate-limit";
+import { getConnInfo } from "@hono/node-server/conninfo";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
-import { Hono } from "hono";
+import { Hono, type Context as HonoContext } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
-import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
 
 import { createContext } from "./context";
+import { authorizedWorker, clientAddress, serverPort } from "./deployment";
 import { ENV } from "./env.server";
-import { auth } from "./services";
+import { auth, bets, db } from "./services";
 
 const app = new Hono();
+const onVercel = process.env.VERCEL === "1";
+function clientIp(context: HonoContext) {
+	return clientAddress(
+		context.req.raw.headers,
+		onVercel ? "unknown" : (getConnInfo(context).remote.address ?? "unknown"),
+		onVercel,
+	);
+}
 
-app.use(logger());
+// Persisted pending bets recover after a restart. A tick never overlaps itself.
+let settling = false;
+async function settleBets() {
+	if (settling) return;
+	settling = true;
+	try {
+		await bets.settlePending();
+	} catch {
+		console.error("Bet result refresh unavailable; retrying next cycle.");
+	} finally {
+		settling = false;
+	}
+}
+if (!onVercel) {
+	setInterval(() => {
+		void settleBets();
+	}, 30_000).unref();
+	void settleBets();
+}
+
+app.use(secureHeaders());
+app.use(bodyLimit({ maxSize: 16 * 1024 }));
+// Never log query strings or request bodies: they can contain personal data.
+app.use(async (c, next) => {
+	await next();
+	console.info(`${c.req.method} ${c.req.path} ${c.res.status}`);
+});
 app.use(
-  "/*",
-  cors({
-    origin: ENV.CORS_ORIGIN,
-    allowMethods: ["GET", "POST", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  }),
+	"/*",
+	cors({
+		origin: ENV.CORS_ORIGIN,
+		allowMethods: ["GET", "POST", "OPTIONS"],
+		allowHeaders: ["Content-Type", "Authorization"],
+		credentials: true,
+	}),
 );
 
-app.on(["POST", "GET"], "/api/auth/*", async (c) => auth.handler(c.req.raw));
-
-export const apiHandler = new OpenAPIHandler(appRouter, {
-  plugins: [
-    new OpenAPIReferencePlugin({
-      schemaConverters: [new ZodToJsonSchemaConverter()],
-    }),
-  ],
-  interceptors: [
-    onError((error) => {
-      console.error(error);
-    }),
-  ],
-});
-
-export const rpcHandler = new RPCHandler(appRouter, {
-  interceptors: [
-    onError((error) => {
-      console.error(error);
-    }),
-  ],
+const apiRateLimit = createRateLimiter(db, ENV.BETTER_AUTH_SECRET);
+const authHttpHandler = await createAuthHttpHandler(auth, db, ENV);
+app.on(["POST", "GET"], "/api/auth/*", async (c) => {
+	c.header("Cache-Control", "no-store");
+	return authHttpHandler(c.req.raw, clientIp(c));
 });
 
 app.use("/*", async (c, next) => {
-  const context = await createContext({ context: c });
+	if (
+		c.req.path.startsWith("/rpc/") ||
+		c.req.path.startsWith("/api-reference/")
+	) {
+		c.header("Cache-Control", "no-store");
+		const rate = await apiRateLimit(`api:${clientIp(c)}`, {
+			window: 60,
+			max: 300,
+		});
+		if (!rate.allowed) {
+			c.header("Retry-After", String(rate.retryAfter));
+			return c.json(
+				{ message: "Too many requests. Please try again later." },
+				429,
+			);
+		}
+		if (
+			c.req.method !== "GET" &&
+			c.req.header("origin") !== new URL(ENV.CORS_ORIGIN).origin
+		)
+			return c.json({ message: "Invalid origin" }, 403);
+	}
+	await next();
+});
 
-  const rpcResult = await rpcHandler.handle(c.req.raw, {
-    prefix: "/rpc",
-    context: context,
-  });
+// Daemon credentials are independent of user sessions and never reach the browser.
+app.post("/internal/settle", async (c) => {
+	c.header("Cache-Control", "no-store");
+	if (!authorizedWorker(c.req.raw.headers, ENV.SETTLEMENT_WORKER_SECRET))
+		return c.json({ message: "Unauthorized" }, 401);
+	await bets.settlePending(5);
+	return c.json({ ok: true });
+});
+app.get("/health/ready", async (c) => {
+	c.header("Cache-Control", "no-store");
+	try {
+		const hello = await db.command({ hello: 1 }, { timeoutMS: 3000 });
+		if (!hello.setName && hello.msg !== "isdbgrid")
+			return c.json({ ok: false }, 503);
+		return c.json({ ok: true });
+	} catch {
+		return c.json({ ok: false }, 503);
+	}
+});
 
-  if (rpcResult.matched) {
-    return c.newResponse(rpcResult.response.body, rpcResult.response);
-  }
+export const apiHandler = new OpenAPIHandler(appRouter, {
+	plugins: [
+		new OpenAPIReferencePlugin({
+			schemaConverters: [new ZodToJsonSchemaConverter()],
+		}),
+	],
+	interceptors: [
+		onError((error) => {
+			console.error(
+				"API request failed",
+				error instanceof Error ? error.name : "UnknownError",
+			);
+		}),
+	],
+});
 
-  const apiResult = await apiHandler.handle(c.req.raw, {
-    prefix: "/api-reference",
-    context: context,
-  });
+export const rpcHandler = new RPCHandler(appRouter, {
+	interceptors: [
+		onError((error) => {
+			console.error(
+				"API request failed",
+				error instanceof Error ? error.name : "UnknownError",
+			);
+		}),
+	],
+});
 
-  if (apiResult.matched) {
-    return c.newResponse(apiResult.response.body, apiResult.response);
-  }
+app.use("/*", async (c, next) => {
+	const context = await createContext({ context: c });
 
-  await next();
+	const rpcResult = await rpcHandler.handle(c.req.raw, {
+		prefix: "/rpc",
+		context: context,
+	});
+
+	if (rpcResult.matched) {
+		return c.newResponse(rpcResult.response.body, rpcResult.response);
+	}
+
+	const apiResult = await apiHandler.handle(c.req.raw, {
+		prefix: "/api-reference",
+		context: context,
+	});
+
+	if (apiResult.matched) {
+		return c.newResponse(apiResult.response.body, apiResult.response);
+	}
+
+	await next();
 });
 
 app.get("/", (c) => {
-  return c.text("OK");
+	return c.text("OK");
 });
 
 import { serve } from "@hono/node-server";
 
-serve(
-  {
-    fetch: app.fetch,
-    port: 3000,
-  },
-  (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
-  },
-);
+if (!onVercel)
+	serve(
+		{
+			fetch: app.fetch,
+			port: serverPort(process.env.PORT),
+		},
+		(info) => {
+			console.log(`Server is running on http://localhost:${info.port}`);
+		},
+	);
+
+export default app;

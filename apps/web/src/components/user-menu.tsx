@@ -1,63 +1,123 @@
+import {
+	canUseDashboard,
+	formatTnd,
+} from "@gold-bet-clean-money365/api/access";
 import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 } from "@gold-bet-clean-money365/ui/components/dropdown-menu";
 import { Skeleton } from "@gold-bet-clean-money365/ui/components/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-import { authClient } from "@/lib/auth-client";
 import { useI18n } from "@/features/i18n/locale-provider";
+import { authClient } from "@/lib/auth-client";
+import { orpc, queryClient } from "@/utils/orpc";
 
 export default function UserMenu() {
-  const { t } = useI18n();
-  const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
+	const { t } = useI18n();
+	const router = useRouter();
+	const { data: session, isPending } = authClient.useSession();
+	const wallet = useQuery(
+		orpc.accounts.wallet.queryOptions({
+			queryKey: ["management", session?.user.id, "wallet"],
+			enabled: Boolean(session),
+			staleTime: 10_000,
+			refetchInterval: session?.user.role === "user" ? 30_000 : false,
+			retry: false,
+		}),
+	);
 
-  if (isPending) {
-    return <Skeleton className="h-9 w-24" />;
-  }
+	if (isPending) {
+		return <Skeleton className="h-9 w-24" />;
+	}
 
-  if (!session) {
-    return (
-      <Link href="/login">
-        <Button variant="outline">{t("Sign In")}</Button>
-      </Link>
-    );
-  }
+	if (!session) {
+		return (
+			<Link href="/login">
+				<Button variant="outline">{t("Sign In")}</Button>
+			</Link>
+		);
+	}
 
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" />}>
-        {session.user.name}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>{t("My Account")}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => {
-              authClient.signOut({
-                fetchOptions: {
-                  onSuccess: () => {
-                    router.push("/");
-                  },
-                },
-              });
-            }}
-          >
-            {t("Sign Out")}
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+	return (
+		<div className="flex items-center gap-2">
+			{session.user.role === "user" && (
+				<div
+					aria-live="polite"
+					className="rounded-lg border border-[#c6f36b]/20 bg-[#c6f36b]/10 px-3 py-2 text-xs"
+				>
+					<span className="block text-[9px] text-white/50">
+						{t("Wallet credits")}
+					</span>
+					<strong className="text-[#c6f36b] tabular-nums">
+						{wallet.data
+							? formatTnd(wallet.data.balanceMillimes)
+							: wallet.isError
+								? t("Unavailable")
+								: t("Loading…")}
+					</strong>
+				</div>
+			)}
+			<DropdownMenu>
+				<DropdownMenuTrigger
+					aria-label={session.user.name}
+					render={<Button variant="outline" />}
+				>
+					<UserRound className="sm:hidden" size={16} />
+					<span className="hidden max-w-32 truncate sm:inline">
+						{session.user.name}
+					</span>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent className="bg-card">
+					<DropdownMenuGroup>
+						<DropdownMenuLabel>{t("My Account")}</DropdownMenuLabel>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem>{session.user.phoneNumber}</DropdownMenuItem>
+						{session.user.role !== "admin" && wallet.data && (
+							<DropdownMenuItem>
+								Wallet: {formatTnd(wallet.data.balanceMillimes)}
+							</DropdownMenuItem>
+						)}
+						{canUseDashboard(session.user.role) && (
+							<DropdownMenuItem render={<Link href="/dashboard" />}>
+								Dashboard
+							</DropdownMenuItem>
+						)}
+						{session.user.role === "user" && (
+							<DropdownMenuItem render={<Link href="/bets" />}>
+								{t("Bet history")}
+							</DropdownMenuItem>
+						)}
+						<DropdownMenuItem render={<Link href="/account" />}>
+							Change password
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							variant="destructive"
+							onClick={() => {
+								authClient.signOut({
+									fetchOptions: {
+										onSuccess: () => {
+											queryClient.clear();
+											router.replace("/");
+											router.refresh();
+										},
+									},
+								});
+							}}
+						>
+							{t("Sign Out")}
+						</DropdownMenuItem>
+					</DropdownMenuGroup>
+				</DropdownMenuContent>
+			</DropdownMenu>
+		</div>
+	);
 }

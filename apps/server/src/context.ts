@@ -1,22 +1,27 @@
 import type { Context as ApiContext } from "@gold-bet-clean-money365/api/context";
+import { activeAccount } from "@gold-bet-clean-money365/auth/storage";
 import type { Context as HonoContext } from "hono";
-
-import { auth, db } from "./services";
+import { accounts, auth, bets, db } from "./services";
 import { flashscoreService } from "./services/flashscore";
 
 export type CreateContextOptions = {
-  context: HonoContext;
+	context: HonoContext;
 };
 
-export async function createContext({ context }: CreateContextOptions): Promise<ApiContext> {
-  const session = await auth.api.getSession({
-    headers: context.req.raw.headers,
-  });
-  return {
-    db,
-    session,
-    flashscore: flashscoreService,
-  };
+export async function createContext({
+	context,
+}: CreateContextOptions): Promise<ApiContext> {
+	const session = await auth.api.getSession({
+		headers: context.req.raw.headers,
+	});
+	return {
+		db,
+		accounts,
+		bets,
+		session:
+			session && (await activeAccount(db, session.user.id)) ? session : null,
+		flashscore: flashscoreService,
+	};
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;

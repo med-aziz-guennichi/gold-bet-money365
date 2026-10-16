@@ -1,133 +1,134 @@
-import { Button } from "@gold-bet-clean-money365/ui/components/button";
-import { Input } from "@gold-bet-clean-money365/ui/components/input";
-import { Label } from "@gold-bet-clean-money365/ui/components/label";
-import { useForm } from "@tanstack/react-form";
+"use client";
+
+import {
+	canUseDashboard,
+	normalizePhone,
+} from "@gold-bet-clean-money365/api/access";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import z from "zod";
-
+import { type FormEvent, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { queryClient } from "@/utils/orpc";
 
-import Loader from "./loader";
-import { useI18n } from "@/features/i18n/locale-provider";
-
-export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () => void }) {
-  const { t } = useI18n();
-  const router = useRouter();
-  const { isPending } = authClient.useSession();
-
-  const form = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-    onSubmit: async ({ value }) => {
-      await authClient.signIn.email(
-        {
-          email: value.email,
-          password: value.password,
-        },
-        {
-          onSuccess: () => {
-            router.push("/dashboard");
-            toast.success(t("Sign in successful"));
-          },
-          onError: (error) => {
-            toast.error(error.error.message || error.error.statusText);
-          },
-        },
-      );
-    },
-    validators: {
-      onSubmit: z.object({
-        email: z.email(t("Invalid email address")),
-        password: z.string().min(8, t("Password must be at least 8 characters")),
-      }),
-    },
-  });
-
-  if (isPending) {
-    return <Loader />;
-  }
-
-  return (
-    <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">{t("Welcome Back")}</h1>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
-      >
-        <div>
-          <form.Field name="email">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>{t("Email")}</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="email"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
-
-        <div>
-          <form.Field name="password">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>{t("Password")}</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
-
-        <form.Subscribe
-          selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
-              {isSubmitting ? t("Submitting...") : t("Sign In")}
-            </Button>
-          )}
-        </form.Subscribe>
-      </form>
-
-      <div className="mt-4 text-center">
-        <Button
-          variant="link"
-          onClick={onSwitchToSignUp}
-          className="text-indigo-600 hover:text-indigo-800"
-        >
-          {t("Need an account? Sign Up")}
-        </Button>
-      </div>
-    </div>
-  );
+export default function SignInForm() {
+	const router = useRouter();
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	async function submit(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		if (busy) return;
+		const form = new FormData(event.currentTarget);
+		let phoneNumber: string;
+		try {
+			const localNumber = String(form.get("phoneNumber") ?? "").trim();
+			if (!/^\d{8}$/.test(localNumber)) throw new Error("Invalid local number");
+			phoneNumber = normalizePhone(`+216${localNumber}`);
+		} catch {
+			setError("Enter your 8-digit phone number, for example 92156030.");
+			return;
+		}
+		setBusy(true);
+		setError("");
+		try {
+			const result = await authClient.signIn.phoneNumber({
+				phoneNumber,
+				password: String(form.get("password") ?? ""),
+				rememberMe: false,
+			});
+			if (result.error) {
+				setError(
+					result.error.status === 429
+						? "Too many sign-in attempts. Please wait before trying again."
+						: "Invalid phone number or password.",
+				);
+				return;
+			}
+			queryClient.clear();
+			const session = await authClient.getSession();
+			router.replace(
+				canUseDashboard(session.data?.user.role) ? "/dashboard" : "/",
+			);
+			router.refresh();
+		} catch {
+			setError("Unable to sign in. Please try again.");
+		} finally {
+			setBusy(false);
+		}
+	}
+	const field =
+		"mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white outline-none focus:border-[#c6f36b]";
+	return (
+		<section className="mx-auto mt-14 max-w-md rounded-3xl border border-white/10 bg-[#111713] p-7 shadow-xl">
+			<Link href="/" className="text-[#c6f36b] text-sm">
+				Back to Fieldhouse
+			</Link>
+			<h1 className="mt-6 font-bold text-3xl">Welcome back</h1>
+			<p className="mt-2 text-sm text-white/50">
+				Sign in with your phone number and password.
+			</p>
+			<form onSubmit={submit} className="mt-7 space-y-5">
+				<label className="block text-sm" htmlFor="phoneNumber">
+					Phone number
+					<div
+						dir="ltr"
+						className="mt-2 flex overflow-hidden rounded-xl border border-white/15 bg-white/5 focus-within:border-[#c6f36b]"
+					>
+						<input
+							aria-label="Country code"
+							value="+216"
+							disabled
+							className="w-20 shrink-0 border-white/15 border-e bg-white/5 px-3 py-3 text-center text-white/50 opacity-100"
+						/>
+						<input
+							className="min-w-0 flex-1 bg-transparent px-4 py-3 text-white outline-none"
+							id="phoneNumber"
+							name="phoneNumber"
+							type="tel"
+							inputMode="numeric"
+							autoComplete="username"
+							placeholder="92156030"
+							pattern="[0-9]{8}"
+							minLength={8}
+							maxLength={8}
+							aria-describedby="phone-hint"
+							required
+							disabled={busy}
+						/>
+					</div>
+					<span id="phone-hint" className="mt-2 block text-white/40 text-xs">
+						Enter only your 8-digit phone number.
+					</span>
+				</label>
+				<label className="block text-sm" htmlFor="password">
+					Password
+					<input
+						className={field}
+						id="password"
+						name="password"
+						type="password"
+						autoComplete="current-password"
+						maxLength={128}
+						required
+						disabled={busy}
+					/>
+				</label>
+				{error && (
+					<p role="alert" className="text-red-300 text-sm">
+						{error}
+					</p>
+				)}
+				<button
+					className="w-full rounded-xl bg-[#c6f36b] py-3 font-bold text-[#11160b] disabled:opacity-50"
+					type="submit"
+					disabled={busy}
+				>
+					{busy ? "Signing in…" : "Login"}
+				</button>
+			</form>
+			<p className="mt-5 text-white/40 text-xs leading-5">
+				Accounts are provided by your account manager. Contact them if you need
+				access or a password reset.
+			</p>
+		</section>
+	);
 }
