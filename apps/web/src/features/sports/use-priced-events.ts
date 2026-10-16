@@ -1,10 +1,13 @@
 "use client";
 
+import { currentEventStatus } from "@gold-bet-clean-money365/api/event-status";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { orpc } from "@/utils/orpc";
+import { useEventClock } from "./use-event-clock";
 
 export function usePricedEvents(sport: string) {
+	const now = useEventClock();
 	const sports = useQuery(
 		orpc.flashscore.sports.queryOptions({ staleTime: 300_000, retry: false }),
 	);
@@ -15,6 +18,7 @@ export function usePricedEvents(sport: string) {
 		initialPageParam: 0,
 		getNextPageParam: (page) => page.nextCursor ?? undefined,
 		staleTime: 60_000,
+		refetchInterval: 60_000,
 		refetchOnWindowFocus: false,
 		refetchOnReconnect: false,
 		retry: false,
@@ -27,8 +31,14 @@ export function usePricedEvents(sport: string) {
 						.flatMap((page) => page.matches)
 						.map((match) => [match.id, match]),
 				).values(),
+			).filter(
+				(match) =>
+					events.dataUpdatedAt > now - 180_000 &&
+					["TRADING", "TRADING_LIVE"].includes(
+						currentEventStatus(match.status, match.time, now),
+					),
 			),
-		[events.data],
+		[events.data, events.dataUpdatedAt, now],
 	);
 	// Skip empty opening batches without an unbounded crawl through the schedule.
 	useEffect(() => {

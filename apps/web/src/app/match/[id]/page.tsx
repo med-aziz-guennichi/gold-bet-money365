@@ -1,9 +1,9 @@
 "use client";
 
+import { currentEventStatus } from "@gold-bet-clean-money365/api/event-status";
 import { ArrowLeft, Clock3 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-
 import { BetSlip } from "@/components/sports/bet-slip";
 import { MarketOffers } from "@/components/sports/market-offers";
 import { SiteHeader } from "@/components/sports/page-chrome";
@@ -11,6 +11,7 @@ import { PrimaryOdds } from "@/components/sports/primary-odds";
 import { useI18n } from "@/features/i18n/locale-provider";
 import { sportsHomeHref } from "@/features/sports/navigation";
 import { useBetting } from "@/features/sports/use-betting";
+import { useEventClock } from "@/features/sports/use-event-clock";
 import { useFlashscoreMatches } from "@/features/sports/use-flashscore-matches";
 import { useMatchResult } from "@/features/sports/use-match-result";
 import { formatKickoff, isMatchUnavailable } from "@/features/sports/utils";
@@ -22,12 +23,18 @@ export default function MatchPage() {
 	const football = useFlashscoreMatches(matchId);
 	const betting = useBetting();
 	const resultQuery = useMatchResult(matchId);
+	const now = useEventClock();
+	const statusFresh =
+		!resultQuery.isError && resultQuery.dataUpdatedAt > now - 90_000;
 	const result = resultQuery.data?.results[0];
 	const fixture = football.matches.find((item) => String(item.id) === matchId);
 	const match = fixture
 		? {
 				...fixture,
-				status: result?.status ?? fixture.status,
+				status:
+					statusFresh && result
+						? currentEventStatus(result.status, fixture.time, now)
+						: "UNKNOWN",
 				score: result?.score ?? fixture.score,
 			}
 		: undefined;
@@ -108,6 +115,19 @@ export default function MatchPage() {
 									{t("Match finished")}
 								</p>
 							)}
+							{["UNKNOWN", "AWAITING_RESULTS"].includes(match.status) && (
+								<p
+									role="status"
+									className="mt-4 text-center text-amber-300 text-xs"
+								>
+									{t(
+										"Betting paused: waiting for a verified current match status.",
+									)}
+								</p>
+							)}
+							<p className="mt-2 text-center text-white/45 text-xs">
+								{t("Match times: Tunisia (UTC+1)")}
+							</p>
 							{resultQuery.isError && (
 								<p className="mt-3 text-center text-amber-300 text-xs">
 									{t("Live update unavailable. Showing last reported score.")}

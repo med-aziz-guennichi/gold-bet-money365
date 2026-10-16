@@ -1,3 +1,4 @@
+import { currentEventStatus } from "@gold-bet-clean-money365/api/event-status";
 import type {
 	FlashscoreService,
 	FootballMatch,
@@ -119,7 +120,7 @@ function toCategoryKey(value: string) {
 }
 
 function normalizeStatus(status?: string) {
-	const value = (status ?? "scheduled").trim().toLowerCase();
+	const value = (status ?? "unknown").trim().toLowerCase();
 	if (
 		["live", "in_play", "in play"].includes(value) ||
 		value.includes("1st half") ||
@@ -140,7 +141,7 @@ function normalizeStatus(status?: string) {
 		return "RESULTED";
 	if (["cancelled", "canceled"].includes(value)) return "CANCELLED";
 	if (["postponed", "suspended"].includes(value)) return "POST_TRADING";
-	return "TRADING";
+	return value === "scheduled" ? "TRADING" : "UNKNOWN";
 }
 
 function normalizeScore(match: MatchPayload) {
@@ -308,7 +309,9 @@ export class FlashscoreClient implements FlashscoreService {
 		return this.browseCache.get(`${input.sport}:${input.cursor}`, async () => {
 			const fixtures = await this.getMatches({ sport: input.sport });
 			const candidates = fixtures.matches.filter((match) =>
-				["TRADING", "TRADING_LIVE"].includes(match.status),
+				["TRADING", "TRADING_LIVE"].includes(
+					currentEventStatus(match.status, match.time),
+				),
 			);
 			const batch = candidates.slice(input.cursor, input.cursor + 30);
 			const prices = await this.getOdds(batch.map((match) => match.id));
@@ -461,7 +464,10 @@ export class FlashscoreClient implements FlashscoreService {
 					under: "—",
 				},
 			},
-			status: normalizeStatus(match.status),
+			status: currentEventStatus(
+				normalizeStatus(match.status),
+				match.start_time,
+			),
 		};
 	}
 
@@ -564,7 +570,10 @@ export class FlashscoreClient implements FlashscoreService {
 											43: "POST_TRADING",
 										} as Record<number, string>
 									)[event.stage_id ?? 0] ?? "INTERRUPTED")
-								: normalizeStatus(event.status);
+								: currentEventStatus(
+										normalizeStatus(event.status),
+										event.start_time ?? "",
+									);
 							const score =
 								typeof event.home_score === "number" &&
 								typeof event.away_score === "number"

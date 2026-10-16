@@ -4,6 +4,9 @@ export type Locale = (typeof locales)[number];
 /** English is the source copy; localized dictionaries intentionally fall back to it. */
 const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 	fr: {
+		"Betting paused: waiting for a verified current match status.":
+			"Paris suspendus : en attente d’un statut actuel vérifié du match.",
+		"Match times: Tunisia (UTC+1)": "Horaires : Tunisie (UTC+1)",
 		"Betting is closed or suspended for this event.":
 			"Les paris sont fermés ou suspendus pour cet événement.",
 		"View only: this market does not support bet settlement yet.":
@@ -350,6 +353,9 @@ const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 		"Full time over time": "Temps réglementaire et prolongations",
 	},
 	ar: {
+		"Betting paused: waiting for a verified current match status.":
+			"الرهان متوقف: في انتظار التحقق من الحالة الحالية للمباراة.",
+		"Match times: Tunisia (UTC+1)": "توقيت المباريات: تونس (UTC+1)",
 		"Betting is closed or suspended for this event.":
 			"المراهنة مغلقة أو معلقة لهذا الحدث.",
 		"View only: this market does not support bet settlement yet.":

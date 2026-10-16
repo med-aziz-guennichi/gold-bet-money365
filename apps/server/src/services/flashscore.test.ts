@@ -93,3 +93,44 @@ test("multi-sport browsing filters inactive/unpriced events, caches batches and 
 		/Unknown sport/,
 	);
 });
+
+test("past scheduled and unknown events cannot become tradable; finished events leave browsing", async () => {
+	loadEnvFile(new URL("../../.env", import.meta.url));
+	process.env.VERCEL = "1";
+	const { FlashscoreClient } = await import("./flashscore");
+	const past = new Date(Date.now() - 4 * 3600_000).toISOString();
+	const fixtures = ["scheduled", "finished", "mystery"].map(
+		(status, index) => ({
+			id: `closed0${index}`,
+			status,
+			start_time: past,
+			home: { name: "Home" },
+			away: { name: "Away" },
+		}),
+	);
+	const client = new FlashscoreClient(async <T>(path: string): Promise<T> => {
+		const url = new URL(path, "http://test");
+		if (url.pathname === "/sports")
+			return { sports: [{ id: 1, slug: "football", name: "Football" }] } as T;
+		if (url.pathname === "/matches/details")
+			return { ...fixtures[0], sport: { name: "Football" } } as T;
+		if (url.pathname === "/matches/odds")
+			throw new Error("Closed events must not request prices");
+		return {
+			sport: { name: "Football" },
+			competitions: [{ matches: fixtures }],
+		} as T;
+	});
+	assert.deepEqual(
+		(await client.getPricedMatches({ sport: "football", cursor: 0 })).matches,
+		[],
+	);
+	assert.equal(
+		(await client.getMatches({ ids: ["closed00"] })).matches[0]?.status,
+		"AWAITING_RESULTS",
+	);
+	assert.equal(
+		(await client.getResults(["closed00"], { fresh: true })).results[0]?.status,
+		"AWAITING_RESULTS",
+	);
+});

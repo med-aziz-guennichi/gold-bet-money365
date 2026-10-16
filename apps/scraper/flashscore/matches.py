@@ -16,7 +16,7 @@ tell "this match has no line-ups" from "the request failed".
 """
 from . import parsers as P
 from . import refs
-from .fetch import (FlashscoreNotFound, gather, get_feed, get_graphql,
+from .fetch import (FlashscoreNotFound, FlashscoreUpstreamError, gather, get_feed, get_graphql,
                     get_graphql_optional, get_page, run_parallel)
 
 _SPORT_SLOT = 1          # ignored by the upstream; any integer works
@@ -250,7 +250,12 @@ def get_details(match):
         if isinstance(entry, dict):
             core.update({k: v for k, v in entry.items()})
     core = {k: ("" if v is None else str(v)) for k, v in core.items()}
-    summary = _core_summary(match_id, core)
+    # Page HTML is CDN cached and can still describe a scheduled event hours
+    # after kickoff. The live core feed is authoritative; fail if unavailable.
+    live_core = _core(match_id)
+    if not live_core.get("DA") or not live_core.get("DC"):
+        raise FlashscoreUpstreamError("Current match status is unavailable")
+    summary = _core_summary(match_id, live_core)
     sport_id = P.to_int(environment.get("sport_id")) or (summary.get("sport") or {}).get("id")
     summary["sport"] = refs.sport_ref(sport_id) or summary.get("sport")
     header = environment.get("header") or {}

@@ -16,6 +16,7 @@ export function formatKickoff(value: string, locale = "en") {
   return new Intl.DateTimeFormat(dateLocale, {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "Africa/Tunis",
   }).format(new Date(value));
 }
 
