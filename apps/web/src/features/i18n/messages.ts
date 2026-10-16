@@ -4,6 +4,13 @@ export type Locale = (typeof locales)[number];
 /** English is the source copy; localized dictionaries intentionally fall back to it. */
 const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 	fr: {
+		Today: "Aujourd’hui",
+		Tomorrow: "Demain",
+		"Day after tomorrow": "Après-demain",
+		"Results · last 24 hours": "Résultats · dernières 24 heures",
+		"Match dates": "Dates des matchs",
+		"Upcoming games with odds and recent results · Tunisia time (UTC+1)":
+			"Matchs à venir avec cotes et résultats récents · heure de Tunisie (UTC+1)",
 		"Betting paused: waiting for a verified current match status.":
 			"Paris suspendus : en attente d’un statut actuel vérifié du match.",
 		"Match times: Tunisia (UTC+1)": "Horaires : Tunisie (UTC+1)",
@@ -353,6 +360,13 @@ const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 		"Full time over time": "Temps réglementaire et prolongations",
 	},
 	ar: {
+		Today: "اليوم",
+		Tomorrow: "غداً",
+		"Day after tomorrow": "بعد غد",
+		"Results · last 24 hours": "النتائج · آخر 24 ساعة",
+		"Match dates": "تواريخ المباريات",
+		"Upcoming games with odds and recent results · Tunisia time (UTC+1)":
+			"المباريات القادمة مع الأسعار والنتائج الأخيرة · توقيت تونس (UTC+1)",
 		"Betting paused: waiting for a verified current match status.":
 			"الرهان متوقف: في انتظار التحقق من الحالة الحالية للمباراة.",
 		"Match times: Tunisia (UTC+1)": "توقيت المباريات: تونس (UTC+1)",

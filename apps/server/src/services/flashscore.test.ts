@@ -78,6 +78,8 @@ test("multi-sport browsing filters inactive/unpriced events, caches batches and 
 		first,
 	);
 	assert.equal(calls.length, count);
+	assert.ok(calls.some((path) => path.includes("day=2")));
+	assert.ok(calls.some((path) => path.includes("day=-1")));
 	const next = await client.getPricedMatches({ sport: "tennis", cursor: 30 });
 	assert.equal(next.matches.length, 5);
 	assert.equal(next.nextCursor, null);
@@ -94,7 +96,76 @@ test("multi-sport browsing filters inactive/unpriced events, caches batches and 
 	);
 });
 
-test("past scheduled and unknown events cannot become tradable; finished events leave browsing", async () => {
+test("day filters include both future days and retain only results within 24 hours", async () => {
+	loadEnvFile(new URL("../../.env", import.meta.url));
+	process.env.VERCEL = "1";
+	const { FlashscoreClient } = await import("./flashscore");
+	const now = Date.now();
+	const fixture = (
+		id: string,
+		offset: number,
+		status = "scheduled",
+		endOffset?: number,
+	) => ({
+		id,
+		status,
+		start_time: new Date(now + offset).toISOString(),
+		end_time:
+			endOffset === undefined
+				? undefined
+				: new Date(now + endOffset).toISOString(),
+		home: { name: "Home" },
+		away: { name: "Away" },
+		home_score: status === "finished" ? 2 : null,
+		away_score: status === "finished" ? 1 : null,
+	});
+	const fixtures = [
+		fixture("nextday1", 86400_000),
+		fixture("nextday2", 2 * 86400_000),
+		fixture("recent01", -5 * 3600_000, "finished", -3 * 3600_000),
+		fixture("oldgame1", -28 * 3600_000, "finished", -25 * 3600_000),
+	];
+	const client = new FlashscoreClient(async <T>(path: string): Promise<T> => {
+		if (path === "/sports")
+			return { sports: [{ id: 1, slug: "football", name: "Football" }] } as T;
+		if (path.startsWith("/matches/odds"))
+			return {
+				markets: [
+					{
+						bet_type: "HOME_DRAW_AWAY",
+						bet_scope: "FULL_TIME",
+						selections: [{ selection: "home", value: 2, is_active: true }],
+					},
+				],
+			} as T;
+		return {
+			sport: { name: "Football" },
+			competitions: [{ matches: fixtures }],
+		} as T;
+	});
+	assert.deepEqual(
+		(
+			await client.getPricedMatches({ sport: "football", day: 1, cursor: 0 })
+		).matches.map((m) => m.id),
+		["nextday1"],
+	);
+	assert.deepEqual(
+		(
+			await client.getPricedMatches({ sport: "football", day: 2, cursor: 0 })
+		).matches.map((m) => m.id),
+		["nextday2"],
+	);
+	const recent = (
+		await client.getPricedMatches({ sport: "football", day: -1, cursor: 0 })
+	).matches;
+	assert.deepEqual(
+		recent.map((m) => m.id),
+		["recent01"],
+	);
+	assert.deepEqual(recent[0]?.score, { home: 2, away: 1 });
+});
+
+test("past scheduled events stay closed while recent results remain visible", async () => {
 	loadEnvFile(new URL("../../.env", import.meta.url));
 	process.env.VERCEL = "1";
 	const { FlashscoreClient } = await import("./flashscore");
@@ -114,16 +185,16 @@ test("past scheduled and unknown events cannot become tradable; finished events 
 			return { sports: [{ id: 1, slug: "football", name: "Football" }] } as T;
 		if (url.pathname === "/matches/details")
 			return { ...fixtures[0], sport: { name: "Football" } } as T;
-		if (url.pathname === "/matches/odds")
-			throw new Error("Closed events must not request prices");
+		if (url.pathname === "/matches/odds") return { markets: [] } as T;
 		return {
 			sport: { name: "Football" },
 			competitions: [{ matches: fixtures }],
 		} as T;
 	});
-	assert.deepEqual(
-		(await client.getPricedMatches({ sport: "football", cursor: 0 })).matches,
-		[],
+	assert.equal(
+		(await client.getPricedMatches({ sport: "football", cursor: 0 })).matches[0]
+			?.status,
+		"RESULTED",
 	);
 	assert.equal(
 		(await client.getMatches({ ids: ["closed00"] })).matches[0]?.status,

@@ -9,6 +9,7 @@ export function sportSlug(name?: string) {
 	return slug || "football";
 }
 
-export function sportsHomeHref(sport?: string) {
-	return `/?sport=${sportSlug(sport)}#matches` as const;
+export function sportsHomeHref(sport?: string, day = "0") {
+	const safeDay = ["-1", "0", "1", "2"].includes(day) ? day : "0";
+	return `/?sport=${sportSlug(sport)}&day=${safeDay}#matches` as const;
 }

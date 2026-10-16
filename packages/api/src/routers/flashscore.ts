@@ -20,6 +20,7 @@ export const flashscoreRouter = {
 				.object({
 					sport: z.string().regex(/^[a-z][a-z-]{0,40}$/),
 					cursor: z.number().int().min(0).max(50000).default(0),
+					day: z.number().int().min(-1).max(2).optional(),
 				})
 				.strict(),
 		)

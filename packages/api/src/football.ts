@@ -7,6 +7,7 @@ export type FootballMatch = {
 	categoryName: string;
 	categoryKey: string;
 	time: string;
+	finishedAt?: string;
 	home: string;
 	away: string;
 	homeMark: string;
@@ -108,6 +109,7 @@ export type FlashscoreService = {
 	getPricedMatches?(input: {
 		sport: string;
 		cursor: number;
+		day?: number;
 	}): Promise<
 		FootballMatchesResponse & { nextCursor: number | null; checked: number }
 	>;

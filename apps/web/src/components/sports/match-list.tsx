@@ -3,6 +3,7 @@
 import type { FootballMatch as Match } from "@gold-bet-clean-money365/api/football";
 import { ChevronDown, ChevronLeft, ChevronRight, Globe2 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/features/i18n/locale-provider";
 import { sportSlug } from "@/features/sports/navigation";
@@ -242,6 +243,8 @@ function MatchRow({
 }) {
 	const { t, locale } = useI18n();
 	const isLive = match.status === "TRADING_LIVE";
+	const searchParams = useSearchParams();
+	const day = searchParams.get("day") ?? "0";
 	const disabled = isUnavailable(match.status);
 
 	return (
@@ -252,6 +255,12 @@ function MatchRow({
 					<span className="shrink-0 text-white/30">{t("vs")}</span>
 					<span className="truncate">{match.away}</span>
 				</div>
+				{match.score.home !== null && match.score.away !== null && (
+					<p className="mt-2 font-bold text-[#c6f36b] text-sm tabular-nums">
+						{match.score.home} – {match.score.away}
+						{match.status === "RESULTED" ? ` · ${t("Match finished")}` : ""}
+					</p>
+				)}
 				<div className="mt-1.5 flex flex-wrap items-center gap-2 text-[9px] text-white/35">
 					{isLive ? (
 						<span className="flex items-center gap-1 font-bold text-[#f66c61]">
@@ -279,7 +288,7 @@ function MatchRow({
 				disabled={disabled}
 			/>
 			<Link
-				href={`/match/${encodeURIComponent(String(match.id))}?sport=${sportSlug(match.sport)}`}
+				href={`/match/${encodeURIComponent(String(match.id))}?sport=${sportSlug(match.sport)}&day=${encodeURIComponent(day)}`}
 				className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-white/[.07] bg-white/[.025] px-2 py-2 font-bold text-[10px] text-white/65 transition hover:border-[#c6f36b]/30 hover:text-[#d8ff9d]"
 				aria-label={`${t("View all offers for")} ${match.home} ${t("vs")} ${match.away}`}
 			>

@@ -3,7 +3,7 @@
 import { currentEventStatus } from "@gold-bet-clean-money365/api/event-status";
 import { ArrowLeft, Clock3 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { BetSlip } from "@/components/sports/bet-slip";
 import { MarketOffers } from "@/components/sports/market-offers";
 import { SiteHeader } from "@/components/sports/page-chrome";
@@ -19,6 +19,7 @@ import { formatKickoff, isMatchUnavailable } from "@/features/sports/utils";
 export default function MatchPage() {
 	const { t, locale } = useI18n();
 	const params = useParams<{ id: string }>();
+	const searchParams = useSearchParams();
 	const matchId = decodeURIComponent(params.id);
 	const football = useFlashscoreMatches(matchId);
 	const betting = useBetting();
@@ -45,7 +46,7 @@ export default function MatchPage() {
 			<SiteHeader />
 			<div className="mx-auto max-w-[1100px] space-y-6 px-4 pt-8 pb-16 sm:px-8">
 				<Link
-					href={sportsHomeHref(match?.sport)}
+					href={sportsHomeHref(match?.sport, searchParams.get("day") ?? "0")}
 					className="inline-flex items-center gap-2 font-semibold text-sm text-white/55 transition hover:text-white"
 				>
 					<ArrowLeft size={15} /> {t("Back to matches")}

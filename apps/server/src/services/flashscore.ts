@@ -18,6 +18,7 @@ type MatchPayload = {
 	id?: string;
 	status?: string;
 	start_time?: string;
+	end_time?: string;
 	home?: TeamPayload;
 	away?: TeamPayload;
 	home_score?: number | null;
@@ -102,7 +103,7 @@ function normalizeOfferLabel(value: unknown): string | null {
 
 const DEFAULT_BASE_URL = "http://127.0.0.1:8000";
 const ODDS_CONCURRENCY = 6;
-const FINISHED_MATCH_RETENTION_MS = 60 * 60 * 1000;
+const FINISHED_MATCH_RETENTION_MS = 24 * 60 * 60 * 1000;
 // Fixture, price and detail caches remain separate so accepting a bet can
 // bypass display prices without crawling a whole sport schedule.
 
@@ -305,66 +306,118 @@ export class FlashscoreClient implements FlashscoreService {
 		return this.fixturesCache.get(sport, () => this.fetchMatches(sport));
 	}
 
-	async getPricedMatches(input: { sport: string; cursor: number }) {
-		return this.browseCache.get(`${input.sport}:${input.cursor}`, async () => {
-			const fixtures = await this.getMatches({ sport: input.sport });
-			const candidates = fixtures.matches.filter((match) =>
-				["TRADING", "TRADING_LIVE"].includes(
-					currentEventStatus(match.status, match.time),
-				),
-			);
-			const batch = candidates.slice(input.cursor, input.cursor + 30);
-			const prices = await this.getOdds(batch.map((match) => match.id));
-			// Transport failures are distinct from genuine events without offered odds.
-			if (
-				batch.length &&
-				Object.values(prices.odds).every((value) => value === null)
-			)
-				throw new Error("Prices are temporarily unavailable. Please retry.");
-			const matches = batch.flatMap((match) => {
-				const snapshot = prices.odds[match.id];
-				if (
-					!snapshot ||
-					!snapshot.markets.some((market) =>
-						market.selections.some(
-							(offer) =>
-								offer.active && offer.value !== null && Number(offer.value) > 1,
-						),
+	async getPricedMatches(input: {
+		sport: string;
+		cursor: number;
+		day?: number;
+	}) {
+		return this.browseCache.get(
+			`${input.sport}:${input.day ?? "all"}:${input.cursor}`,
+			async () => {
+				const fixtures = await this.getMatches({ sport: input.sport });
+				const dateKey = (time: number) =>
+					new Intl.DateTimeFormat("en-CA", {
+						timeZone: "Africa/Tunis",
+						year: "numeric",
+						month: "2-digit",
+						day: "2-digit",
+					}).format(time);
+				const targetDate = dateKey(Date.now() + (input.day ?? 0) * 86400_000);
+				const candidates = fixtures.matches.filter((match) => {
+					if (
+						match.status === "RESULTED" &&
+						Date.parse(match.finishedAt ?? match.time) <
+							Date.now() - FINISHED_MATCH_RETENTION_MS
 					)
+						return false;
+					if (input.day === -1) return match.status === "RESULTED";
+					return (
+						[
+							"TRADING",
+							"TRADING_LIVE",
+							"AWAITING_RESULTS",
+							"RESULTED",
+						].includes(match.status) &&
+						(input.day === undefined ||
+							dateKey(Date.parse(match.time)) === targetDate)
+					);
+				});
+				const ranks: Record<string, number> = {
+					TRADING: 0,
+					TRADING_LIVE: 1,
+					AWAITING_RESULTS: 2,
+					RESULTED: 3,
+				};
+				const rank = (match: FootballMatch) => ranks[match.status] ?? 4;
+				candidates.sort(
+					(a, b) =>
+						rank(a) - rank(b) || Date.parse(a.time) - Date.parse(b.time),
+				);
+				const batch = candidates.slice(input.cursor, input.cursor + 30);
+				const priceIds = batch
+					.filter((match) => match.status !== "RESULTED")
+					.map((match) => match.id);
+				const prices = await this.getOdds(priceIds);
+				// Transport failures are distinct from genuine events without offered odds.
+				if (
+					priceIds.length &&
+					Object.values(prices.odds).every((value) => value === null)
 				)
-					return [];
-				return [
-					{
-						...match,
-						odds: {
-							...match.odds,
-							result: snapshot.result ?? match.odds.result,
-							resultSource: snapshot.result ? "Flashscore" : undefined,
-							markets: snapshot.markets,
+					throw new Error("Prices are temporarily unavailable. Please retry.");
+				const matches = batch.flatMap((match) => {
+					if (match.status === "RESULTED") return [match];
+					const snapshot = prices.odds[match.id];
+					if (
+						!snapshot ||
+						!snapshot.markets.some((market) =>
+							market.selections.some(
+								(offer) =>
+									offer.active &&
+									offer.value !== null &&
+									Number(offer.value) > 1,
+							),
+						)
+					)
+						return [];
+					return [
+						{
+							...match,
+							odds: {
+								...match.odds,
+								result: snapshot.result ?? match.odds.result,
+								resultSource: snapshot.result ? "Flashscore" : undefined,
+								markets: snapshot.markets,
+							},
 						},
-					},
-				];
-			});
-			const cursor = input.cursor + batch.length;
-			return {
-				...fixtures,
-				matches,
-				checked: batch.length,
-				nextCursor: cursor < candidates.length ? cursor : null,
-			};
-		});
+					];
+				});
+				const cursor = input.cursor + batch.length;
+				return {
+					...fixtures,
+					matches,
+					checked: batch.length,
+					nextCursor: cursor < candidates.length ? cursor : null,
+				};
+			},
+		);
 	}
 
 	private async fetchMatches(sport: string): Promise<MatchesResponse> {
 		const today = await this.request<MatchesPayload>(
 			// The scraper defaults to today's fixtures. Keep this request minimal so
 			// it also works with local scraper versions that expose fewer filters.
-			`/matches?sport=${encodeURIComponent(sport)}`,
+			`/matches?sport=${encodeURIComponent(sport)}&timezone=1`,
 		);
 		// Tomorrow and live are supplementary feeds; failures should not hide today's fixtures.
-		const [tomorrow, live] = await Promise.all([
+		const [yesterday, tomorrow, dayAfter, live] = await Promise.all([
 			this.request<MatchesPayload>(
-				`/matches?sport=${encodeURIComponent(sport)}&day=1`,
+				`/matches?sport=${encodeURIComponent(sport)}&day=-1&timezone=1`,
+			).catch((): MatchesPayload => ({ competitions: [] })),
+			this.request<MatchesPayload>(
+				`/matches?sport=${encodeURIComponent(sport)}&day=1&timezone=1`,
+			).catch((): MatchesPayload => ({ competitions: [] })),
+			this.request<MatchesPayload>(
+				`/matches?sport=${encodeURIComponent(sport)}&day=2&timezone=1`,
 			).catch((): MatchesPayload => ({ competitions: [] })),
 			this.request<MatchesPayload>(
 				`/matches/live?sport=${encodeURIComponent(sport)}`,
@@ -375,7 +428,7 @@ export class FlashscoreClient implements FlashscoreService {
 			string,
 			{ match: MatchPayload; competition?: CompetitionPayload }
 		>();
-		for (const payload of [today, tomorrow, live]) {
+		for (const payload of [yesterday, today, tomorrow, dayAfter, live]) {
 			for (const group of payload.competitions ?? []) {
 				for (const match of group.matches ?? []) {
 					if (
@@ -392,7 +445,7 @@ export class FlashscoreClient implements FlashscoreService {
 		const finishedCutoff = Date.now() - FINISHED_MATCH_RETENTION_MS;
 		const entries = [...byId.values()]
 			.filter(({ match }) => {
-				const kickoff = Date.parse(match.start_time ?? "");
+				const kickoff = Date.parse(match.end_time ?? match.start_time ?? "");
 				return !(
 					normalizeStatus(match.status) === "RESULTED" &&
 					Number.isFinite(kickoff) &&
@@ -443,6 +496,7 @@ export class FlashscoreClient implements FlashscoreService {
 			categoryName: country,
 			categoryKey: toCategoryKey(country),
 			time: match.start_time,
+			finishedAt: match.end_time,
 			home,
 			away,
 			homeMark: match.home?.short_name || home.slice(0, 3).toUpperCase(),

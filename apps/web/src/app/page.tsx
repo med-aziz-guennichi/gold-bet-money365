@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import {
 	Select,
 	SelectContent,
@@ -49,7 +50,9 @@ function HomeContent() {
 		router.push(`/?${next.toString()}`, { scroll: false });
 	}
 
-	const eventsFeed = usePricedEvents(sport);
+	const requestedDay = Number(params.get("day") ?? 0);
+	const day = [-1, 0, 1, 2].includes(requestedDay) ? requestedDay : 0;
+	const eventsFeed = usePricedEvents(sport, day);
 	const { t } = useI18n();
 	const betting = useBetting();
 
@@ -97,9 +100,40 @@ function HomeContent() {
 						</SelectContent>
 					</Select>
 					<span className="text-white/50 text-xs">
-						{t("Only games with active odds are shown.")}
+						{t(
+							"Upcoming games with odds and recent results · Tunisia time (UTC+1)",
+						)}
 					</span>
 				</div>
+				<fieldset
+					aria-label={t("Match dates")}
+					className="mt-5 flex flex-wrap gap-2"
+				>
+					{[
+						{ value: 0, label: "Today" },
+						{ value: 1, label: "Tomorrow" },
+						{ value: 2, label: "Day after tomorrow" },
+						{ value: -1, label: "Results · last 24 hours" },
+					].map((item) => (
+						<Button
+							key={item.value}
+							variant="outline"
+							aria-pressed={day === item.value}
+							className={
+								day === item.value
+									? "border-[#c6f36b] bg-[#c6f36b] text-black hover:bg-[#b5df5b]"
+									: "border-white/15 bg-transparent text-white hover:bg-white/10"
+							}
+							onClick={() => {
+								const next = new URLSearchParams(params.toString());
+								next.set("day", String(item.value));
+								router.push(`/?${next}`, { scroll: false });
+							}}
+						>
+							{t(item.label)}
+						</Button>
+					))}
+				</fieldset>
 				{eventsFeed.sports.error && (
 					<p role="alert" className="mt-3 text-red-300 text-sm">
 						{t("Sports are temporarily unavailable. Please retry.")}
@@ -121,7 +155,7 @@ function HomeContent() {
 					</p>
 				)}
 				<MatchCenter
-					key={sport}
+					key={`${sport}:${day}`}
 					matches={eventsFeed.matches}
 					regions={eventsFeed.regions}
 					loading={eventsFeed.events.isFetching && !eventsFeed.matches.length}
