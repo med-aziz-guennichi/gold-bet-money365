@@ -170,7 +170,7 @@ export class BettingService {
 		let prices: Awaited<ReturnType<FlashscoreService["getOdds"]>>;
 		try {
 			[fixtures, results] = await Promise.all([
-				this.feed.getMatches(),
+				this.feed.getMatches({ ids }),
 				this.feed.getResults(ids, { fresh: true }),
 			]);
 			prices = await this.feed.getOdds(ids, { fresh: true });
@@ -198,6 +198,14 @@ export class BettingService {
 					"A selected match is no longer open for betting. Refresh your selections.",
 				);
 			const snapshot = prices.odds[pick.matchId];
+			if (
+				fixture.sport !== "Football" &&
+				(pick.market.type !== "HOME_AWAY" || pick.market.scope !== "FULL_TIME")
+			)
+				throw new ManagementError(
+					"BAD_REQUEST",
+					"Only full-match winner bets are currently supported for this sport.",
+				);
 			for (const market of snapshot?.markets ?? []) {
 				if (
 					market.betType !== pick.market.type ||
@@ -218,6 +226,7 @@ export class BettingService {
 				);
 				if (offer?.value)
 					return {
+						sport: fixture.sport,
 						matchId: fixture.id,
 						home: fixture.home,
 						away: fixture.away,

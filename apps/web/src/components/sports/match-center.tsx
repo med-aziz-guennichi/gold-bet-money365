@@ -14,9 +14,6 @@ export function MatchCenter({
 	regions,
 	loading,
 	error,
-	oddsLoading,
-	oddsError,
-	onVisibleMatchIdsChange,
 	selected,
 	onPick,
 	slip,
@@ -25,9 +22,6 @@ export function MatchCenter({
 	regions: Region[];
 	loading: boolean;
 	error?: string;
-	oddsLoading: boolean;
-	oddsError: string;
-	onVisibleMatchIdsChange: (ids: string[]) => void;
 	selected: Selection[];
 	onPick: (
 		match: Match,
@@ -87,19 +81,9 @@ export function MatchCenter({
 
 			<div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
 				<div className="min-w-0 space-y-3">
-					{matches.length > 0 && (oddsLoading || oddsError) && (
-						<div
-							role="status"
-							className="rounded-xl border border-[#f3a65e]/20 bg-[#f3a65e]/[.05] px-4 py-3 text-[#f3c18e] text-xs"
-						>
-							{oddsError
-								? `${t("Flashscore price lookup stopped")}: ${oddsError}`
-								: `${t("Checking Flashscore prices")} — ${matches.filter((match) => match.odds.result.every((odd) => odd !== "—")).length} ${t("games with odds are shown so far")}.`}
-						</div>
-					)}
 					{loading && (
 						<div className="rounded-2xl border border-white/[.08] p-8 text-center text-sm text-white/45">
-							{t("Loading soccer matches…")}
+							{t("Checking games and prices…")}
 						</div>
 					)}
 					{error && (
@@ -108,35 +92,23 @@ export function MatchCenter({
 							className="rounded-2xl border border-[#f3a65e]/20 bg-[#f3a65e]/[.05] p-5 text-[#f3a65e] text-sm"
 						>
 							{error}
-							<p className="mt-2 text-white/45 text-xs">
-								{t(
-									"Check that the local Flashscore scraper is running and that",
-								)}
-								<code className="mx-1">FLASHSCORE_API_URL</code> and its
-								optional
-								<code className="mx-1">FLASHSCORE_API_KEY</code> are set in
-								<code className="mx-1">apps/server/.env</code>.
-							</p>
 						</div>
 					)}
 					<MatchList
 						groups={groups}
-						onVisibleMatchIdsChange={onVisibleMatchIdsChange}
 						filterKey={`${activeRegion}:${liveOnly ? "live" : "all"}`}
 						selected={selected}
 						onPick={onPick}
 					/>
 					{!loading && !error && filtered.length === 0 && (
 						<div className="rounded-2xl border border-white/[.08] p-8 text-center text-sm text-white/45">
-							{oddsLoading
-								? t("Loading games with Flashscore 1X2 odds…")
-								: liveOnly
-									? t(
-											"No live soccer games with Flashscore 1X2 odds are available right now.",
-										)
-									: t(
-											"No soccer games with Flashscore 1X2 odds are available right now.",
-										)}
+							{liveOnly
+								? t(
+										"No live games with active odds are available in the loaded events.",
+									)
+								: t(
+										"No games with active odds are available in the loaded events.",
+									)}
 						</div>
 					)}
 				</div>

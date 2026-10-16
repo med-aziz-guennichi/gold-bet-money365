@@ -24,6 +24,45 @@ const final: FootballMatchResult = {
 	score: { home: 2, away: 1 },
 	regulationScore: { home: 2, away: 1 },
 };
+
+test("other sports settle verified full-match winners without applying football score rules", () => {
+	const tennis: AcceptedBetPick = {
+		...pick,
+		sport: "Tennis",
+		market: { ...pick.market, type: "HOME_AWAY" },
+	};
+	const result: FootballMatchResult = {
+		...final,
+		sport: "Tennis",
+		winner: "home",
+		completedNormally: true,
+		regulationScore: null,
+	};
+	assert.equal(evaluatePick(tennis, result), "won");
+	assert.equal(
+		evaluatePick(
+			{ ...tennis, market: { ...tennis.market, selection: "away" } },
+			result,
+		),
+		"lost",
+	);
+	assert.equal(
+		evaluatePick(tennis, { ...result, completedNormally: false }),
+		"review",
+	);
+	assert.equal(
+		evaluatePick(tennis, { ...result, sport: "Basketball" }),
+		"review",
+	);
+	assert.equal(evaluatePick(tennis, { ...result, winner: null }), "review");
+	assert.equal(
+		evaluatePick(
+			{ ...tennis, market: { ...tennis.market, type: "OVER_UNDER" } },
+			result,
+		),
+		"review",
+	);
+});
 test("settlement waits for final regulation scores and never guesses unavailable markets", () => {
 	assert.equal(evaluatePick(pick, undefined), "waiting");
 	assert.equal(

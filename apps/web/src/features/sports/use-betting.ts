@@ -97,6 +97,16 @@ export function useBetting() {
 		odd: string,
 		market?: Selection["market"],
 	) {
+		if (
+			match.sport !== "Football" &&
+			(market?.type !== "HOME_AWAY" || market.scope !== "FULL_TIME")
+		) {
+			setStatus({
+				userId,
+				text: "Only full-match winner bets are currently supported for this sport.",
+			});
+			return;
+		}
 		if (!eligible || !userId) {
 			setStatus({ userId, text: eligibilityMessage });
 			return;

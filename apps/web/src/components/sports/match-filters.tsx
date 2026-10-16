@@ -27,12 +27,12 @@ export function MatchFilters({
 		<div className="mb-5 rounded-2xl border border-white/[.07] bg-[#101411] p-2.5 sm:p-3">
 			<div className="flex min-w-0 flex-wrap gap-2 sm:hidden">
 				<select
-					aria-label={t("Soccer regions")}
+					aria-label={t("Countries and regions")}
 					value={activeRegion}
 					onChange={(event) => onRegionChange(event.target.value)}
 					className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#101411] px-3 py-2 text-white text-xs"
 				>
-					<option value="">{t("All Soccer")}</option>
+					<option value="">{t("All countries")}</option>
 					{regions.map((region) => (
 						<option key={region.key} value={region.key}>
 							{region.name}
@@ -51,7 +51,7 @@ export function MatchFilters({
 			<div
 				role="group"
 				className="hidden min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] sm:flex [&::-webkit-scrollbar]:hidden"
-				aria-label={t("Soccer regions")}
+				aria-label={t("Countries and regions")}
 			>
 				<button
 					type="button"
@@ -62,7 +62,7 @@ export function MatchFilters({
 					}}
 					className={`${FILTER_BASE} ${!activeRegion && !liveOnly ? FILTER_ACTIVE : FILTER_INACTIVE}`}
 				>
-					<Globe2 size={13} /> {t("All Soccer")}
+					<Globe2 size={13} /> {t("All countries")}
 				</button>
 				<button
 					type="button"

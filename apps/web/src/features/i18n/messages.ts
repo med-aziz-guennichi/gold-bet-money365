@@ -4,6 +4,27 @@ export type Locale = (typeof locales)[number];
 /** English is the source copy; localized dictionaries intentionally fall back to it. */
 const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 	fr: {
+		Sport: "Sport",
+		Football: "Football",
+		"Only games with active odds are shown.":
+			"Seuls les matchs avec des cotes actives sont affichés.",
+		"Checking games and prices…": "Vérification des matchs et des cotes…",
+		"Checking prices…": "Vérification des cotes…",
+		"Load more priced games": "Charger plus de matchs avec cotes",
+		"Countries and regions": "Pays et régions",
+		"All countries": "Tous les pays",
+		"No games with active odds are available in the loaded events.":
+			"Aucun match avec des cotes actives parmi les événements chargés.",
+		"No live games with active odds are available in the loaded events.":
+			"Aucun match en direct avec des cotes actives parmi les événements chargés.",
+		"This sport uses leaderboards. Head-to-head odds are not available from this feed.":
+			"Ce sport utilise un classement. Ce flux ne fournit pas de cotes de confrontation directe.",
+		"Other sports: full-match winner bets are supported. Other markets are display-only; uncertain or retired results require review.":
+			"Autres sports : paris sur le vainqueur du match complet. Les autres marchés sont consultables ; les résultats incertains et les abandons nécessitent une vérification.",
+		"Games and prices are temporarily unavailable. Please retry.":
+			"Matchs et cotes temporairement indisponibles. Réessayez.",
+		"Sports are temporarily unavailable. Please retry.":
+			"Sports temporairement indisponibles. Réessayez.",
 		"Refresh results": "Actualiser les résultats",
 		"Checking results…": "Vérification des résultats…",
 		"Bet history": "Historique des paris",
@@ -317,6 +338,27 @@ const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 		"Full time over time": "Temps réglementaire et prolongations",
 	},
 	ar: {
+		Sport: "الرياضة",
+		Football: "كرة القدم",
+		"Only games with active odds are shown.":
+			"تظهر فقط المباريات ذات الأسعار النشطة.",
+		"Checking games and prices…": "جارٍ التحقق من المباريات والأسعار…",
+		"Checking prices…": "جارٍ التحقق من الأسعار…",
+		"Load more priced games": "تحميل المزيد من المباريات بأسعار",
+		"Countries and regions": "البلدان والمناطق",
+		"All countries": "كل البلدان",
+		"No games with active odds are available in the loaded events.":
+			"لا توجد مباريات بأسعار نشطة ضمن الأحداث المحملة.",
+		"No live games with active odds are available in the loaded events.":
+			"لا توجد مباريات مباشرة بأسعار نشطة ضمن الأحداث المحملة.",
+		"This sport uses leaderboards. Head-to-head odds are not available from this feed.":
+			"تعتمد هذه الرياضة على الترتيب. لا توفر هذه البيانات أسعار مواجهات مباشرة.",
+		"Other sports: full-match winner bets are supported. Other markets are display-only; uncertain or retired results require review.":
+			"الرياضات الأخرى: يمكن المراهنة على فائز المباراة الكاملة. الأسواق الأخرى للعرض فقط؛ النتائج غير المؤكدة والانسحابات تحتاج مراجعة.",
+		"Games and prices are temporarily unavailable. Please retry.":
+			"المباريات والأسعار غير متاحة مؤقتًا. حاول مجددًا.",
+		"Sports are temporarily unavailable. Please retry.":
+			"الرياضات غير متاحة مؤقتًا. حاول مجددًا.",
 		"Refresh results": "تحديث النتائج",
 		"Checking results…": "جارٍ التحقق من النتائج…",
 		"Bet history": "سجل الرهانات",

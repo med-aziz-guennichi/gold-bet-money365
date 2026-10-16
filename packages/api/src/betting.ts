@@ -17,6 +17,7 @@ export type PlaceBetInput = {
 	picks: BetPickInput[];
 };
 export type AcceptedBetPick = {
+	sport?: string;
 	matchId: string;
 	home: string;
 	away: string;

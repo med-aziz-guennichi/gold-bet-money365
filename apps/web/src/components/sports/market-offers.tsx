@@ -137,7 +137,11 @@ function MarketCard({
 						const isSelected = selected.some(
 							(pick) => pick.match.id === match.id && pick.outcome === outcome,
 						);
-						const allowed = !isUnavailable(match.status);
+						const allowed =
+							!isUnavailable(match.status) &&
+							(match.sport === "Football" ||
+								(market.betType === "HOME_AWAY" &&
+									market.scope === "FULL_TIME"));
 						const metadata = {
 							type: market.betType,
 							bookmaker: market.bookmaker,

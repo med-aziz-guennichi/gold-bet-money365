@@ -77,6 +77,19 @@ app.use("/*", async (c, next) => {
 		c.req.path.startsWith("/api-reference/")
 	) {
 		c.header("Cache-Control", "no-store");
+		if (c.req.path === "/rpc/flashscore/browse") {
+			const browseRate = await apiRateLimit(`browse:${clientIp(c)}`, {
+				window: 60,
+				max: 20,
+			});
+			if (!browseRate.allowed) {
+				c.header("Retry-After", String(browseRate.retryAfter));
+				return c.json(
+					{ message: "Too many price checks. Please try again shortly." },
+					429,
+				);
+			}
+		}
 		const rate = await apiRateLimit(`api:${clientIp(c)}`, {
 			window: 60,
 			max: 300,

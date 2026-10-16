@@ -13,6 +13,24 @@ export function evaluatePick(
 	if (["CANCELLED", "POST_TRADING", "INTERRUPTED"].includes(result.status))
 		return "review";
 	if (result.status !== "RESULTED") return "waiting";
+	if (pick.sport && pick.sport !== "Football") {
+		if (
+			!result.completedNormally ||
+			result.sport !== pick.sport ||
+			!result.winner ||
+			pick.market.type !== "HOME_AWAY" ||
+			pick.market.scope !== "FULL_TIME"
+		)
+			return "review";
+		const selection = pick.market.selection.trim().toLowerCase();
+		const side = ["home", "1", "1 (home)"].includes(selection)
+			? "home"
+			: ["away", "2", "2 (away)"].includes(selection)
+				? "away"
+				: null;
+		if (!side || result.winner === "draw") return "review";
+		return side === result.winner ? "won" : "lost";
+	}
 	const score = result.regulationScore;
 	if (
 		!score ||

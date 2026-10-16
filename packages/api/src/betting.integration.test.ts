@@ -204,10 +204,67 @@ test("server betting debits persisted wallets and saves isolated bets", {
 		const forbidden = (error: unknown) =>
 			error instanceof Error && "code" in error && error.code === "FORBIDDEN";
 
+		await t.test(
+			"two-way sport bets persist their sport, reject unsupported markets and pay once",
+			async () => {
+				const user = await newUser();
+				let ended = false;
+				const tennisFeed: FlashscoreService = {
+					getMatches: async () => ({
+						matches: [{ ...fixture("match001"), sport: "Tennis" }],
+						source: "Local Flashscore scraper",
+						updatedAt: new Date().toISOString(),
+					}),
+					getResults: async (ids) => ({
+						results: ids.map((id) => ({
+							id,
+							sport: "Tennis",
+							status: ended ? "RESULTED" : "TRADING",
+							score: ended ? { home: 2, away: 0 } : null,
+							winner: ended ? ("home" as const) : null,
+							completedNormally: ended,
+						})),
+					}),
+					getOdds: async (ids, options) => {
+						const data = await feed.getOdds(ids, options);
+						for (const snapshot of Object.values(data.odds))
+							if (snapshot)
+								snapshot.markets = snapshot.markets.map((market) => ({
+									...market,
+									betType: "HOME_AWAY",
+								}));
+						return data;
+					},
+				};
+				const tennisBets = new BettingService(
+					db,
+					tennisFeed,
+					env.BETTER_AUTH_SECRET,
+				);
+				await assert.rejects(
+					() => tennisBets.place(user, input("10")),
+					/Only full-match winner/,
+				);
+				const betInput = input("10");
+				betInput.picks[0]!.market.type = "HOME_AWAY";
+				const saved = await tennisBets.place(user, betInput);
+				assert.equal(saved.picks[0]?.sport, "Tennis");
+				ended = true;
+				await Promise.all([
+					tennisBets.settlePending(5, user),
+					tennisBets.settlePending(5, user),
+				]);
+				assert.equal((await accounts.wallet(user)).balanceMillimes, 110000);
+				await tennisBets.settlePending(5, user);
+				assert.equal((await accounts.wallet(user)).balanceMillimes, 110000);
+			},
+		);
+
 		await t.test("only active user roles can place bets", async () => {
+			const existingBets = await db.collection("bet").countDocuments({});
 			for (const id of [admin, supplier, client])
 				await assert.rejects(bets.place(id, input()), forbidden);
-			assert.equal(await db.collection("bet").countDocuments({}), 0);
+			assert.equal(await db.collection("bet").countDocuments({}), existingBets);
 		});
 		await t.test(
 			"wallet stake, immutable bet snapshot, and ledger commit together",

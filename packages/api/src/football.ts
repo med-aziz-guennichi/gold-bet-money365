@@ -1,4 +1,4 @@
-/** Stable football DTOs shared by the oRPC server and web client. */
+/** Shared Flashscore event DTOs; legacy Football names remain API-compatible. */
 export type FootballMatch = {
 	id: string;
 	provider: "Flashscore";
@@ -68,6 +68,9 @@ export type FootballOddsResponse = {
 };
 
 export type FootballMatchResult = {
+	sport?: string;
+	winner?: "home" | "away" | "draw" | null;
+	completedNormally?: boolean;
 	id: string;
 	status: string;
 	score: { home: number; away: number } | null;
@@ -88,7 +91,26 @@ export type FootballMatchResult = {
 
 /** Server-only implementation is injected through the API context. */
 export type FlashscoreService = {
-	getMatches(): Promise<FootballMatchesResponse>;
+	getMatches(options?: {
+		sport?: string;
+		ids?: string[];
+	}): Promise<FootballMatchesResponse>;
+	getSports?(): Promise<{
+		sports: {
+			id: number;
+			slug: string;
+			name: string;
+			eventCount: number | null;
+			liveCount: number | null;
+			format: "matches" | "leaderboard";
+		}[];
+	}>;
+	getPricedMatches?(input: {
+		sport: string;
+		cursor: number;
+	}): Promise<
+		FootballMatchesResponse & { nextCursor: number | null; checked: number }
+	>;
 	getOdds(
 		ids: string[],
 		options?: { fresh?: boolean },

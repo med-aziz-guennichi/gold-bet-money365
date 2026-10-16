@@ -27,7 +27,10 @@ type CompetitionGroupPayload = {
 	competition?: CompetitionPayload;
 	matches?: MatchPayload[];
 };
-type MatchesPayload = { competitions?: CompetitionGroupPayload[] };
+type MatchesPayload = {
+	sport?: { name?: string };
+	competitions?: CompetitionGroupPayload[];
+};
 type OddsMarketPayload = {
 	bet_type?: string;
 	bet_scope?: string;
@@ -43,7 +46,9 @@ type OddsMarketPayload = {
 	}[];
 };
 type OddsPayload = { markets?: OddsMarketPayload[] };
-type MatchDetailsPayload = {
+type MatchDetailsPayload = MatchPayload & {
+	sport?: { name?: string };
+	winner?: "home" | "away" | "draw" | null;
 	stage?: string;
 	stage_id?: number;
 	status?: string;
@@ -97,14 +102,10 @@ function normalizeOfferLabel(value: unknown): string | null {
 const DEFAULT_BASE_URL = "http://127.0.0.1:8000";
 const ODDS_CONCURRENCY = 6;
 const FINISHED_MATCH_RETENTION_MS = 60 * 60 * 1000;
-// Keep fixture refreshes below the scraper's rate limit and serve the last good
-// snapshot during brief upstream throttling or outages.
-const MATCHES_CACHE_TTL_MS = 90 * 1000;
-const MATCHES_STALE_TTL_MS = 10 * 60 * 1000;
+// Fixture, price and detail caches remain separate so accepting a bet can
+// bypass display prices without crawling a whole sport schedule.
 
 type MatchesResponse = Awaited<ReturnType<FlashscoreService["getMatches"]>>;
-let matchesCache: { value: MatchesResponse; fetchedAt: number } | undefined;
-let matchesRequest: Promise<MatchesResponse> | undefined;
 
 function toCategoryKey(value: string) {
 	return (
@@ -186,7 +187,8 @@ function getResultPrices(payload: OddsPayload): Prices | null {
 }
 
 /** Encapsulates scraper URLs, authentication, payload mapping, and feed policy. */
-class FlashscoreClient implements FlashscoreService {
+export class FlashscoreClient implements FlashscoreService {
+	constructor(private readonly transport?: <T>(path: string) => Promise<T>) {}
 	private readonly baseUrl = (
 		ENV.FLASHSCORE_API_URL?.trim() || DEFAULT_BASE_URL
 	).replace(/\/+$/, "");
@@ -205,15 +207,19 @@ class FlashscoreClient implements FlashscoreService {
 	);
 
 	private async request<T>(path: string): Promise<T> {
+		if (this.transport) return this.transport<T>(path);
 		const headers = new Headers({ Accept: "application/json" });
 		const apiKey = ENV.FLASHSCORE_API_KEY?.trim();
 		if (apiKey) headers.set("API-Key", apiKey);
 
-		const response = await fetch(new URL(path.replace(/^\/+/, ""), `${this.baseUrl}/`), {
-			headers,
-			cache: "no-store",
-			signal: AbortSignal.timeout(15_000),
-		});
+		const response = await fetch(
+			new URL(path.replace(/^\/+/, ""), `${this.baseUrl}/`),
+			{
+				headers,
+				cache: "no-store",
+				signal: AbortSignal.timeout(15_000),
+			},
+		);
 		if (!response.ok) {
 			const details = (await response.text()).trim().slice(0, 500);
 			throw new Error(
@@ -223,48 +229,143 @@ class FlashscoreClient implements FlashscoreService {
 		return (await response.json()) as T;
 	}
 
-	getMatches(): Promise<MatchesResponse> {
-		const now = Date.now();
-		if (matchesCache && now - matchesCache.fetchedAt < MATCHES_CACHE_TTL_MS)
-			return Promise.resolve(matchesCache.value);
-		if (matchesRequest) return matchesRequest;
+	private readonly fixturesCache = new AsyncCache<MatchesResponse>(
+		90_000,
+		50,
+		10_000,
+	);
+	private readonly detailCache = new AsyncCache<FootballMatch | null>(
+		30_000,
+		2000,
+		5000,
+	);
+	private readonly sportsCache = new AsyncCache<
+		Awaited<ReturnType<NonNullable<FlashscoreService["getSports"]>>>
+	>(300_000, 1, 10000);
+	private readonly browseCache = new AsyncCache<
+		MatchesResponse & { nextCursor: number | null; checked: number }
+	>(60_000, 200, 5000);
 
-		const request = this.fetchMatches()
-			.then((value) => {
-				matchesCache = { value, fetchedAt: Date.now() };
-				return value;
-			})
-			.catch((error: unknown) => {
-				// A stale but previously successful feed is more useful than a blank
-				// page when Flashscore temporarily responds with HTTP 429.
-				if (
-					matchesCache &&
-					Date.now() - matchesCache.fetchedAt < MATCHES_STALE_TTL_MS
-				)
-					return matchesCache.value;
-				throw error;
-			})
-			.finally(() => {
-				matchesRequest = undefined;
-			});
-		matchesRequest = request;
-		return request;
+	async getSports() {
+		return this.sportsCache.get("sports", async () => {
+			const data = await this.request<{
+				sports: {
+					id: number;
+					slug: string;
+					name: string;
+					event_count?: number;
+					live_count?: number;
+				}[];
+			}>("/sports");
+			const leaderboard = new Set([23, 31, 34, 35, 37, 38, 39, 41]);
+			return {
+				sports: data.sports.map((sport) => ({
+					id: sport.id,
+					slug: sport.slug,
+					name: sport.name,
+					eventCount: sport.event_count ?? null,
+					liveCount: sport.live_count ?? null,
+					format: leaderboard.has(sport.id)
+						? ("leaderboard" as const)
+						: ("matches" as const),
+				})),
+			};
+		});
 	}
 
-	private async fetchMatches(): Promise<MatchesResponse> {
+	async getMatches(options?: {
+		sport?: string;
+		ids?: string[];
+	}): Promise<MatchesResponse> {
+		if (options?.ids) {
+			const matches = await Promise.all(
+				options.ids.map((id) =>
+					this.detailCache.get(id, async () => {
+						const event = await this.request<MatchDetailsPayload>(
+							`/matches/details?match=${encodeURIComponent(id)}`,
+						);
+						return this.mapMatch(
+							event,
+							event.competition,
+							event.sport?.name ?? "Unknown",
+						);
+					}),
+				),
+			);
+			return {
+				matches: matches.filter((item): item is FootballMatch => item !== null),
+				source: "Local Flashscore scraper",
+				updatedAt: new Date().toISOString(),
+			};
+		}
+		const sport = options?.sport ?? "football";
+		if (!(await this.getSports()).sports.some((item) => item.slug === sport))
+			throw new Error("Unknown sport");
+		return this.fixturesCache.get(sport, () => this.fetchMatches(sport));
+	}
+
+	async getPricedMatches(input: { sport: string; cursor: number }) {
+		return this.browseCache.get(`${input.sport}:${input.cursor}`, async () => {
+			const fixtures = await this.getMatches({ sport: input.sport });
+			const candidates = fixtures.matches.filter((match) =>
+				["TRADING", "TRADING_LIVE"].includes(match.status),
+			);
+			const batch = candidates.slice(input.cursor, input.cursor + 30);
+			const prices = await this.getOdds(batch.map((match) => match.id));
+			// Transport failures are distinct from genuine events without offered odds.
+			if (
+				batch.length &&
+				Object.values(prices.odds).every((value) => value === null)
+			)
+				throw new Error("Prices are temporarily unavailable. Please retry.");
+			const matches = batch.flatMap((match) => {
+				const snapshot = prices.odds[match.id];
+				if (
+					!snapshot ||
+					!snapshot.markets.some((market) =>
+						market.selections.some(
+							(offer) =>
+								offer.active && offer.value !== null && Number(offer.value) > 1,
+						),
+					)
+				)
+					return [];
+				return [
+					{
+						...match,
+						odds: {
+							...match.odds,
+							result: snapshot.result ?? match.odds.result,
+							resultSource: snapshot.result ? "Flashscore" : undefined,
+							markets: snapshot.markets,
+						},
+					},
+				];
+			});
+			const cursor = input.cursor + batch.length;
+			return {
+				...fixtures,
+				matches,
+				checked: batch.length,
+				nextCursor: cursor < candidates.length ? cursor : null,
+			};
+		});
+	}
+
+	private async fetchMatches(sport: string): Promise<MatchesResponse> {
 		const today = await this.request<MatchesPayload>(
 			// The scraper defaults to today's fixtures. Keep this request minimal so
 			// it also works with local scraper versions that expose fewer filters.
-			"/matches?sport=football",
+			`/matches?sport=${encodeURIComponent(sport)}`,
 		);
 		// Tomorrow and live are supplementary feeds; failures should not hide today's fixtures.
 		const [tomorrow, live] = await Promise.all([
-			this.request<MatchesPayload>("/matches?sport=football&day=1").catch(
-				(): MatchesPayload => ({ competitions: [] }),
-			),
-			this.request<MatchesPayload>("/matches/live?sport=football").catch(
-				(): MatchesPayload => ({ competitions: [] }),
-			),
+			this.request<MatchesPayload>(
+				`/matches?sport=${encodeURIComponent(sport)}&day=1`,
+			).catch((): MatchesPayload => ({ competitions: [] })),
+			this.request<MatchesPayload>(
+				`/matches/live?sport=${encodeURIComponent(sport)}`,
+			).catch((): MatchesPayload => ({ competitions: [] })),
 		]);
 
 		const byId = new Map<
@@ -297,51 +398,70 @@ class FlashscoreClient implements FlashscoreService {
 			})
 			.sort(
 				(left, right) =>
-					Date.parse(left.match.start_time!) -
-					Date.parse(right.match.start_time!),
+					Date.parse(left.match.start_time ?? "") -
+					Date.parse(right.match.start_time ?? ""),
 			);
 
-		const matches: FootballMatch[] = entries.map(({ match, competition }) => {
-			const home = match.home!.name!;
-			const away = match.away!.name!;
-			const country = competition?.country?.name ?? "International";
-			return {
-				id: match.id!,
-				provider: "Flashscore",
-				sport: "Football",
-				league: competition?.name ?? match.competition?.name ?? "Football",
-				categoryName: country,
-				categoryKey: toCategoryKey(country),
-				time: match.start_time!,
-				home,
-				away,
-				homeMark: match.home?.short_name || home.slice(0, 3).toUpperCase(),
-				awayMark: match.away?.short_name || away.slice(0, 3).toUpperCase(),
-				score: normalizeScore(match),
-				odds: {
-					result: ["—", "—", "—"],
-					markets: [],
-					handicap: {
-						homeLabel: "Home",
-						awayLabel: "Away",
-						home: "—",
-						away: "—",
-					},
-					totals: {
-						overLabel: "Over",
-						underLabel: "Under",
-						over: "—",
-						under: "—",
-					},
-				},
-				status: normalizeStatus(match.status),
-			};
+		const sportName = today.sport?.name ?? sport;
+		const matches = entries.flatMap(({ match, competition }) => {
+			const event = this.mapMatch(match, competition, sportName);
+			return event ? [event] : [];
 		});
 
 		return {
 			matches,
 			source: "Local Flashscore scraper" as const,
 			updatedAt: new Date().toISOString(),
+		};
+	}
+
+	private mapMatch(
+		match: MatchPayload,
+		competition: CompetitionPayload | undefined,
+		sportName: string,
+	): FootballMatch | null {
+		if (
+			!match.id ||
+			!match.home?.name ||
+			!match.away?.name ||
+			!match.start_time ||
+			!Number.isFinite(Date.parse(match.start_time))
+		)
+			return null;
+
+		const home = match.home.name;
+		const away = match.away.name;
+		const country = competition?.country?.name ?? "International";
+		return {
+			id: match.id,
+			provider: "Flashscore",
+			sport: sportName,
+			league: competition?.name ?? match.competition?.name ?? sportName,
+			categoryName: country,
+			categoryKey: toCategoryKey(country),
+			time: match.start_time,
+			home,
+			away,
+			homeMark: match.home?.short_name || home.slice(0, 3).toUpperCase(),
+			awayMark: match.away?.short_name || away.slice(0, 3).toUpperCase(),
+			score: normalizeScore(match),
+			odds: {
+				result: ["—", "—", "—"],
+				markets: [],
+				handicap: {
+					homeLabel: "Home",
+					awayLabel: "Away",
+					home: "—",
+					away: "—",
+				},
+				totals: {
+					overLabel: "Over",
+					underLabel: "Under",
+					over: "—",
+					under: "—",
+				},
+			},
+			status: normalizeStatus(match.status),
 		};
 	}
 
@@ -451,6 +571,10 @@ class FlashscoreClient implements FlashscoreService {
 									? { home: event.home_score, away: event.away_score }
 									: null;
 							const base = {
+								sport: event.sport?.name,
+								winner: event.winner ?? null,
+								completedNormally:
+									event.stage_id === 3 && status === "RESULTED",
 								id,
 								status,
 								score,
@@ -458,7 +582,10 @@ class FlashscoreClient implements FlashscoreService {
 								regulationScore:
 									event.stage_id === 3 && status === "RESULTED" ? score : null,
 							};
-							if (status !== "TRADING_LIVE" && status !== "RESULTED")
+							if (
+								event.sport?.name !== "Football" ||
+								(status !== "TRADING_LIVE" && status !== "RESULTED")
+							)
 								return base;
 
 							// The scraper exposes corners/card counts in the statistics tab and

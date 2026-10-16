@@ -25,6 +25,8 @@ function combineOdds(queries: UseQueryResult<OddsResponse>[]) {
 export function useFlashscoreMatches(oddsMatchIds: string | string[] = []) {
 	const matchesQuery = useQuery(
 		orpc.flashscore.matches.queryOptions({
+			input:
+				typeof oddsMatchIds === "string" ? { ids: [oddsMatchIds] } : undefined,
 			staleTime: 45 * 1000,
 			refetchInterval: 60 * 1000,
 			refetchOnWindowFocus: false,

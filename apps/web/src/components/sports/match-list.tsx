@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/features/i18n/locale-provider";
 import type { Selection } from "@/features/sports/types";
+import { formatMarketType } from "./market-offers";
 import { formatKickoff } from "@/features/sports/utils";
 
 export type MatchGroup = { league: string; matches: Match[] };
@@ -32,13 +33,11 @@ function getPageNumbers(current: number, total: number) {
 export function MatchList({
 	groups,
 	filterKey,
-	onVisibleMatchIdsChange,
 	selected,
 	onPick,
 }: {
 	groups: MatchGroup[];
 	filterKey: string;
-	onVisibleMatchIdsChange: (ids: string[]) => void;
 	selected: Selection[];
 	onPick: (
 		match: Match,
@@ -60,15 +59,6 @@ export function MatchList({
 			),
 		[currentPage, groups],
 	);
-	// Depend on IDs, so receiving prices cannot trigger another lookup.
-	const visibleIdsKey = JSON.stringify(
-		visibleGroups
-			.flatMap((group) => group.matches.map((match) => String(match.id)))
-			.sort(),
-	);
-	useEffect(() => {
-		onVisibleMatchIdsChange(JSON.parse(visibleIdsKey) as string[]);
-	}, [visibleIdsKey, onVisibleMatchIdsChange]);
 	const pageNumbers = getPageNumbers(currentPage, totalPages);
 	const firstGroup = groups.length
 		? (currentPage - 1) * GROUPS_PER_PAGE + 1
@@ -213,7 +203,7 @@ function CompetitionGroup({
 					<div className="min-w-0">
 						<div className="hidden items-end border-white/[.06] border-b px-3 py-2 text-center font-semibold text-[9px] text-white/35 sm:grid sm:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,.6fr)] sm:px-4">
 							<span className="text-start">{t("Match")}</span>
-							<span>{t("Full Time Result")}</span>
+							<span>{t("Odds")}</span>
 							<span>{t("All markets")}</span>
 						</div>
 						<div className="divide-y divide-white/[.05]">
@@ -252,10 +242,7 @@ function MatchRow({
 	const { t, locale } = useI18n();
 	const isLive = match.status === "TRADING_LIVE";
 	const disabled = isUnavailable(match.status);
-	const result = match.odds.result.map((odd, index) => ({
-		label: ["1", "X", "2"][index]!,
-		odd,
-	}));
+
 	return (
 		<div className="grid min-w-0 grid-cols-1 items-center gap-3 px-3 py-3 sm:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,.6fr)] sm:gap-2 sm:px-4">
 			<div className="min-w-0">
@@ -288,7 +275,6 @@ function MatchRow({
 				match={match}
 				selected={selected}
 				onPick={onPick}
-				selections={result}
 				disabled={disabled}
 			/>
 			<Link
@@ -307,7 +293,6 @@ function OddsCell({
 	match,
 	selected,
 	onPick,
-	selections,
 	disabled,
 }: {
 	match: Match;
@@ -318,42 +303,82 @@ function OddsCell({
 		odd: string,
 		market?: Selection["market"],
 	) => void;
-	selections: { label: string; odd: string }[];
 	disabled: boolean;
 }) {
+	const preferred = match.sport === "Football" ? "HOME_DRAW_AWAY" : "HOME_AWAY";
+	const priced = match.odds.markets.filter((market) =>
+		market.selections.some(
+			(offer) =>
+				offer.active && offer.value !== null && Number(offer.value) > 1,
+		),
+	);
+	const market =
+		priced.find(
+			(market) => market.betType === preferred && market.scope === "FULL_TIME",
+		) ?? priced[0];
+	if (!market) return null;
+	const offers = market.selections
+		.filter(
+			(offer) =>
+				offer.active && offer.value !== null && Number(offer.value) > 1,
+		)
+		.slice(0, 3);
+	const supported =
+		match.sport === "Football" ||
+		(market.betType === "HOME_AWAY" && market.scope === "FULL_TIME");
 	return (
-		<div className="grid grid-cols-3 gap-1">
-			{selections.map(({ label, odd }) => {
-				const outcome = `${label} · ${match.league}`;
-				const active = selected.some((pick) => pick.outcome === outcome);
-				const unavailable = odd === "—" || disabled;
-				return (
-					<button
-						key={label}
-						type="button"
-						aria-label={`${outcome} odds ${odd}`}
-						disabled={unavailable}
-						onClick={() =>
-							onPick(match, outcome, odd, {
-								type: "HOME_DRAW_AWAY",
-								scope: "FULL_TIME",
-								selection:
-									label === "1" ? "home" : label === "X" ? "draw" : "away",
-							})
-						}
-						className={`flex min-w-0 flex-col items-center justify-center rounded-md border px-1 py-2 transition ${active ? "border-[#c6f36b]/45 bg-[#c6f36b]/10" : "border-white/[.05] bg-white/[.025] hover:border-white/20 hover:bg-white/[.05]"} ${unavailable ? "cursor-not-allowed opacity-30" : ""}`}
-					>
-						<span className="max-w-full truncate text-[8px] text-white/35">
-							{label}
-						</span>
-						<span
-							className={`mt-0.5 font-extrabold text-[10px] tabular-nums ${active ? "text-[#c6f36b]" : "text-white/85"}`}
+		<div className="min-w-0">
+			<p className="mb-1 truncate text-[9px] text-white/40">
+				{formatMarketType(market.betType)} ·{" "}
+				{market.scope === "FULL_TIME"
+					? "Full match"
+					: market.scope.replaceAll("_", " ")}
+			</p>
+			<div
+				className={`grid gap-1 ${offers.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}
+			>
+				{offers.map((offer, index) => {
+					const outcome = `${market.betType} · ${market.scope} · ${offer.selection} · ${offer.handicap ?? ""} · ${offer.score ?? ""} · ${market.bookmaker}`;
+					const active = selected.some(
+						(pick) => pick.match.id === match.id && pick.outcome === outcome,
+					);
+					const label =
+						offer.selection === "home"
+							? "1"
+							: offer.selection === "away"
+								? "2"
+								: offer.selection === "draw"
+									? "X"
+									: offer.selection;
+					return (
+						<button
+							key={`${offer.selection}:${index}`}
+							type="button"
+							disabled={disabled || !supported}
+							aria-label={`${label} odds ${offer.value}`}
+							onClick={() =>
+								onPick(match, outcome, offer.value!, {
+									type: market.betType,
+									scope: market.scope,
+									selection: offer.selection,
+									handicap: offer.handicap,
+									score: offer.score,
+									bookmaker: market.bookmaker,
+								})
+							}
+							className={`flex min-w-0 flex-col items-center rounded-lg border px-1 py-2 disabled:cursor-not-allowed ${active ? "border-[#c6f36b]/50 bg-[#c6f36b]/10" : "border-white/10 bg-white/[.025]"}`}
 						>
-							{odd}
-						</span>
-					</button>
-				);
-			})}
+							<span className="max-w-full truncate text-[9px] text-white/50">
+								{label}
+								{offer.handicap ? ` ${offer.handicap}` : ""}
+							</span>
+							<strong className="text-[#c6f36b] text-xs tabular-nums">
+								{offer.value}
+							</strong>
+						</button>
+					);
+				})}
+			</div>
 		</div>
 	);
 }
