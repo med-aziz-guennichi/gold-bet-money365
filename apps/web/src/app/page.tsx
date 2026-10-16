@@ -117,7 +117,7 @@ function HomeContent() {
 					].map((item) => (
 						<Button
 							key={item.value}
-							variant="outline"
+							variant={day === item.value ? "default" : "outline"}
 							aria-pressed={day === item.value}
 							className={
 								day === item.value
