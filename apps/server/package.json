@@ -19,14 +19,17 @@
 		"@orpc/openapi": "catalog:",
 		"@orpc/server": "catalog:",
 		"@orpc/zod": "catalog:",
+		"@vercel/functions": "3.10.0",
 		"better-auth": "catalog:",
 		"hono": "^4.13.7",
 		"varlock": "catalog:",
+		"ws": "^8.22.0",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@gold-bet-clean-money365/config": "workspace:*",
 		"@types/node": "catalog:",
+		"@types/ws": "^8.18.2",
 		"tsdown": "^0.23.0",
 		"tsx": "^4.23.13",
 		"typescript": "catalog:"

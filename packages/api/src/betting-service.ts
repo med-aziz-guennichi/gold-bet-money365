@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 import { ManagementError } from "@gold-bet-clean-money365/auth/errors";
-import { parseTnd } from "@gold-bet-clean-money365/auth/money";
+import { formatTnd, parseTnd } from "@gold-bet-clean-money365/auth/money";
+import { NotificationService } from "@gold-bet-clean-money365/auth/notifications";
 import { createRateLimiter } from "@gold-bet-clean-money365/auth/rate-limit";
 import {
 	activeAccount,
@@ -362,22 +363,37 @@ export class BettingService {
 					betId: bet._id.toHexString(),
 					userId: bet.userId,
 					payoutMillimes: settlement.payoutMillimes,
-					claim: async (session) =>
-						(
-							await this.bets().updateOne(
-								{ _id: bet._id, status: "Pending" },
-								{
-									$set: {
-										...settlement,
-										pickResults,
-										settledAt: checkedAt.toISOString(),
-										checkedAt,
-										settlementNote: "Final results confirmed.",
+					claim: async (session) => {
+						const claimed =
+							(
+								await this.bets().updateOne(
+									{ _id: bet._id, status: "Pending" },
+									{
+										$set: {
+											...settlement,
+											pickResults,
+											settledAt: checkedAt.toISOString(),
+											checkedAt,
+											settlementNote: "Final results confirmed.",
+										},
 									},
+									{ session },
+								)
+							).modifiedCount === 1;
+						if (claimed)
+							await new NotificationService(this.db).record(
+								{
+									_id: `bet:${bet._id.toHexString()}:settled`,
+									userId: bet.userId,
+									kind: "bet.settled",
+									title: `Bet ${settlement.status.toLowerCase()}`,
+									message: `Your bet is ${settlement.status.toLowerCase()}. ${formatTnd(settlement.payoutMillimes)} returned to your wallet.`,
+									href: "/bets",
 								},
-								{ session },
-							)
-						).modifiedCount === 1,
+								session,
+							);
+						return claimed;
+					},
 				});
 			} catch {
 				await this.bets().updateOne(

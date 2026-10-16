@@ -20,8 +20,18 @@ import { useRouter } from "next/navigation";
 import { useI18n } from "@/features/i18n/locale-provider";
 import { authClient } from "@/lib/auth-client";
 import { orpc, queryClient } from "@/utils/orpc";
+import NotificationBell from "./notification-bell";
 
 export default function UserMenu() {
+	return (
+		<div className="flex min-w-0 flex-wrap items-center gap-2">
+			<UserMenuContent />
+			<NotificationBell />
+		</div>
+	);
+}
+
+function UserMenuContent() {
 	const { t } = useI18n();
 	const router = useRouter();
 	const { data: session, isPending } = authClient.useSession();

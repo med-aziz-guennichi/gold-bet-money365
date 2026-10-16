@@ -10,6 +10,7 @@ import {
 import { ManagementError } from "./errors";
 import type { CreateAccountInput } from "./management";
 import { MAX_WALLET_MILLIMES, parseTnd } from "./money";
+import { NotificationService } from "./notifications";
 import { activeAccount, findAccount, userCollection } from "./storage";
 
 type WalletDocument = { _id: string; balanceMillimes: number; updatedAt: Date };
@@ -311,6 +312,12 @@ export class WalletService {
 				},
 				{ session },
 			);
+			await new NotificationService(this.db).funding(
+				`${actorId}:${requestId}`,
+				target,
+				amountMillimes,
+				session,
+			);
 			return { id: target.id };
 		});
 	}
@@ -366,6 +373,12 @@ export class WalletService {
 					createdAt: now,
 				},
 				{ session },
+			);
+			await new NotificationService(this.db).funding(
+				`${actorId}:${input.requestId}`,
+				target,
+				amountMillimes,
+				session,
 			);
 			return { targetBalanceMillimes: balances.targetBalanceAfter };
 		});

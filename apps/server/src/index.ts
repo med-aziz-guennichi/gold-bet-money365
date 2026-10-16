@@ -1,21 +1,23 @@
 import { appRouter } from "@gold-bet-clean-money365/api/routers/index";
 import { createAuthHttpHandler } from "@gold-bet-clean-money365/auth/http";
 import { createRateLimiter } from "@gold-bet-clean-money365/auth/rate-limit";
+import { activeAccount } from "@gold-bet-clean-money365/auth/storage";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import { upgradeWebSocket } from "@vercel/functions";
 import { Hono, type Context as HonoContext } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
-
 import { createContext } from "./context";
 import { authorizedWorker, clientAddress, serverPort } from "./deployment";
 import { ENV } from "./env.server";
 import { auth, bets, db } from "./services";
+import { notificationRealtime } from "./services/notification-realtime";
 
 const app = new Hono();
 const onVercel = process.env.VERCEL === "1";
@@ -65,6 +67,60 @@ app.use(
 );
 
 const apiRateLimit = createRateLimiter(db, ENV.BETTER_AUTH_SECRET);
+const connectNotifications = notificationRealtime(db);
+async function notificationIdentity(headers: Headers, ip: string) {
+	if (headers.get("origin") !== new URL(ENV.CORS_ORIGIN).origin) return null;
+	if (
+		!(await apiRateLimit(`notification-ws-ip:${ip}`, { window: 60, max: 60 }))
+			.allowed
+	)
+		return null;
+	const session = await auth.api.getSession({
+		headers,
+		query: { disableCookieCache: true },
+	});
+	if (!session) return null;
+	const account = await activeAccount(db, session.user.id);
+	if (!account) return null;
+	const rate = await apiRateLimit(`notification-ws:${account.id}:${ip}`, {
+		window: 60,
+		max: 20,
+	});
+	return rate.allowed ? account : null;
+}
+function attachNotifications(
+	socket: import("ws").WebSocket,
+	account: NonNullable<Awaited<ReturnType<typeof notificationIdentity>>>,
+	headers: Headers,
+) {
+	connectNotifications(
+		socket,
+		account,
+		async () => {
+			const session = await auth.api.getSession({
+				headers,
+				query: { disableCookieCache: true },
+			});
+			return (
+				session?.user.id === account.id &&
+				Boolean(await activeAccount(db, account.id))
+			);
+		},
+		() => bets.refreshResults(account.id),
+	);
+}
+app.get("/api/notifications/ws", async (c) => {
+	c.header("Cache-Control", "no-store");
+	const account = await notificationIdentity(c.req.raw.headers, clientIp(c));
+	if (!account)
+		return c.json({ message: "Unauthorized notification connection" }, 401);
+	if (c.req.header("upgrade")?.toLowerCase() !== "websocket")
+		return c.json({ message: "WebSocket upgrade required" }, 426);
+	return upgradeWebSocket(
+		(socket) => attachNotifications(socket, account, c.req.raw.headers),
+		{ maxPayload: 1024 },
+	);
+});
 const authHttpHandler = await createAuthHttpHandler(auth, db, ENV);
 app.on(["POST", "GET"], "/api/auth/*", async (c) => {
 	c.header("Cache-Control", "no-store");
@@ -187,8 +243,8 @@ app.get("/", (c) => {
 
 import { serve } from "@hono/node-server";
 
-if (!onVercel)
-	serve(
+if (!onVercel) {
+	const server = serve(
 		{
 			fetch: app.fetch,
 			port: serverPort(process.env.PORT),
@@ -197,5 +253,34 @@ if (!onVercel)
 			console.log(`Server is running on http://localhost:${info.port}`);
 		},
 	);
+	const { WebSocketServer } = await import("ws");
+	const wss = new WebSocketServer({ noServer: true, maxPayload: 1024 });
+	server.on("upgrade", async (request, socket, head) => {
+		try {
+			if (request.url?.split("?")[0] !== "/api/notifications/ws") {
+				socket.destroy();
+				return;
+			}
+			const headers = new Headers();
+			for (const [key, value] of Object.entries(request.headers))
+				if (typeof value === "string" || Array.isArray(value))
+					headers.set(key, Array.isArray(value) ? value.join(",") : value);
+			const account = await notificationIdentity(
+				headers,
+				request.socket.remoteAddress ?? "unknown",
+			);
+			if (!account) {
+				socket.write("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n");
+				socket.destroy();
+				return;
+			}
+			wss.handleUpgrade(request, socket, head, (ws) =>
+				attachNotifications(ws, account, headers),
+			);
+		} catch {
+			socket.destroy();
+		}
+	});
+}
 
 export default app;

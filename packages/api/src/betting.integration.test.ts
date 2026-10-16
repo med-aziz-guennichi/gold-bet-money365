@@ -539,6 +539,12 @@ test("server betting debits persisted wallets and saves isolated bets", {
 				assert.equal((await accounts.wallet(user)).balanceMillimes, 110_125);
 				const history = await bets.list(user, { page: 1, limit: 10 });
 				assert.equal(history.items[0]?.status, "Won");
+				assert.equal(
+					await db
+						.collection("notification")
+						.countDocuments({ userId: user, kind: "bet.settled" }),
+					1,
+				);
 				assert.equal(history.items[0]?.payoutMillimes, 20_250);
 				assert.ok(history.items[0]?.settledAt);
 				assert.equal(

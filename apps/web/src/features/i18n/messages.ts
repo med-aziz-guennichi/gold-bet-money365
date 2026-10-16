@@ -4,6 +4,19 @@ export type Locale = (typeof locales)[number];
 /** English is the source copy; localized dictionaries intentionally fall back to it. */
 const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 	fr: {
+		Notifications: "Notifications",
+		"Reconnecting…": "Reconnexion…",
+		"No notifications yet.": "Aucune notification pour le moment.",
+		"Could not load notifications.": "Impossible de charger les notifications.",
+		"You have a new notification.": "Vous avez une nouvelle notification.",
+		Unread: "Non lue",
+		"User credited": "Utilisateur crédité",
+		"Call your client": "Appelez votre client",
+		"Bet won": "Pari gagné",
+		"Bet lost": "Pari perdu",
+		"Bet void": "Pari annulé",
+		"Could not mark notification as read.":
+			"Impossible de marquer la notification comme lue.",
 		Today: "Aujourd’hui",
 		Tomorrow: "Demain",
 		"Day after tomorrow": "Après-demain",
@@ -360,6 +373,18 @@ const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 		"Full time over time": "Temps réglementaire et prolongations",
 	},
 	ar: {
+		Notifications: "الإشعارات",
+		"Reconnecting…": "إعادة الاتصال…",
+		"No notifications yet.": "لا توجد إشعارات بعد.",
+		"Could not load notifications.": "تعذر تحميل الإشعارات.",
+		"You have a new notification.": "لديك إشعار جديد.",
+		Unread: "غير مقروء",
+		"User credited": "تم شحن رصيد مستخدم",
+		"Call your client": "اتصل بعميلك",
+		"Bet won": "رهان رابح",
+		"Bet lost": "رهان خاسر",
+		"Bet void": "رهان ملغى",
+		"Could not mark notification as read.": "تعذر تحديد الإشعار كمقروء.",
 		Today: "اليوم",
 		Tomorrow: "غداً",
 		"Day after tomorrow": "بعد غد",
