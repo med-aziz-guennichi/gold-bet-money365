@@ -8,7 +8,12 @@ import { activeAccount, findAccount, userCollection } from "./storage";
 export type NotificationDocument = {
 	_id: string;
 	userId: string;
-	kind: "user.credit" | "client.credit" | "client.low-credit" | "bet.settled";
+	kind:
+		| "user.credit"
+		| "client.created"
+		| "client.credit"
+		| "client.low-credit"
+		| "bet.settled";
 	title: string;
 	message: string;
 	href: "/dashboard" | "/bets";
@@ -41,9 +46,15 @@ export class NotificationService {
 		target: AccountIdentity & { name: string },
 		amount: number,
 		session: ClientSession,
+		event: { actorId: string; created: boolean },
 	) {
-		if (amount <= 0) return;
-		if (target.role === "user" || target.role === "client") {
+		const actor = await findAccount(this.db, event.actorId, session);
+		if (
+			target.role === "client" &&
+			event.created &&
+			actor?.role === "fournisseur" &&
+			actor.id === target.fournisseurId
+		) {
 			const supplier = target.fournisseurId
 				? await findAccount(this.db, target.fournisseurId, session)
 				: null;
@@ -53,16 +64,32 @@ export class NotificationService {
 			for (const admin of admins)
 				await this.record(
 					{
-						_id: `${eventId}:credit:${admin._id.toHexString()}`,
+						_id: `${eventId}:client-created:${admin._id.toHexString()}`,
 						userId: admin._id.toHexString(),
-						kind: target.role === "client" ? "client.credit" : "user.credit",
-						title:
-							target.role === "client" ? "Client credited" : "User credited",
-						message: `${supplier?.name ?? "Fournisseur"}: ${target.name} received ${formatTnd(amount)}.`,
+						kind: "client.created",
+						title: "Client created",
+						message: `${supplier?.name ?? "Fournisseur"} created client ${target.name} with ${formatTnd(amount)} initial credit.`,
 						href: "/dashboard",
 					},
 					session,
 				);
+		}
+		if (amount <= 0) return;
+		if (target.role === "user") {
+			const parent = target.clientId
+				? await findAccount(this.db, target.clientId, session)
+				: null;
+			await this.record(
+				{
+					_id: `${eventId}:credit:${target.id}`,
+					userId: target.id,
+					kind: "user.credit",
+					title: "Wallet credited",
+					message: `${parent?.name ?? "Your client"} added ${formatTnd(amount)} to your wallet.`,
+					href: "/bets",
+				},
+				session,
+			);
 		}
 		const clientId =
 			target.role === "client"

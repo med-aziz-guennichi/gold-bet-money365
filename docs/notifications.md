@@ -4,9 +4,10 @@ Notifications are committed in MongoDB alongside the wallet transfer or bet sett
 
 | Recipient | Trigger |
 | --- | --- |
-| Active admins | A client or user receives credits, including initial account funding, anywhere in the hierarchy. Includes the fournisseur, recipient name and amount. |
+| Active admins | A fournisseur creates their client, including creation with zero initial credits. Further top-ups and user funding do not notify admins. |
 | Owning fournisseur | Their client crosses strictly above 80% of lifetime credits received from that fournisseur being transferred to users. Includes a reminder to call the client. |
 | Bet owner | A pending bet settles as Won, Lost or Void. Includes the amount returned to the wallet. |
+| Credited user | Their client wallet allocates credits to them, including initial user funding. |
 
 The 80% rule uses integer millimes and cumulative ledger totals, not bets or current user balances. A top-up that brings the ratio to 80% or below rearms the alert. Further transfers while already above 80% do not repeat it. Existing ledger history is included when the next funding operation occurs; historical notifications are not backfilled.
 

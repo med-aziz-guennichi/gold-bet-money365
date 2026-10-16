@@ -317,6 +317,7 @@ export class WalletService {
 				target,
 				amountMillimes,
 				session,
+				{ actorId, created: true },
 			);
 			return { id: target.id };
 		});
@@ -379,6 +380,7 @@ export class WalletService {
 				target,
 				amountMillimes,
 				session,
+				{ actorId, created: false },
 			);
 			return { targetBalanceMillimes: balances.targetBalanceAfter };
 		});

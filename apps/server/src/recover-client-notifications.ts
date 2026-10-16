@@ -32,6 +32,7 @@ try {
 	const ledger = db.collection<{
 		_id: string;
 		kind: string;
+		actorId: string;
 		targetId: string;
 		targetName: string;
 		sourceId: string | null;
@@ -40,21 +41,27 @@ try {
 		createdAt: Date;
 	}>("walletTransfer");
 	for await (const transfer of ledger.find({
-		kind: { $in: ["account.create", "wallet.transfer"] },
-		amountMillimes: { $gt: 0 },
+		kind: "account.create",
 		createdAt: { $gte: since },
 	})) {
 		const target = await findAccount(db, transfer.targetId);
 		if (
 			target?.role !== "client" ||
 			!target.fournisseurId ||
-			transfer.sourceId !== target.fournisseurId
+			transfer.sourceId !== target.fournisseurId ||
+			transfer.actorId !== target.fournisseurId
 		)
 			continue;
 		matched++;
 		for (const admin of admins) {
-			const id = `${transfer._id}:credit:${admin._id.toHexString()}`;
+			const id = `${transfer._id}:client-created:${admin._id.toHexString()}`;
 			const collection = db.collection<NotificationDocument>("notification");
+			if (
+				await collection.findOne({
+					_id: `${transfer._id}:credit:${admin._id.toHexString()}`,
+				})
+			)
+				continue;
 			if (!apply) {
 				if (!(await collection.findOne({ _id: id }))) inserted++;
 				continue;
@@ -64,9 +71,9 @@ try {
 				{
 					$setOnInsert: {
 						userId: admin._id.toHexString(),
-						kind: "client.credit",
-						title: "Client credited",
-						message: `${transfer.sourceName}: ${transfer.targetName} received ${formatTnd(transfer.amountMillimes)}.`,
+						kind: "client.created",
+						title: "Client created",
+						message: `${transfer.sourceName} created client ${transfer.targetName} with ${formatTnd(transfer.amountMillimes)} initial credit.`,
 						href: "/dashboard",
 						createdAt: transfer.createdAt,
 						readAt: null,
