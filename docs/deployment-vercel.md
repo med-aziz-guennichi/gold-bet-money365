@@ -20,6 +20,11 @@ a listener on Vercel. Local Node/Docker execution still opens a port and runs th
 local settlement loop. On Vercel, only the dedicated daemon schedules settlement;
 an in-function `setInterval` is not relied on after requests finish.
 
+The Hono service builds from `src/index.ts` with `outputDirectory: "."` to keep
+workspace dependency paths intact. The hosted API validates its runtime variables
+directly, without requiring the Varlock CLI in a function. Local execution retains
+Varlock loading; build commands explicitly generate its typed environment modules.
+
 ## Account and plan
 
 - Use the existing `gold-bet-money365` Vercel project linked to the repository.
@@ -62,6 +67,9 @@ origin variables together if a custom domain becomes canonical.
 runtime. Do not manually override them with localhost, a preview domain or the
 production public URL. Only `NEXT_PUBLIC_SERVER_URL` is public. Never prefix
 database credentials, the worker credential or auth secrets with `NEXT_PUBLIC_`.
+Save `NEXT_PUBLIC_SERVER_URL` as Vercel **Config**, not a write-only Secret;
+Vercel rejects edits to public-prefixed variables stored as Secrets. Verify the
+deployed browser bundle uses the public domain rather than localhost.
 
 The Atlas integration may create a variable called `MONGODB_URI`. The app expects
 `DATABASE_URL`: the server schema uses it automatically when DATABASE_URL is not explicitly set. Use a database

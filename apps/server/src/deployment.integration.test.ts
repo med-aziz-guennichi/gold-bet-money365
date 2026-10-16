@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { loadEnvFile } from "node:process";
 import { test } from "node:test";
@@ -19,32 +18,7 @@ test("Vercel entrypoint serves HTTP without a listener and protects the settleme
 	process.env.DATABASE_URL = source.toString();
 	process.env.VERCEL = "1";
 	process.env.SETTLEMENT_WORKER_SECRET = randomUUID() + randomUUID();
-	// Match the service root used by Vercel/Node and Varlock's owning schema.
 	process.chdir(fileURLToPath(new URL("../", import.meta.url)));
-	if (process.platform === "win32") {
-		// The Windows native CLI can crash during cleanup after emitting valid
-		// configuration. Reuse that validated snapshot so the HTTP test does
-		// not depend on its cleanup behavior. Linux deployments use normal loading.
-		const resolved = spawnSync(
-			process.execPath,
-			[
-				fileURLToPath(
-					new URL("../node_modules/varlock/bin/cli.js", import.meta.url),
-				),
-				"load",
-				"--format",
-				"json-full",
-				"--compact",
-			],
-			{ encoding: "utf8", maxBuffer: 4_000_000 },
-		);
-		const configuration = JSON.parse(resolved.stdout);
-		assert.ok(!configuration.errors);
-		assert.ok(
-			configuration.config?.DATABASE_URL?.value === process.env.DATABASE_URL,
-		);
-		process.env.__VARLOCK_ENV = resolved.stdout;
-	}
 	const { default: app } = await import("./index");
 	const { db } = await import("./services");
 	try {
