@@ -209,9 +209,9 @@ function CompetitionGroup({
 				/>
 			</button>
 			{!collapsed && (
-				<div className="overflow-x-auto">
-					<div className="min-w-[680px]">
-						<div className="grid grid-cols-[minmax(190px,1.35fr)_minmax(195px,1fr)_minmax(110px,.6fr)] items-end border-white/[.06] border-b px-3 py-2 text-center font-semibold text-[9px] text-white/35 sm:px-4">
+				<div className="min-w-0">
+					<div className="min-w-0">
+						<div className="hidden items-end border-white/[.06] border-b px-3 py-2 text-center font-semibold text-[9px] text-white/35 sm:grid sm:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,.6fr)] sm:px-4">
 							<span className="text-start">{t("Match")}</span>
 							<span>{t("Full Time Result")}</span>
 							<span>{t("All markets")}</span>
@@ -257,14 +257,14 @@ function MatchRow({
 		odd,
 	}));
 	return (
-		<div className="grid grid-cols-[minmax(190px,1.35fr)_minmax(195px,1fr)_minmax(110px,.6fr)] items-center gap-2 px-3 py-3 sm:px-4">
+		<div className="grid min-w-0 grid-cols-1 items-center gap-3 px-3 py-3 sm:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,.6fr)] sm:gap-2 sm:px-4">
 			<div className="min-w-0">
 				<div className="flex items-center gap-2 font-bold text-[10px] text-white/80">
 					<span className="truncate">{match.home}</span>
 					<span className="shrink-0 text-white/30">{t("vs")}</span>
 					<span className="truncate">{match.away}</span>
 				</div>
-				<div className="mt-1.5 flex items-center gap-2 text-[9px] text-white/35">
+				<div className="mt-1.5 flex flex-wrap items-center gap-2 text-[9px] text-white/35">
 					{isLive ? (
 						<span className="flex items-center gap-1 font-bold text-[#f66c61]">
 							<span className="h-1 w-1 animate-pulse rounded-full bg-[#f66c61]" />

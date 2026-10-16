@@ -85,8 +85,8 @@ export function MatchCenter({
 				onLiveToggle={() => setLiveOnly((value) => !value)}
 			/>
 
-			<div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-				<div className="space-y-3">
+			<div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+				<div className="min-w-0 space-y-3">
 					{matches.length > 0 && (oddsLoading || oddsError) && (
 						<div
 							role="status"

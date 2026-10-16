@@ -1,23 +1,66 @@
 @import "@gold-bet-clean-money365/ui/globals.css";
 
+/* Grid/flex children and native form controls must fit narrow viewports. */
+main,
+section,
+article,
+aside,
+fieldset {
+	min-inline-size: 0;
+}
+
+input,
+select,
+textarea {
+	min-inline-size: 0;
+	max-inline-size: 100%;
+}
+
+@media (width < 640px) {
+	.account-table,
+	.account-table tbody,
+	.account-table tr,
+	.account-table td {
+		display: block;
+		inline-size: 100%;
+	}
+	.account-table thead {
+		display: none;
+	}
+	.account-table tr {
+		padding-block: 0.75rem;
+	}
+	.account-table td {
+		padding: 0.5rem 1rem;
+		overflow-wrap: anywhere;
+	}
+	.account-table td[data-label]::before {
+		content: attr(data-label);
+		display: block;
+		color: rgb(255 255 255 / 0.45);
+		font-size: 0.65rem;
+		font-weight: 500;
+	}
+}
+
 html[lang="ar"] body {
-  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+	font-family: "Segoe UI", Tahoma, Arial, sans-serif;
 }
 
 html[dir="rtl"] .text-left {
-  text-align: right;
+	text-align: right;
 }
 
 html[dir="rtl"] .pr-9 {
-  padding-right: 0.75rem;
-  padding-left: 2.25rem;
+	padding-right: 0.75rem;
+	padding-left: 2.25rem;
 }
 
 html[dir="rtl"] .right-3 {
-  right: auto;
-  left: 0.75rem;
+	right: auto;
+	left: 0.75rem;
 }
 
 html[dir="rtl"] .rtl-mirror {
-  transform: rotate(180deg);
+	transform: rotate(180deg);
 }

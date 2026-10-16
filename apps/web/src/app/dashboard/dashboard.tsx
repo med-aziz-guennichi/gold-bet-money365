@@ -269,8 +269,8 @@ export default function Dashboard({
 						{accounts.error.message}
 					</p>
 				)}
-				<div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#111713]">
-					<table className="w-full text-start text-sm">
+				<div className="min-w-0 rounded-2xl border border-white/10 bg-[#111713]">
+					<table className="account-table w-full text-start text-sm">
 						<thead className="border-white/10 border-b text-start text-white/45 text-xs">
 							<tr>
 								{[
@@ -293,17 +293,19 @@ export default function Dashboard({
 									key={account.id}
 									className="border-white/5 border-b last:border-0"
 								>
-									<td className="px-5 py-4 font-semibold">
+									<td data-label="Account" className="px-5 py-4 font-semibold">
 										{account.name}
 										{account.id === actorId && (
 											<span className="ms-2 text-white/40 text-xs">You</span>
 										)}
 									</td>
-									<td className="px-5 py-4" dir="ltr">
+									<td data-label="Phone" className="px-5 py-4" dir="ltr">
 										{account.phoneNumber || "Not configured"}
 									</td>
-									<td className="px-5 py-4 capitalize">{account.role}</td>
-									<td className="whitespace-nowrap px-5 py-4 text-[#c6f36b]">
+									<td data-label="Role" className="px-5 py-4 capitalize">
+										{account.role}
+									</td>
+									<td data-label="Wallet" className="px-5 py-4 text-[#c6f36b]">
 										{account.role === "admin"
 											? "Admin allocation"
 											: formatTnd(account.balanceMillimes)}
@@ -331,7 +333,7 @@ export default function Dashboard({
 											</button>
 										)}
 										{account.role !== "admin" && account.id !== actorId && (
-											<div className="flex gap-2">
+											<div className="flex flex-wrap gap-2">
 												<button
 													type="button"
 													className={button}

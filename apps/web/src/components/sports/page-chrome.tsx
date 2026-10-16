@@ -23,10 +23,10 @@ export function SiteHeader() {
 	const { t } = useI18n();
 	return (
 		<header className="sticky top-0 z-40 border-white/[.07] border-b bg-[#080b0a]/95 backdrop-blur-xl">
-			<div className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-4 sm:px-8">
+			<div className="mx-auto flex min-h-[72px] max-w-[1440px] flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-8">
 				<a
 					href="/#top"
-					className="flex items-center gap-2.5"
+					className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5"
 					aria-label={`Fieldhouse · ${t("Home")}`}
 				>
 					<span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#c6f36b] text-[#11160b]">
@@ -47,7 +47,7 @@ export function SiteHeader() {
 						{t("Responsible play")}
 					</a>
 				</nav>
-				<div className="flex items-center gap-2.5">
+				<div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
 					<LanguageSwitcher compact />
 					<UserMenu />
 
@@ -105,7 +105,7 @@ export function HeroSection({ featuredMatch }: { featuredMatch?: Match }) {
 				<div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#c6f36b]/20 bg-[#c6f36b]/[.08] px-3 py-1.5 font-bold text-[#c6f36b] text-[10px] uppercase tracking-[.16em]">
 					<Sparkles size={12} /> {t("Sports, with a little more soul")}
 				</div>
-				<h1 className="font-extrabold text-[clamp(2.6rem,6vw,5rem)] leading-[.99] tracking-[-.07em]">
+				<h1 className="font-extrabold text-[clamp(2rem,8vw,5rem)] leading-[.99] tracking-[-.07em]">
 					{t("The game is")}
 					<br />
 					<span className="text-[#c6f36b]">{t("better together.")}</span>
