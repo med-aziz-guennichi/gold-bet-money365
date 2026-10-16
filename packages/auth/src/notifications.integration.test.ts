@@ -95,6 +95,10 @@ test("transactional credit notifications, threshold reset and recipient isolatio
 				requestId,
 			});
 		await topup(supplier, client, "100");
+		assert.equal(
+			(await notifications.list(admin.toHexString())).items[0]?.kind,
+			"client.credit",
+		);
 		await topup(client, user, "80");
 		assert.equal(
 			(await notifications.list(supplier.toHexString())).items.length,
@@ -110,7 +114,7 @@ test("transactional credit notifications, threshold reset and recipient isolatio
 		);
 		assert.equal(
 			(await notifications.list(admin.toHexString())).items.length,
-			3,
+			4,
 		);
 		await topup(supplier, client, "100");
 		await topup(client, user, "80");
@@ -126,13 +130,13 @@ test("transactional credit notifications, threshold reset and recipient isolatio
 			.items[0];
 		assert.ok(adminNotice);
 		await notifications.markRead(other.toHexString(), adminNotice.id);
-		assert.equal((await notifications.list(admin.toHexString())).unread, 4);
+		assert.equal((await notifications.list(admin.toHexString())).unread, 6);
 		await notifications.markRead(admin.toHexString(), adminNotice.id);
-		assert.equal((await notifications.list(admin.toHexString())).unread, 3);
+		assert.equal((await notifications.list(admin.toHexString())).unread, 5);
 		await assert.rejects(() => topup(client, user, "10000"));
 		assert.equal(
 			(await notifications.list(admin.toHexString())).items.length,
-			4,
+			6,
 		);
 	} finally {
 		await db.dropDatabase();

@@ -4,7 +4,7 @@ Notifications are committed in MongoDB alongside the wallet transfer or bet sett
 
 | Recipient | Trigger |
 | --- | --- |
-| Active admins | A user receives credits, including initial account funding, anywhere in the hierarchy. Includes the fournisseur, user name and amount. |
+| Active admins | A client or user receives credits, including initial account funding, anywhere in the hierarchy. Includes the fournisseur, recipient name and amount. |
 | Owning fournisseur | Their client crosses strictly above 80% of lifetime credits received from that fournisseur being transferred to users. Includes a reminder to call the client. |
 | Bet owner | A pending bet settles as Won, Lost or Void. Includes the amount returned to the wallet. |
 

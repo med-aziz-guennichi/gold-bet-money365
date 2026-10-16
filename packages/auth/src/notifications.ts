@@ -8,7 +8,7 @@ import { activeAccount, findAccount, userCollection } from "./storage";
 export type NotificationDocument = {
 	_id: string;
 	userId: string;
-	kind: "user.credit" | "client.low-credit" | "bet.settled";
+	kind: "user.credit" | "client.credit" | "client.low-credit" | "bet.settled";
 	title: string;
 	message: string;
 	href: "/dashboard" | "/bets";
@@ -43,7 +43,7 @@ export class NotificationService {
 		session: ClientSession,
 	) {
 		if (amount <= 0) return;
-		if (target.role === "user") {
+		if (target.role === "user" || target.role === "client") {
 			const supplier = target.fournisseurId
 				? await findAccount(this.db, target.fournisseurId, session)
 				: null;
@@ -55,8 +55,9 @@ export class NotificationService {
 					{
 						_id: `${eventId}:credit:${admin._id.toHexString()}`,
 						userId: admin._id.toHexString(),
-						kind: "user.credit",
-						title: "User credited",
+						kind: target.role === "client" ? "client.credit" : "user.credit",
+						title:
+							target.role === "client" ? "Client credited" : "User credited",
 						message: `${supplier?.name ?? "Fournisseur"}: ${target.name} received ${formatTnd(amount)}.`,
 						href: "/dashboard",
 					},
