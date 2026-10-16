@@ -4,6 +4,9 @@
 		"server": {
 			"root": "apps/server",
 			"framework": "hono",
+			"entrypoint": "src/index.ts",
+			"outputDirectory": ".",
+			"buildCommand": "pnpm --dir ../.. run env:generate",
 			"bindings": [
 				{
 					"type": "service",
