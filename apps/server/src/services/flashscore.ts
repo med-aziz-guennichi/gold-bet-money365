@@ -197,13 +197,13 @@ export class FlashscoreClient implements FlashscoreService {
 
 	// Per-match keys also deduplicate requests from overlapping RPC batches.
 	private readonly resultCache = new AsyncCache<FootballMatchResult | null>(
-		20_000,
+		5_000,
 		2_000,
 		5_000,
 	);
 
 	private readonly oddsCache = new AsyncCache<FootballOddsSnapshot | null>(
-		60_000,
+		10_000,
 		2_000,
 		10_000,
 	);
@@ -232,12 +232,12 @@ export class FlashscoreClient implements FlashscoreService {
 	}
 
 	private readonly fixturesCache = new AsyncCache<MatchesResponse>(
-		90_000,
+		30_000,
 		50,
 		10_000,
 	);
 	private readonly detailCache = new AsyncCache<FootballMatch | null>(
-		30_000,
+		5_000,
 		2000,
 		5000,
 	);
@@ -246,7 +246,78 @@ export class FlashscoreClient implements FlashscoreService {
 	>(300_000, 1, 10000);
 	private readonly browseCache = new AsyncCache<
 		MatchesResponse & { nextCursor: number | null; checked: number }
-	>(60_000, 200, 5000);
+	>(5_000, 200, 5000);
+	private readonly stateCache = new AsyncCache<FootballMatchResult>(
+		5_000,
+		2000,
+		2000,
+	);
+	async getCurrentStates(ids: string[]) {
+		const results: FootballMatchResult[] = [];
+		let cursor = 0;
+		const unique = [...new Set(ids)];
+		await Promise.all(
+			Array.from({ length: Math.min(6, unique.length) }, async () => {
+				while (cursor < unique.length) {
+					const id = unique[cursor++];
+					if (!id) continue;
+					results.push(
+						await this.stateCache.get(id, async () => {
+							try {
+								const event = await this.request<MatchDetailsPayload>(
+									`/matches/status?match=${encodeURIComponent(id)}`,
+								);
+								let status = currentEventStatus(
+									normalizeStatus(event.status),
+									event.start_time ?? "",
+								);
+								if ([4, 43].includes(event.stage_id ?? 0))
+									status = "POST_TRADING";
+								if (event.stage_id === 5) status = "CANCELLED";
+								if ([36, 37, 42].includes(event.stage_id ?? 0))
+									status = "INTERRUPTED";
+								const summary =
+									status === "TRADING_LIVE" && event.sport?.name === "Football"
+										? await this.request<SummaryPayload>(
+												`/matches/summary?match=${encodeURIComponent(id)}`,
+											).catch(() => null)
+										: null;
+								const minutes = (summary?.periods ?? [])
+									.flatMap((period) =>
+										(period.incidents ?? []).map((incident) => incident.minute),
+									)
+									.filter(
+										(minute): minute is string =>
+											typeof minute === "string" &&
+											/^\d{1,3}(?:\+\d{1,2})?[′']?$/.test(minute),
+									);
+								const minuteRank = (minute: string) =>
+									minute
+										.replace(/[′']/g, "")
+										.split("+")
+										.reduce((sum, value) => sum + Number(value), 0);
+								minutes.sort((a, b) => minuteRank(b) - minuteRank(a));
+								return {
+									id,
+									status,
+									stage: event.stage,
+									latestEventMinute: minutes[0]?.replace(/[′']/g, "") ?? null,
+									score:
+										typeof event.home_score === "number" &&
+										typeof event.away_score === "number"
+											? { home: event.home_score, away: event.away_score }
+											: null,
+								};
+							} catch {
+								return { id, status: "UNKNOWN", score: null };
+							}
+						}),
+					);
+				}
+			}),
+		);
+		return { results };
+	}
 
 	async getSports() {
 		return this.sportsCache.get("sports", async () => {
@@ -354,8 +425,33 @@ export class FlashscoreClient implements FlashscoreService {
 						rank(a) - rank(b) || Date.parse(a.time) - Date.parse(b.time),
 				);
 				const batch = candidates.slice(input.cursor, input.cursor + 30);
-				const priceIds = batch
-					.filter((match) => match.status !== "RESULTED")
+				const current = await this.getCurrentStates(
+					batch
+						.filter(
+							(match) =>
+								match.status === "TRADING_LIVE" ||
+								match.status === "AWAITING_RESULTS" ||
+								(match.status === "TRADING" &&
+									Date.parse(match.time) <= Date.now()),
+						)
+						.map((match) => match.id),
+				);
+				const verifiedBatch = batch.map((match) => {
+					const state = current.results.find(
+						(result) => result.id === match.id,
+					);
+					return state
+						? {
+								...match,
+								status: state.status,
+								stage: state.stage,
+								latestEventMinute: state.latestEventMinute,
+								score: state.score ?? match.score,
+							}
+						: match;
+				});
+				const priceIds = verifiedBatch
+					.filter((match) => ["TRADING", "TRADING_LIVE"].includes(match.status))
 					.map((match) => match.id);
 				const prices = await this.getOdds(priceIds);
 				// Transport failures are distinct from genuine events without offered odds.
@@ -364,8 +460,9 @@ export class FlashscoreClient implements FlashscoreService {
 					Object.values(prices.odds).every((value) => value === null)
 				)
 					throw new Error("Prices are temporarily unavailable. Please retry.");
-				const matches = batch.flatMap((match) => {
+				const matches = verifiedBatch.flatMap((match) => {
 					if (match.status === "RESULTED") return [match];
+					if (!["TRADING", "TRADING_LIVE"].includes(match.status)) return [];
 					const snapshot = prices.odds[match.id];
 					if (
 						!snapshot ||
@@ -396,6 +493,7 @@ export class FlashscoreClient implements FlashscoreService {
 					...fixtures,
 					matches,
 					checked: batch.length,
+					updatedAt: new Date().toISOString(),
 					nextCursor: cursor < candidates.length ? cursor : null,
 				};
 			},

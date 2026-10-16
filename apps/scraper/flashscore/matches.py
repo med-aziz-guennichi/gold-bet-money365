@@ -229,6 +229,15 @@ def _core_summary(match_id, core):
     }
 
 
+def get_status(match):
+    """Current feed header, without CDN page HTML or heavy detail tabs."""
+    match_id = _mid(match)
+    core = _core(match_id)
+    if not core.get("DA") or not core.get("DC"):
+        raise FlashscoreUpstreamError("Current match status is unavailable")
+    return _core_summary(match_id, core)
+
+
 def get_details(match):
     """The full match card: teams, competition, venue, status, scores, and
     the tab list. The page is the only surface carrying the participants and

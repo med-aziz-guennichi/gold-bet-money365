@@ -96,6 +96,49 @@ test("multi-sport browsing filters inactive/unpriced events, caches batches and 
 	);
 });
 
+test("live schedule entries are verified against the current core before prices are offered", async () => {
+	loadEnvFile(new URL("../../.env", import.meta.url));
+	process.env.VERCEL = "1";
+	const { FlashscoreClient } = await import("./flashscore");
+	let priceCalls = 0;
+	const client = new FlashscoreClient(async <T>(path: string): Promise<T> => {
+		if (path === "/sports")
+			return { sports: [{ id: 1, slug: "football", name: "Football" }] } as T;
+		if (path.startsWith("/matches/status"))
+			return {
+				status: "finished",
+				stage: "Finished",
+				home_score: 2,
+				away_score: 1,
+				start_time: new Date(Date.now() - 7200_000).toISOString(),
+			} as T;
+		if (path.startsWith("/matches/odds")) {
+			priceCalls++;
+			throw new Error("No prices for a finished event");
+		}
+		return {
+			sport: { name: "Football" },
+			competitions: [
+				{
+					matches: [
+						{
+							id: "final001",
+							status: "live",
+							start_time: new Date(Date.now() - 7200_000).toISOString(),
+							home: { name: "Home" },
+							away: { name: "Away" },
+						},
+					],
+				},
+			],
+		} as T;
+	});
+	const page = await client.getPricedMatches({ sport: "football", cursor: 0 });
+	assert.equal(page.matches[0]?.status, "RESULTED");
+	assert.deepEqual(page.matches[0]?.score, { home: 2, away: 1 });
+	assert.equal(priceCalls, 0);
+});
+
 test("day filters include both future days and retain only results within 24 hours", async () => {
 	loadEnvFile(new URL("../../.env", import.meta.url));
 	process.env.VERCEL = "1";

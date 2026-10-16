@@ -9,6 +9,11 @@ const matchIdsInput = z.object({
 
 /** Public, read-only access to the server's Flashscore-backed football feed. */
 export const flashscoreRouter = {
+	states: publicProcedure.input(matchIdsInput).handler(({ context, input }) => {
+		if (!context.flashscore.getCurrentStates)
+			throw new ORPCError("SERVICE_UNAVAILABLE");
+		return context.flashscore.getCurrentStates(input.ids);
+	}),
 	sports: publicProcedure.handler(({ context }) => {
 		if (!context.flashscore.getSports)
 			throw new ORPCError("SERVICE_UNAVAILABLE");

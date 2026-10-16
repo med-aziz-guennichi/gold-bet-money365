@@ -8,6 +8,8 @@ export type FootballMatch = {
 	categoryKey: string;
 	time: string;
 	finishedAt?: string;
+	stage?: string;
+	latestEventMinute?: string | null;
 	home: string;
 	away: string;
 	homeMark: string;
@@ -92,6 +94,7 @@ export type FootballMatchResult = {
 
 /** Server-only implementation is injected through the API context. */
 export type FlashscoreService = {
+	getCurrentStates?(ids: string[]): Promise<{ results: FootballMatchResult[] }>;
 	getMatches(options?: {
 		sport?: string;
 		ids?: string[];

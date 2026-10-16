@@ -4,6 +4,8 @@ export type Locale = (typeof locales)[number];
 /** English is the source copy; localized dictionaries intentionally fall back to it. */
 const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 	fr: {
+		"Live status and odds refresh every 15 seconds. Feed delays may occur.":
+			"Statut et cotes actualisés toutes les 15 secondes. Le flux peut être retardé.",
 		"Client created": "Client créé",
 		"Wallet credited": "Portefeuille crédité",
 		"Mute notification sound": "Couper le son des notifications",
@@ -379,6 +381,8 @@ const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 		"Full time over time": "Temps réglementaire et prolongations",
 	},
 	ar: {
+		"Live status and odds refresh every 15 seconds. Feed delays may occur.":
+			"تحديث الحالة والأسعار كل 15 ثانية. قد يتأخر المصدر.",
 		"Client created": "تم إنشاء عميل",
 		"Wallet credited": "تم شحن المحفظة",
 		"Mute notification sound": "كتم صوت الإشعارات",

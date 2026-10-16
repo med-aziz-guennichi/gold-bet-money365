@@ -134,6 +134,11 @@ function HomeContent() {
 						</Button>
 					))}
 				</fieldset>
+				<p className="mt-2 text-white/45 text-xs">
+					{t(
+						"Live status and odds refresh every 15 seconds. Feed delays may occur.",
+					)}
+				</p>
 				{eventsFeed.sports.error && (
 					<p role="alert" className="mt-3 text-red-300 text-sm">
 						{t("Sports are temporarily unavailable. Please retry.")}

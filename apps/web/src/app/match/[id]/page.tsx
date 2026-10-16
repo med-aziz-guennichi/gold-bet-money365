@@ -13,7 +13,7 @@ import { sportsHomeHref } from "@/features/sports/navigation";
 import { useBetting } from "@/features/sports/use-betting";
 import { useEventClock } from "@/features/sports/use-event-clock";
 import { useFlashscoreMatches } from "@/features/sports/use-flashscore-matches";
-import { useMatchResult } from "@/features/sports/use-match-result";
+import { useLiveMatchState } from "@/features/sports/use-match-result";
 import { formatKickoff, isMatchUnavailable } from "@/features/sports/utils";
 
 export default function MatchPage() {
@@ -23,20 +23,20 @@ export default function MatchPage() {
 	const matchId = decodeURIComponent(params.id);
 	const football = useFlashscoreMatches(matchId);
 	const betting = useBetting();
-	const resultQuery = useMatchResult(matchId);
+	const resultQuery = useLiveMatchState(matchId);
+	const state = resultQuery.data?.results.find((item) => item.id === matchId);
 	const now = useEventClock();
 	const statusFresh =
-		!resultQuery.isError && resultQuery.dataUpdatedAt > now - 90_000;
-	const result = resultQuery.data?.results[0];
+		!resultQuery.isError && resultQuery.dataUpdatedAt > now - 30_000;
 	const fixture = football.matches.find((item) => String(item.id) === matchId);
 	const match = fixture
 		? {
 				...fixture,
 				status:
-					statusFresh && result
-						? currentEventStatus(result.status, fixture.time, now)
+					statusFresh && state
+						? currentEventStatus(state.status, fixture.time, now)
 						: "UNKNOWN",
-				score: result?.score ?? fixture.score,
+				score: state?.score ?? fixture.score,
 			}
 		: undefined;
 	const isLive = match?.status === "TRADING_LIVE";
@@ -73,7 +73,7 @@ export default function MatchPage() {
 									{isLive ? (
 										<span className="inline-flex items-center gap-1.5 text-[#ff867a]">
 											<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ff867a]" />
-											{t("LIVE")} {result?.stage ? ` · ${t(result.stage)}` : ""}
+											{t("LIVE")} {state?.stage ? ` · ${t(state.stage)}` : ""}
 										</span>
 									) : (
 										<>
@@ -106,8 +106,8 @@ export default function MatchPage() {
 									className="mt-4 text-center text-white/55 text-xs"
 									aria-live="polite"
 								>
-									{result?.latestEventMinute
-										? `${t("Latest event")}: ${result.latestEventMinute}′`
+									{state?.latestEventMinute
+										? `${t("Latest event")}: ${state.latestEventMinute}′`
 										: t("Waiting for match minute from provider.")}
 								</p>
 							)}

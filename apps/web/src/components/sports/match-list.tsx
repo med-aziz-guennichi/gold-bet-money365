@@ -266,6 +266,10 @@ function MatchRow({
 						<span className="flex items-center gap-1 font-bold text-[#f66c61]">
 							<span className="h-1 w-1 animate-pulse rounded-full bg-[#f66c61]" />
 							{t("LIVE")}
+							{match.stage ? ` · ${t(match.stage)}` : ""}
+							{match.latestEventMinute
+								? ` · ${t("Latest event")}: ${match.latestEventMinute}′`
+								: ""}
 						</span>
 					) : (
 						<span>{formatKickoff(match.time, locale)}</span>

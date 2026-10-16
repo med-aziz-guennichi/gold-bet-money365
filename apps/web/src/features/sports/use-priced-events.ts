@@ -17,10 +17,10 @@ export function usePricedEvents(sport: string, day = 0) {
 			orpc.flashscore.browse.call({ sport, day, cursor: pageParam }),
 		initialPageParam: 0,
 		getNextPageParam: (page) => page.nextCursor ?? undefined,
-		staleTime: 60_000,
-		refetchInterval: 60_000,
-		refetchOnWindowFocus: false,
-		refetchOnReconnect: false,
+		staleTime: 10_000,
+		refetchInterval: 15_000,
+		refetchOnWindowFocus: true,
+		refetchOnReconnect: true,
 		retry: false,
 	});
 	const matches = useMemo(

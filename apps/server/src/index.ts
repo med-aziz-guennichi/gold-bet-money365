@@ -136,7 +136,7 @@ app.use("/*", async (c, next) => {
 		if (c.req.path === "/rpc/flashscore/browse") {
 			const browseRate = await apiRateLimit(`browse:${clientIp(c)}`, {
 				window: 60,
-				max: 20,
+				max: 60,
 			});
 			if (!browseRate.allowed) {
 				c.header("Retry-After", String(browseRate.retryAfter));

@@ -112,6 +112,7 @@ ENDPOINTS = [
     ("/matches", schemas.MatchListSchema, matches.get_matches, False),
     ("/matches/live", schemas.LiveMatchesSchema, matches.get_live_matches, False),
     ("/matches/details", schemas.MatchSchema, matches.get_details, False),
+    ("/matches/status", schemas.MatchSchema, matches.get_status, False),
     # match detail tabs
     ("/matches/statistics", schemas.MatchStatisticsSchema, matches.get_statistics, False),
     ("/matches/lineups", schemas.MatchSchema, matches.get_lineups, False),

@@ -27,8 +27,8 @@ export function useFlashscoreMatches(oddsMatchIds: string | string[] = []) {
 		orpc.flashscore.matches.queryOptions({
 			input:
 				typeof oddsMatchIds === "string" ? { ids: [oddsMatchIds] } : undefined,
-			staleTime: 45 * 1000,
-			refetchInterval: 60 * 1000,
+			staleTime: 5_000,
+			refetchInterval: 15_000,
 			refetchOnWindowFocus: false,
 			retry: false,
 		}),
@@ -46,11 +46,20 @@ export function useFlashscoreMatches(oddsMatchIds: string | string[] = []) {
 	}
 	const { pricesByMatch, oddsLoading, oddsError } = useQueries({
 		combine: combineOdds,
-		queries: batches.map((ids) =>
-			oddsQueryOptions(ids, (matchIds) =>
+		queries: batches.map((ids) => ({
+			...oddsQueryOptions(ids, (matchIds) =>
 				orpc.flashscore.odds.call({ ids: matchIds }),
 			),
-		),
+			staleTime: 10_000,
+			refetchInterval: fixtureMatches.some(
+				(match) =>
+					ids.includes(match.id) &&
+					["TRADING", "TRADING_LIVE"].includes(match.status),
+			)
+				? 15_000
+				: false,
+			refetchOnWindowFocus: true,
+		})),
 	});
 	const matches = useMemo(
 		() =>
