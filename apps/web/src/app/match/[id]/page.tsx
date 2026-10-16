@@ -7,11 +7,12 @@ import { useParams } from "next/navigation";
 import { BetSlip } from "@/components/sports/bet-slip";
 import { MarketOffers } from "@/components/sports/market-offers";
 import { SiteHeader } from "@/components/sports/page-chrome";
+import { PrimaryOdds } from "@/components/sports/primary-odds";
 import { useI18n } from "@/features/i18n/locale-provider";
 import { useBetting } from "@/features/sports/use-betting";
 import { useFlashscoreMatches } from "@/features/sports/use-flashscore-matches";
 import { useMatchResult } from "@/features/sports/use-match-result";
-import { formatKickoff } from "@/features/sports/utils";
+import { formatKickoff, isMatchUnavailable } from "@/features/sports/utils";
 
 export default function MatchPage() {
 	const { t, locale } = useI18n();
@@ -111,51 +112,13 @@ export default function MatchPage() {
 									{t("Live update unavailable. Showing last reported score.")}
 								</p>
 							)}
-							<div className="mt-7 grid grid-cols-3 gap-2">
-								{match.odds.result.map((odd, index) => {
-									const label = ["1", "X", "2"][index]!;
-									const outcome = `${label} · ${match.league}`;
-									const selected = betting.selected.some(
-										(pick) =>
-											pick.match.id === match.id && pick.outcome === outcome,
-									);
-									const disabled =
-										odd === "—" ||
-										[
-											"RESULTED",
-											"CLOSED",
-											"CANCELLED",
-											"POST_TRADING",
-											"INTERRUPTED",
-										].includes(match.status.toUpperCase());
-									return (
-										<button
-											key={label}
-											type="button"
-											disabled={disabled}
-											onClick={() =>
-												betting.togglePick(match, outcome, odd, {
-													type: "HOME_DRAW_AWAY",
-													scope: "FULL_TIME",
-													selection:
-														label === "1"
-															? "home"
-															: label === "X"
-																? "draw"
-																: "away",
-												})
-											}
-											className={`rounded-xl border p-3 text-center transition ${selected ? "border-[#c6f36b]/50 bg-[#c6f36b]/10" : "border-white/[.08] bg-black/10 hover:border-white/20"} ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
-										>
-											<span className="block text-white/45 text-xs">
-												{label}
-											</span>
-											<span className="mt-1 block font-extrabold text-[#d8ff9d] tabular-nums">
-												{odd}
-											</span>
-										</button>
-									);
-								})}
+							<div className="mt-7">
+								<PrimaryOdds
+									match={match}
+									selected={betting.selected}
+									onPick={betting.togglePick}
+									disabled={isMatchUnavailable(match.status)}
+								/>
 							</div>
 						</section>
 
@@ -171,9 +134,7 @@ export default function MatchPage() {
 										{t("All offers")}
 									</h1>
 									<p className="mt-1 text-white/45 text-xs">
-										{t(
-											"Prices and markets supplied by the local Flashscore feed.",
-										)}
+										{t("Prices and markets supplied by Flashscore.")}
 									</p>
 								</div>
 								{football.oddsLoading && match.odds.markets.length === 0 ? (

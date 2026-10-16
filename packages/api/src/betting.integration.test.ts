@@ -209,9 +209,10 @@ test("server betting debits persisted wallets and saves isolated bets", {
 			async () => {
 				const user = await newUser();
 				let ended = false;
+				let verifiedSport = "Unknown";
 				const tennisFeed: FlashscoreService = {
 					getMatches: async () => ({
-						matches: [{ ...fixture("match001"), sport: "Tennis" }],
+						matches: [{ ...fixture("match001"), sport: verifiedSport }],
 						source: "Local Flashscore scraper",
 						updatedAt: new Date().toISOString(),
 					}),
@@ -241,6 +242,12 @@ test("server betting debits persisted wallets and saves isolated bets", {
 					tennisFeed,
 					env.BETTER_AUTH_SECRET,
 				);
+				await assert.rejects(
+					() => tennisBets.place(user, input("10")),
+					/sport could not be verified/,
+				);
+				assert.equal((await accounts.wallet(user)).balanceMillimes, 100000);
+				verifiedSport = "Tennis";
 				await assert.rejects(
 					() => tennisBets.place(user, input("10")),
 					/Only full-match winner/,

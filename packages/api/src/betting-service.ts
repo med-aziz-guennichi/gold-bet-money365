@@ -198,6 +198,11 @@ export class BettingService {
 					"A selected match is no longer open for betting. Refresh your selections.",
 				);
 			const snapshot = prices.odds[pick.matchId];
+			if (!fixture.sport || fixture.sport === "Unknown")
+				throw new ManagementError(
+					"SERVICE_UNAVAILABLE",
+					"The event sport could not be verified. No credits were spent.",
+				);
 			if (
 				fixture.sport !== "Football" &&
 				(pick.market.type !== "HOME_AWAY" || pick.market.scope !== "FULL_TIME")
