@@ -19,8 +19,5 @@ function getServerUrl(url: string) {
 
 export const authClient = createAuthClient({
 	plugins: [phoneNumberClient(), inferAdditionalFields<Auth>(), adminClient()],
-	baseURL: new URL(
-		"/api/auth",
-		getServerUrl(process.env.NEXT_PUBLIC_SERVER_URL!),
-	).toString(),
+	baseURL: `${getServerUrl(process.env.NEXT_PUBLIC_SERVER_URL!)}/api/auth`,
 });
