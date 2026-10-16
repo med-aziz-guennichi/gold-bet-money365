@@ -75,7 +75,7 @@ function HomeContent() {
 						<SelectTrigger
 							id="sport-filter"
 							aria-label={t("Sport")}
-							className="h-11 min-w-0 flex-1 rounded-xl border-white/10 bg-[#111713] px-4 text-sm text-white sm:max-w-sm"
+							className="h-11 w-full min-w-0 flex-none rounded-xl border-white/10 bg-[#111713] px-4 text-sm text-white sm:w-auto sm:max-w-sm sm:flex-1"
 						>
 							<SelectValue />
 						</SelectTrigger>
