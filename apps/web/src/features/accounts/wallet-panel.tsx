@@ -1,6 +1,7 @@
 "use client";
 
 import { formatTnd } from "@gold-bet-clean-money365/api/access";
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { orpc } from "@/utils/orpc";
@@ -36,9 +37,13 @@ export function WalletPanel({
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div>
 					<p className="text-white/45 text-xs uppercase tracking-wider">
-						{wallet.data?.canAllocate
-							? "Admin funding"
-							: "Your available wallet"}
+						<LocalizedText
+							text={
+								wallet.data?.canAllocate
+									? "Admin funding"
+									: "Your available wallet"
+							}
+						/>
 					</p>
 					<p className="mt-2 font-bold text-[#c6f36b] text-xl">
 						{wallet.data
@@ -61,9 +66,8 @@ export function WalletPanel({
 			</div>
 			{wallet.data?.canAllocate && !wallet.data.transfersEnabled && (
 				<p role="status" className="mt-4 text-amber-200 text-sm">
-					Wallet transfers need a one-time local database setup. Run
-					scripts/enable-wallet-transactions.ps1 in PowerShell as Administrator.
-					Existing accounts and data are preserved.
+					{" "}
+					<LocalizedText text="Wallet transfers need a one-time local database setup. Run scripts/enable-wallet-transactions.ps1 in PowerShell as Administrator. Existing accounts and data are preserved." />{" "}
 				</p>
 			)}
 			{wallet.error && (
@@ -90,7 +94,7 @@ export function WalletPanel({
 							<tr>
 								{["Date", "From", "To", "Amount"].map((label) => (
 									<th key={label} className="py-3 pe-4 font-medium">
-										{label}
+										<LocalizedText text={label} />
 									</th>
 								))}
 							</tr>
@@ -111,10 +115,14 @@ export function WalletPanel({
 						</tbody>
 					</table>
 					{history.isPending ? (
-						<p className="py-4 text-sm text-white/50">Loading transactions…</p>
+						<p className="py-4 text-sm text-white/50">
+							<LocalizedText text="Loading transactions…" />
+						</p>
 					) : (
 						!history.data?.items.length && (
-							<p className="py-4 text-sm text-white/50">No transactions yet.</p>
+							<p className="py-4 text-sm text-white/50">
+								<LocalizedText text="No transactions yet." />
+							</p>
 						)
 					)}
 					<div className="mt-3 flex items-center justify-between text-xs">
@@ -124,9 +132,12 @@ export function WalletPanel({
 							onClick={() => setPage((value) => value - 1)}
 							className="disabled:opacity-30"
 						>
-							Previous
+							{" "}
+							<LocalizedText text="Previous" />{" "}
 						</button>
-						<span>Page {page}</span>
+						<span>
+							<LocalizedText text="Page" /> {page}
+						</span>
 						<button
 							type="button"
 							disabled={
@@ -135,7 +146,8 @@ export function WalletPanel({
 							onClick={() => setPage((value) => value + 1)}
 							className="disabled:opacity-30"
 						>
-							Next
+							{" "}
+							<LocalizedText text="Next" />{" "}
 						</button>
 					</div>
 				</div>

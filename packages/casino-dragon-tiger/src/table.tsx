@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import "./styles.css";
 import type { TableProps } from "@gold-bet-clean-money365/casino-core";
 import {
@@ -11,13 +12,19 @@ export function Table(p: TableProps) {
 			<div className="dragon-duel">
 				<div className="dragon-side">
 					<span className="duel-emblem">龍</span>
-					<h3>DRAGON</h3>
+					<h3>
+						<LocalizedText text="DRAGON" />
+					</h3>
 					<Card value={p.outcome?.symbols[0] ?? "hidden"} />
 				</div>
-				<span className="duel-versus">VS</span>
+				<span className="duel-versus">
+					<LocalizedText text="VS" />
+				</span>
 				<div className="tiger-side">
 					<span className="duel-emblem">虎</span>
-					<h3>TIGER</h3>
+					<h3>
+						<LocalizedText text="TIGER" />
+					</h3>
 					<Card value={p.outcome?.symbols[1] ?? "hidden"} />
 				</div>
 			</div>
@@ -34,10 +41,12 @@ export function Table(p: TableProps) {
 				))}
 			</div>
 			<p className="table-caption">
-				HIGH CARD WINS · ACE LOW · HALF RETURN ON SIDE-BET TIES
+				{" "}
+				<LocalizedText text="HIGH CARD WINS · ACE LOW · HALF RETURN ON SIDE-BET TIES" />{" "}
 			</p>
 			<ActionButton onClick={p.onStart} disabled={p.disabled}>
-				Reveal the duel
+				{" "}
+				<LocalizedText text="Reveal the duel" />{" "}
 			</ActionButton>
 		</div>
 	);

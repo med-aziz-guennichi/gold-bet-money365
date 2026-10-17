@@ -4,6 +4,11 @@ import {
 	canUseDashboard,
 	normalizePhone,
 } from "@gold-bet-clean-money365/api/access";
+import {
+	LocalizedText,
+	normalizeDigits,
+	useI18n,
+} from "@gold-bet-clean-money365/i18n";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { Brand } from "@/components/brand";
@@ -12,6 +17,7 @@ import { queryClient } from "@/utils/orpc";
 
 export default function SignInForm() {
 	const router = useRouter();
+	const { t } = useI18n();
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
 	async function submit(event: FormEvent<HTMLFormElement>) {
@@ -60,19 +66,23 @@ export default function SignInForm() {
 	return (
 		<section className="mx-auto mt-14 max-w-md rounded-3xl border border-white/10 bg-[#111713] p-7 shadow-xl">
 			<Brand />
-			<h1 className="mt-6 font-bold text-3xl">Welcome back</h1>
+			<h1 className="mt-6 font-bold text-3xl">
+				<LocalizedText text="Welcome back" />
+			</h1>
 			<p className="mt-2 text-sm text-white/50">
-				Sign in with your phone number and password.
+				{" "}
+				<LocalizedText text="Sign in with your phone number and password." />{" "}
 			</p>
 			<form onSubmit={submit} className="mt-7 space-y-5">
 				<label className="block text-sm" htmlFor="phoneNumber">
-					Phone number
+					{" "}
+					<LocalizedText text="Phone number" />{" "}
 					<div
 						dir="ltr"
 						className="mt-2 flex overflow-hidden rounded-xl border border-white/15 bg-white/5 focus-within:border-[#c6f36b]"
 					>
 						<input
-							aria-label="Country code"
+							aria-label={t("Country code")}
 							value="+216"
 							disabled
 							className="w-20 shrink-0 border-white/15 border-e bg-white/5 px-3 py-3 text-center text-white/50 opacity-100"
@@ -81,6 +91,9 @@ export default function SignInForm() {
 							className="min-w-0 flex-1 bg-transparent px-4 py-3 text-white outline-none"
 							id="phoneNumber"
 							name="phoneNumber"
+							onChange={(event) => {
+								event.target.value = normalizeDigits(event.target.value);
+							}}
 							type="tel"
 							inputMode="numeric"
 							autoComplete="username"
@@ -94,13 +107,16 @@ export default function SignInForm() {
 						/>
 					</div>
 					<span id="phone-hint" className="mt-2 block text-white/40 text-xs">
-						Enter only your 8-digit phone number.
+						{" "}
+						<LocalizedText text="Enter only your 8-digit phone number." />{" "}
 					</span>
 				</label>
 				<label className="block text-sm" htmlFor="password">
-					Password
+					{" "}
+					<LocalizedText text="Password" />{" "}
 					<input
 						className={field}
+						dir="ltr"
 						id="password"
 						name="password"
 						type="password"
@@ -112,7 +128,7 @@ export default function SignInForm() {
 				</label>
 				{error && (
 					<p role="alert" className="text-red-300 text-sm">
-						{error}
+						<LocalizedText text={error} />
 					</p>
 				)}
 				<button
@@ -120,12 +136,12 @@ export default function SignInForm() {
 					type="submit"
 					disabled={busy}
 				>
-					{busy ? "Signing in…" : "Login"}
+					<LocalizedText text={busy ? "Signing in…" : "Login"} />
 				</button>
 			</form>
 			<p className="mt-5 text-white/40 text-xs leading-5">
-				Accounts are provided by your account manager. Contact them if you need
-				access or a password reset.
+				{" "}
+				<LocalizedText text="Accounts are provided by your account manager. Contact them if you need access or a password reset." />{" "}
 			</p>
 		</section>
 	);

@@ -354,6 +354,9 @@ importers:
       '@gold-bet-clean-money365/casino-video-poker':
         specifier: workspace:*
         version: link:../../packages/casino-video-poker
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@gold-bet-clean-money365/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -525,6 +528,9 @@ importers:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*
         version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -544,6 +550,9 @@ importers:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*
         version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -560,6 +569,9 @@ importers:
 
   packages/casino-core:
     dependencies:
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -579,6 +591,9 @@ importers:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*
         version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -598,6 +613,9 @@ importers:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*
         version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -617,6 +635,9 @@ importers:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*
         version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -636,6 +657,9 @@ importers:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*
         version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -655,6 +679,9 @@ importers:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*
         version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -674,6 +701,9 @@ importers:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*
         version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -693,6 +723,9 @@ importers:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*
         version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -712,6 +745,9 @@ importers:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*
         version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -746,6 +782,22 @@ importers:
       varlock:
         specifier: 'catalog:'
         version: 1.18.0
+
+  packages/i18n:
+    dependencies:
+      react:
+        specifier: 'catalog:'
+        version: 19.3.0
+    devDependencies:
+      '@gold-bet-clean-money365/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.3.0
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
 
   packages/ui:
     dependencies:

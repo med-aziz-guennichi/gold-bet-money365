@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import type { ReactNode } from "react";
 export function Card({
 	value,
@@ -33,7 +34,9 @@ export function Card({
 			onClick={onClick}
 		>
 			{content}
-			<b className="hold-label">{held ? "HELD" : "HOLD"}</b>
+			<b className="hold-label">
+				<LocalizedText text={held ? "HELD" : "HOLD"} />
+			</b>
 		</button>
 	) : (
 		<div
@@ -78,7 +81,11 @@ export function ActionButton({
 			disabled={disabled}
 			onClick={onClick}
 		>
-			{children}
+			{typeof children === "string" ? (
+				<LocalizedText text={children} />
+			) : (
+				children
+			)}
 		</button>
 	);
 }
@@ -103,7 +110,9 @@ export function BetZone({
 			onClick={onClick}
 			disabled={disabled}
 		>
-			<strong>{label}</strong>
+			<strong>
+				<LocalizedText text={label} />
+			</strong>
 			<small>{payout}</small>
 			{selected && <span className="zone-chip" aria-hidden="true" />}
 		</button>

@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
+
 import { ArrowRight, Flame, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useI18n } from "@/features/i18n/locale-provider";
@@ -57,7 +59,7 @@ export function MatchCenter({
 			<div className="mb-5 flex flex-wrap items-end justify-between gap-4">
 				<div>
 					<div className="mb-2 flex items-center gap-2 font-bold text-[#c6f36b] text-[10px] uppercase tracking-[.18em]">
-						<Flame size={13} /> Matchday picks
+						<Flame size={13} /> <LocalizedText text="Matchday picks" />{" "}
 					</div>
 					<h2 className="font-extrabold text-2xl tracking-[-.05em] sm:text-[28px]">
 						{t("Find your game")}
@@ -96,7 +98,7 @@ export function MatchCenter({
 							role="alert"
 							className="rounded-2xl border border-[#f3a65e]/20 bg-[#f3a65e]/[.05] p-5 text-[#f3a65e] text-sm"
 						>
-							{error}
+							<LocalizedText text={error} />
 						</div>
 					)}
 					<MatchList

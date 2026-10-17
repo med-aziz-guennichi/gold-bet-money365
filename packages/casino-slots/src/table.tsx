@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import "./styles.css";
 import type { TableProps } from "@gold-bet-clean-money365/casino-core";
 import { ActionButton } from "@gold-bet-clean-money365/casino-core/ui";
@@ -66,8 +67,12 @@ export function Table(p: TableProps) {
 		<div className="slots-room">
 			<div className="slot-marquee">
 				<small>GOLDBET365 ORIGINALS</small>
-				<h3>GOLDEN ORCHARD</h3>
-				<span>3 REELS · ONE PAYLINE · UP TO 30×</span>
+				<h3>
+					<LocalizedText text="GOLDEN ORCHARD" />
+				</h3>
+				<span>
+					<LocalizedText text="3 REELS · ONE PAYLINE · UP TO 30×" />
+				</span>
 			</div>
 			<div className={`slot-cabinet ${p.busy ? "spinning" : ""}`}>
 				<div className="payline-arrow">▶</div>
@@ -93,17 +98,21 @@ export function Table(p: TableProps) {
 			</div>
 			<div className="slot-paytable">
 				<span>
-					CHERRIES ×3 <b>30×</b>
+					{" "}
+					<LocalizedText text="CHERRIES ×3" /> <b>30×</b>
 				</span>
 				<span>
-					OTHER TRIPLES <b>18×</b>
+					{" "}
+					<LocalizedText text="OTHER TRIPLES" /> <b>18×</b>
 				</span>
 				<span>
-					ONE PAIR <b>1×</b>
+					{" "}
+					<LocalizedText text="ONE PAIR" /> <b>1×</b>
 				</span>
 			</div>
 			<ActionButton onClick={p.onStart} disabled={p.disabled}>
-				Spin reels
+				{" "}
+				<LocalizedText text="Spin reels" />{" "}
 			</ActionButton>
 		</div>
 	);

@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import "./styles.css";
 import type { TableProps } from "@gold-bet-clean-money365/casino-core";
 import {
@@ -17,7 +18,9 @@ export function Table(p: TableProps) {
 						<Dice key={i} value={n} />
 					))}
 				</div>
-				<div className="dome-base">SIC BO</div>
+				<div className="dome-base">
+					<LocalizedText text="SIC BO" />
+				</div>
 			</div>
 			<div className="sicbo-zones">
 				<BetZone
@@ -43,10 +46,12 @@ export function Table(p: TableProps) {
 				/>
 			</div>
 			<p className="table-caption">
-				THREE DICE · SMALL AND BIG LOSE ON TRIPLES
+				{" "}
+				<LocalizedText text="THREE DICE · SMALL AND BIG LOSE ON TRIPLES" />{" "}
 			</p>
 			<ActionButton onClick={p.onStart} disabled={p.disabled}>
-				Shake & reveal
+				{" "}
+				<LocalizedText text="Shake & reveal" />{" "}
 			</ActionButton>
 		</div>
 	);

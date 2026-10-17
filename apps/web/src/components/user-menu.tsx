@@ -2,6 +2,7 @@ import {
 	canUseDashboard,
 	formatTnd,
 } from "@gold-bet-clean-money365/api/access";
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import {
 	DropdownMenu,
@@ -51,8 +52,11 @@ function UserMenuContent() {
 
 	if (!session) {
 		return (
-			<Link href="/login">
-				<Button variant="outline">{t("Sign In")}</Button>
+			<Link
+				href="/login"
+				className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/20 bg-[#151b17] px-4 py-2 font-bold text-white text-xs transition hover:border-[#c6f36b]/50 hover:bg-[#202a21] focus-visible:outline-2 focus-visible:outline-[#c6f36b] focus-visible:outline-offset-2"
+			>
+				{t("Sign In")}
 			</Link>
 		);
 	}
@@ -79,7 +83,12 @@ function UserMenuContent() {
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					aria-label={session.user.name}
-					render={<Button variant="outline" />}
+					render={
+						<Button
+							variant="outline"
+							className="border-white/20 bg-[#151b17] text-white hover:bg-[#202a21] hover:text-white dark:bg-[#151b17]"
+						/>
+					}
 				>
 					<UserRound className="sm:hidden" size={16} />
 					<span className="hidden max-w-32 truncate sm:inline">
@@ -93,17 +102,21 @@ function UserMenuContent() {
 						<DropdownMenuItem>{session.user.phoneNumber}</DropdownMenuItem>
 						{session.user.role !== "admin" && wallet.data && (
 							<DropdownMenuItem>
-								Wallet: {formatTnd(wallet.data.balanceMillimes)}
+								{" "}
+								<LocalizedText text="Wallet:" />{" "}
+								{formatTnd(wallet.data.balanceMillimes)}
 							</DropdownMenuItem>
 						)}
 						{canUseDashboard(session.user.role) && (
 							<DropdownMenuItem render={<Link href="/dashboard" />}>
-								Dashboard
+								{" "}
+								<LocalizedText text="Dashboard" />{" "}
 							</DropdownMenuItem>
 						)}
 						{session.user.role === "user" && (
 							<DropdownMenuItem render={<Link href="/casino" />}>
-								Casino & rounds
+								{" "}
+								<LocalizedText text="Casino & rounds" />{" "}
 							</DropdownMenuItem>
 						)}
 						{session.user.role === "user" && (
@@ -112,7 +125,8 @@ function UserMenuContent() {
 							</DropdownMenuItem>
 						)}
 						<DropdownMenuItem render={<Link href="/account" />}>
-							Change password
+							{" "}
+							<LocalizedText text="Change password" />{" "}
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							variant="destructive"

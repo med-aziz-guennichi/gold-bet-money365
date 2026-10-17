@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
+
 import { type FormEvent, useState } from "react";
 import { Brand } from "@/components/brand";
 import { authClient } from "@/lib/auth-client";
@@ -47,11 +48,10 @@ export default function ChangePassword() {
 	return (
 		<main className="min-h-screen bg-[#080b0a] px-4 py-16 text-white">
 			<section className="mx-auto max-w-md rounded-2xl border border-white/10 bg-[#111713] p-7">
-				<Link href="/" className="text-[#c6f36b] text-sm">
-					GoldBet365
-				</Link>
 				<Brand />
-				<h1 className="my-6 font-bold text-2xl">Change your password</h1>
+				<h1 className="my-6 font-bold text-2xl">
+					<LocalizedText text="Change your password" />
+				</h1>
 				<form onSubmit={submit} className="space-y-5">
 					{(
 						[
@@ -77,7 +77,7 @@ export default function ChangePassword() {
 							htmlFor={item.name}
 							className="block text-sm"
 						>
-							{item.label}
+							<LocalizedText text={item.label} />
 							<input
 								className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 outline-none focus:border-[#c6f36b]"
 								id={item.name}
@@ -92,16 +92,18 @@ export default function ChangePassword() {
 						</label>
 					))}
 					<p className="text-white/50 text-xs leading-5">
-						Use at least 12 characters. Your other sessions will be signed out.
+						{" "}
+						<LocalizedText text="Use at least 12 characters. Your other sessions will be signed out." />{" "}
 					</p>
 					{error && (
 						<p role="alert" className="text-red-300 text-sm">
-							{error}
+							<LocalizedText text={error} />
 						</p>
 					)}
 					{success && (
 						<p role="status" className="text-[#c6f36b] text-sm">
-							Password updated.
+							{" "}
+							<LocalizedText text="Password updated." />{" "}
 						</p>
 					)}
 					<button
@@ -109,7 +111,7 @@ export default function ChangePassword() {
 						disabled={busy}
 						className="w-full rounded-xl bg-[#c6f36b] py-3 font-bold text-[#11160b] disabled:opacity-50"
 					>
-						{busy ? "Saving…" : "Update password"}
+						<LocalizedText text={busy ? "Saving…" : "Update password"} />
 					</button>
 				</form>
 			</section>

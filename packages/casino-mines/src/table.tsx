@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import "./styles.css";
 import type { TableProps } from "@gold-bet-clean-money365/casino-core";
 import { ActionButton } from "@gold-bet-clean-money365/casino-core/ui";
@@ -9,15 +10,21 @@ export function Table(p: TableProps) {
 		<div className="mines-room">
 			<div className="mines-metrics">
 				<span>
-					<small>MINES</small>
+					<small>
+						<LocalizedText text="MINES" />
+					</small>
 					<b>03</b>
 				</span>
 				<span>
-					<small>SAFE FOUND</small>
+					<small>
+						<LocalizedText text="SAFE FOUND" />
+					</small>
 					<b>{revealed.filter((n) => !mines.includes(n)).length}</b>
 				</span>
 				<span>
-					<small>NEXT RETURN</small>
+					<small>
+						<LocalizedText text="NEXT RETURN" />
+					</small>
 					<b>{((p.view?.nextMultiplierHundredths ?? 110) / 100).toFixed(2)}×</b>
 				</span>
 			</div>
@@ -68,16 +75,20 @@ export function Table(p: TableProps) {
 						disabled={p.busy || !revealed.length}
 						onClick={() => p.onAction({ type: "cashout" })}
 					>
-						Cash out {((p.view?.multiplierHundredths ?? 100) / 100).toFixed(2)}×
+						{" "}
+						<LocalizedText text="Cash out" />{" "}
+						{((p.view?.multiplierHundredths ?? 100) / 100).toFixed(2)}×
 					</ActionButton>
 				) : (
 					<ActionButton disabled={p.disabled} onClick={p.onStart}>
-						Enter the minefield
+						{" "}
+						<LocalizedText text="Enter the minefield" />{" "}
 					</ActionButton>
 				)}
 			</div>
 			<p className="table-caption">
-				REVEAL DIAMONDS · AVOID 3 MINES · CASH OUT ANYTIME AFTER A SAFE TILE
+				{" "}
+				<LocalizedText text="REVEAL DIAMONDS · AVOID 3 MINES · CASH OUT ANYTIME AFTER A SAFE TILE" />{" "}
 			</p>
 		</div>
 	);

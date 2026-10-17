@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import "./styles.css";
 import type { TableProps } from "@gold-bet-clean-money365/casino-core";
 import { ActionButton, Card } from "@gold-bet-clean-money365/casino-core/ui";
@@ -36,7 +37,12 @@ export function Table(p: TableProps) {
 				))}
 			</div>
 			<div className="poker-title">
-				JACKS <small>OR</small> BETTER <span>9 / 6</span>
+				{" "}
+				<LocalizedText text="JACKS" />{" "}
+				<small>
+					<LocalizedText text="OR" />
+				</small>{" "}
+				<LocalizedText text="BETTER" /> <span>9 / 6</span>
 			</div>
 			<div className="poker-hand">
 				{cards.map((c, i) => (
@@ -58,9 +64,13 @@ export function Table(p: TableProps) {
 				))}
 			</div>
 			<p className="table-caption">
-				{active
-					? "TAP CARDS TO HOLD · DRAW ONCE TO COMPLETE YOUR HAND"
-					: "FIVE CARDS · ONE DRAW · YOUR DECISION"}
+				<LocalizedText
+					text={
+						active
+							? "TAP CARDS TO HOLD · DRAW ONCE TO COMPLETE YOUR HAND"
+							: "FIVE CARDS · ONE DRAW · YOUR DECISION"
+					}
+				/>
 			</p>
 			<ActionButton
 				disabled={active ? p.busy : p.disabled}

@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
+
 import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import {
 	Select,
@@ -28,7 +30,8 @@ export default function Home() {
 				<main className="min-h-screen bg-[#080b0a] text-white">
 					<SiteHeader />
 					<div className="p-8" role="status">
-						Loading…
+						{" "}
+						<LocalizedText text="Loading…" />{" "}
 					</div>
 				</main>
 			}

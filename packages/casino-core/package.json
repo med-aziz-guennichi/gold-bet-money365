@@ -12,7 +12,8 @@
 		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
-		"react": "catalog:"
+		"react": "catalog:",
+		"@gold-bet-clean-money365/i18n": "workspace:*"
 	},
 	"devDependencies": {
 		"@gold-bet-clean-money365/config": "workspace:*",

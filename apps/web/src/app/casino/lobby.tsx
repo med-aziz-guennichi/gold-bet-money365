@@ -1,7 +1,9 @@
 "use client";
+
 import { casinoGames } from "@gold-bet-clean-money365/api/casino-catalog";
 import type { GameId } from "@gold-bet-clean-money365/casino-core";
 import { Card, Dice } from "@gold-bet-clean-money365/casino-core/ui";
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import Link from "next/link";
 import { useState } from "react";
 import { SiteHeader } from "@/components/sports/page-chrome";
@@ -32,7 +34,9 @@ function Artwork({ game }: { game: GameId }) {
 			) : game === "mines" ? (
 				<div className="art-mines">
 					{Array.from({ length: 9 }, (_, i) => (
-						<i key={i}>{i === 4 ? "◆" : ""}</i>
+						<i key={i}>
+							<LocalizedText text={i === 4 ? "◆" : ""} />
+						</i>
 					))}
 				</div>
 			) : game === "crash" ? (
@@ -86,19 +90,21 @@ export default function Lobby() {
 					<div>
 						<p className="lobby-eyebrow">GOLDBET365 ORIGINALS / VOL. 01</p>
 						<h1>
-							Your seat.
-							<br />
-							Your next move.
+							{" "}
+							<LocalizedText text="Your seat." /> <br />{" "}
+							<LocalizedText text="Your next move." />{" "}
 						</h1>
 						<p>
-							Ten original games. Distinct tables, real decisions, and a place
-							to practice before you play.
+							{" "}
+							<LocalizedText text="Ten original games. Distinct tables, real decisions, and a place to practice before you play." />{" "}
 						</p>
 						<Link href="/casino/blackjack" className="lobby-primary">
-							Take a seat at Blackjack <span>↗</span>
+							{" "}
+							<LocalizedText text="Take a seat at Blackjack" /> <span>↗</span>
 						</Link>
 						<span className="lobby-feature-note">
-							Hit. Stand. Play your hand.
+							{" "}
+							<LocalizedText text="Hit. Stand. Play your hand." />{" "}
 						</span>
 					</div>
 					<div className="lobby-feature-art">
@@ -110,10 +116,16 @@ export default function Lobby() {
 				</section>
 				<div className="lobby-section-heading">
 					<div>
-						<p className="lobby-eyebrow">THE ORIGINALS COLLECTION</p>
-						<h2>Choose your game.</h2>
+						<p className="lobby-eyebrow">
+							<LocalizedText text="THE ORIGINALS COLLECTION" />
+						</p>
+						<h2>
+							<LocalizedText text="Choose your game." />
+						</h2>
 					</div>
-					<Link href="/casino/history">Your round history →</Link>
+					<Link href="/casino/history">
+						<LocalizedText text="Your round history →" />
+					</Link>
 				</div>
 				<div
 					className="lobby-filters"
@@ -145,13 +157,21 @@ export default function Lobby() {
 							<Artwork game={g.id} />
 							<div className="lobby-game-info">
 								<div>
-									<small>{g.category} · GOLDBET365</small>
-									<h3>{g.name}</h3>
+									<small>
+										<LocalizedText text={g.category} /> · GOLDBET365
+									</small>
+									<h3>
+										<LocalizedText text={g.name} />
+									</h3>
 									<p>
-										{g.mode === "session"
-											? "Play your decisions"
-											: "Instant rounds"}{" "}
-										· Practice available
+										<LocalizedText
+											text={
+												g.mode === "session"
+													? "Play your decisions"
+													: "Instant rounds"
+											}
+										/>{" "}
+										<LocalizedText text="· Practice available" />{" "}
 									</p>
 								</div>
 								<span className="lobby-play" aria-hidden="true">
@@ -167,26 +187,32 @@ export default function Lobby() {
 				<section className="lobby-how">
 					<div>
 						<span>01</span>
-						<h3>Make it your game</h3>
+						<h3>
+							<LocalizedText text="Make it your game" />
+						</h3>
 						<p>
-							Each game opens in its own room with tailored controls and a
-							complete rulebook.
+							{" "}
+							<LocalizedText text="Each game opens in its own room with tailored controls and a complete rulebook." />{" "}
 						</p>
 					</div>
 					<div>
 						<span>02</span>
-						<h3>Find your rhythm</h3>
+						<h3>
+							<LocalizedText text="Find your rhythm" />
+						</h3>
 						<p>
-							Practice with separate demo credits. Switch to wallet mode when
-							you choose to.
+							{" "}
+							<LocalizedText text="Practice with separate demo credits. Switch to wallet mode when you choose to." />{" "}
 						</p>
 					</div>
 					<div>
 						<span>03</span>
-						<h3>Keep every receipt</h3>
+						<h3>
+							<LocalizedText text="Keep every receipt" />
+						</h3>
 						<p>
-							Wallet stakes, results and returns are saved together. Interrupted
-							rounds can be resumed.
+							{" "}
+							<LocalizedText text="Wallet stakes, results and returns are saved together. Interrupted rounds can be resumed." />{" "}
 						</p>
 					</div>
 				</section>

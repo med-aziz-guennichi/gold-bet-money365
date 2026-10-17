@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import "./styles.css";
 import type { TableProps } from "@gold-bet-clean-money365/casino-core";
 import { ActionButton } from "@gold-bet-clean-money365/casino-core/ui";
@@ -18,9 +19,15 @@ export function Table(p: TableProps) {
 	return (
 		<div className="plinko-room">
 			<div className="plinko-top">
-				<span>8 ROWS</span>
-				<strong>PLINKO</strong>
-				<span>FIXED RISK</span>
+				<span>
+					<LocalizedText text="8 ROWS" />
+				</span>
+				<strong>
+					<LocalizedText text="PLINKO" />
+				</strong>
+				<span>
+					<LocalizedText text="FIXED RISK" />
+				</span>
 			</div>
 			<svg viewBox="0 0 500 390" aria-label="Plinko board">
 				<defs>
@@ -90,10 +97,12 @@ export function Table(p: TableProps) {
 				))}
 			</svg>
 			<ActionButton onClick={p.onStart} disabled={p.disabled}>
-				Drop a ball
+				{" "}
+				<LocalizedText text="Drop a ball" />{" "}
 			</ActionButton>
 			<p className="table-caption">
-				EIGHT INDEPENDENT LEFT / RIGHT STEPS · EVERY DROP IS A NEW ROUND
+				{" "}
+				<LocalizedText text="EIGHT INDEPENDENT LEFT / RIGHT STEPS · EVERY DROP IS A NEW ROUND" />{" "}
 			</p>
 		</div>
 	);

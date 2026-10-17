@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import { InformationPage } from "@/components/information-page";
 import { publicMetadata } from "@/lib/seo";
 export const metadata = publicMetadata(
@@ -32,7 +33,8 @@ export default function Page() {
 			/>
 			<p className="mx-auto max-w-3xl px-5 pb-10 text-[#e9bd62]">
 				<a href="https://www.gambleaware.org/" target="_blank" rel="noreferrer">
-					Independent support from GambleAware →
+					{" "}
+					<LocalizedText text="Independent support from GambleAware →" />{" "}
 				</a>
 			</p>
 		</>

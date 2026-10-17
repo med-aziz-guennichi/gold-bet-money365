@@ -6,8 +6,8 @@ import {
 	formatTnd,
 	type Role,
 } from "@gold-bet-clean-money365/api/access";
+import { LocalizedText, useI18n } from "@gold-bet-clean-money365/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Brand } from "@/components/brand";
 import UserMenu from "@/components/user-menu";
@@ -30,6 +30,7 @@ export default function Dashboard({
 }: {
 	session: typeof authClient.$Infer.Session;
 }) {
+	const { t } = useI18n();
 	const cache = useQueryClient();
 	const actorId = session.user.id;
 	const role = session.user.role as Role;
@@ -139,12 +140,15 @@ export default function Dashboard({
 			<div className="mx-auto max-w-6xl">
 				<header className="flex flex-wrap items-center justify-between gap-4 border-white/10 border-b pb-6">
 					<div>
-						<Link href="/" className="text-[#c6f36b] text-sm">
-							<Brand compact />
-						</Link>
-						<h1 className="mt-3 font-bold text-3xl">Account management</h1>
+						<Brand compact />
+						<h1 className="mt-3 font-bold text-3xl">
+							<LocalizedText text="Account management" />
+						</h1>
 						<p className="mt-2 text-sm text-white/50">
-							{session.user.name} · <span className="capitalize">{role}</span>
+							{session.user.name} ·{" "}
+							<span className="capitalize">
+								<LocalizedText text={role} />
+							</span>
 						</p>
 					</div>
 					<UserMenu />
@@ -158,7 +162,8 @@ export default function Dashboard({
 				<div className="mt-6 grid gap-4 sm:grid-cols-3">
 					<div className="rounded-2xl border border-white/10 bg-[#111713] p-5">
 						<p className="text-white/40 text-xs uppercase tracking-wider">
-							Accounts in this view
+							{" "}
+							<LocalizedText text="Accounts in this view" />{" "}
 						</p>
 						<p className="mt-3 font-bold text-3xl text-[#c6f36b]">
 							{accounts.data?.total ?? "—"}
@@ -166,16 +171,19 @@ export default function Dashboard({
 					</div>
 					<div className="rounded-2xl border border-white/10 bg-[#111713] p-5 sm:col-span-2">
 						<p className="font-semibold">
-							{role === "admin"
-								? "Full network access"
-								: role === "fournisseur"
-									? "Your clients and their users"
-									: "Your users"}
+							<LocalizedText
+								text={
+									role === "admin"
+										? "Full network access"
+										: role === "fournisseur"
+											? "Your clients and their users"
+											: "Your users"
+								}
+							/>
 						</p>
 						<p className="mt-2 text-sm text-white/50 leading-6">
-							Create accounts, update names, reset passwords, and suspend
-							access. Suspending a manager also blocks access for their entire
-							branch.
+							{" "}
+							<LocalizedText text="Create accounts, update names, reset passwords, and suspend access. Suspending a manager also blocks access for their entire branch." />{" "}
 						</p>
 					</div>
 				</div>
@@ -188,11 +196,15 @@ export default function Dashboard({
 						className={button}
 						onClick={() => navigateBranch([])}
 					>
-						{role === "admin"
-							? "All fournisseurs"
-							: role === "fournisseur"
-								? "My clients and users"
-								: "My users"}
+						<LocalizedText
+							text={
+								role === "admin"
+									? "All fournisseurs"
+									: role === "fournisseur"
+										? "My clients and users"
+										: "My users"
+							}
+						/>
 					</button>
 					{branch.map((account, index) => (
 						<span key={account.id} className="flex items-center gap-2">
@@ -205,20 +217,27 @@ export default function Dashboard({
 								onClick={() => navigateBranch(branch.slice(0, index + 1))}
 							>
 								{account.name}{" "}
-								<span className="text-white/40">({account.role})</span>
+								<span className="text-white/40">
+									(<LocalizedText text={account.role} />)
+								</span>
 							</button>
 						</span>
 					))}
 					{branch.length > 0 && (
 						<span className="text-white/45">
-							/ {branch.at(-1)?.role === "fournisseur" ? "Clients" : "Users"}
+							/{" "}
+							<LocalizedText
+								text={
+									branch.at(-1)?.role === "fournisseur" ? "Clients" : "Users"
+								}
+							/>
 						</span>
 					)}
 				</nav>
 				{role === "admin" && branch.length === 0 && (
 					<p className="mt-3 text-sm text-white/50">
-						Open a fournisseur to see their clients, then open a client to see
-						their users. Choose “All roles” to see the entire network.
+						{" "}
+						<LocalizedText text="Open a fournisseur to see their clients, then open a client to see their users. Choose “All roles” to see the entire network." />{" "}
 					</p>
 				)}
 
@@ -226,7 +245,7 @@ export default function Dashboard({
 					<input
 						className={`${field} sm:max-w-xs`}
 						aria-label="Search accounts"
-						placeholder="Search by name or phone"
+						placeholder={t("Search by name or phone")}
 						maxLength={80}
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
@@ -240,11 +259,13 @@ export default function Dashboard({
 							setPage(1);
 						}}
 					>
-						<option value="">All roles</option>
+						<option value="">
+							<LocalizedText text="All roles" />
+						</option>
 						{[...(role === "admin" ? ["admin"] : []), ...availableRoles].map(
 							(item) => (
 								<option key={item} value={item}>
-									{item}
+									<LocalizedText text={item} />
 								</option>
 							),
 						)}
@@ -257,12 +278,13 @@ export default function Dashboard({
 							setNotice("");
 						}}
 					>
-						Create account
+						{" "}
+						<LocalizedText text="Create account" />{" "}
 					</button>
 				</div>
 				{notice && (
 					<p role="status" className="mb-4 text-[#c6f36b] text-sm">
-						{notice}
+						<LocalizedText text={notice} />
 					</p>
 				)}
 				{accounts.error && (
@@ -283,7 +305,7 @@ export default function Dashboard({
 									"Actions",
 								].map((label) => (
 									<th key={label} className="px-5 py-4 text-start font-medium">
-										{label}
+										<LocalizedText text={label} />
 									</th>
 								))}
 							</tr>
@@ -294,19 +316,27 @@ export default function Dashboard({
 									key={account.id}
 									className="border-white/5 border-b last:border-0"
 								>
-									<td data-label="Account" className="px-5 py-4 font-semibold">
+									<td
+										data-label={t("Account")}
+										className="px-5 py-4 font-semibold"
+									>
 										{account.name}
 										{account.id === actorId && (
-											<span className="ms-2 text-white/40 text-xs">You</span>
+											<span className="ms-2 text-white/40 text-xs">
+												<LocalizedText text="You" />
+											</span>
 										)}
 									</td>
-									<td data-label="Phone" className="px-5 py-4" dir="ltr">
+									<td data-label={t("Phone")} className="px-5 py-4" dir="ltr">
 										{account.phoneNumber || "Not configured"}
 									</td>
-									<td data-label="Role" className="px-5 py-4 capitalize">
-										{account.role}
+									<td data-label={t("Role")} className="px-5 py-4 capitalize">
+										<LocalizedText text={account.role} />
 									</td>
-									<td data-label="Wallet" className="px-5 py-4 text-[#c6f36b]">
+									<td
+										data-label={t("Wallet")}
+										className="px-5 py-4 text-[#c6f36b]"
+									>
 										{account.role === "admin"
 											? "Admin allocation"
 											: formatTnd(account.balanceMillimes)}
@@ -317,7 +347,9 @@ export default function Dashboard({
 												account.banned ? "text-red-300" : "text-[#c6f36b]"
 											}
 										>
-											{account.banned ? "Suspended" : "Active"}
+											<LocalizedText
+												text={account.banned ? "Suspended" : "Active"}
+											/>
 										</span>
 									</td>
 									<td className="px-5 py-4">
@@ -328,9 +360,13 @@ export default function Dashboard({
 												className={`${button} mb-2`}
 												onClick={() => navigateBranch([...branch, account])}
 											>
-												{account.role === "fournisseur"
-													? "View clients"
-													: "View users"}
+												<LocalizedText
+													text={
+														account.role === "fournisseur"
+															? "View clients"
+															: "View users"
+													}
+												/>
 											</button>
 										)}
 										{account.role !== "admin" && account.id !== actorId && (
@@ -341,7 +377,8 @@ export default function Dashboard({
 													disabled={Boolean(account.banned)}
 													onClick={() => openAction({ kind: "fund", account })}
 												>
-													Add funds
+													{" "}
+													<LocalizedText text="Add funds" />{" "}
 												</button>
 												<button
 													type="button"
@@ -350,7 +387,8 @@ export default function Dashboard({
 														openAction({ kind: "rename", account })
 													}
 												>
-													Edit
+													{" "}
+													<LocalizedText text="Edit" />{" "}
 												</button>
 												<button
 													type="button"
@@ -359,7 +397,8 @@ export default function Dashboard({
 														openAction({ kind: "password", account })
 													}
 												>
-													Reset password
+													{" "}
+													<LocalizedText text="Reset password" />{" "}
 												</button>
 												<button
 													type="button"
@@ -368,7 +407,9 @@ export default function Dashboard({
 														openAction({ kind: "disable", account })
 													}
 												>
-													{account.banned ? "Enable" : "Suspend"}
+													<LocalizedText
+														text={account.banned ? "Enable" : "Suspend"}
+													/>
 												</button>
 											</div>
 										)}
@@ -379,11 +420,14 @@ export default function Dashboard({
 					</table>
 					{accounts.isPending && (
 						<p role="status" className="p-8 text-center text-white/50">
-							Loading accounts…
+							{" "}
+							<LocalizedText text="Loading accounts…" />{" "}
 						</p>
 					)}
 					{!accounts.isPending && rows.length === 0 && (
-						<p className="p-8 text-center text-white/50">No accounts found.</p>
+						<p className="p-8 text-center text-white/50">
+							<LocalizedText text="No accounts found." />
+						</p>
 					)}
 				</div>
 				<div className="mt-4 flex items-center justify-between text-white/50 text-xs">
@@ -393,10 +437,13 @@ export default function Dashboard({
 						disabled={page <= 1 || accounts.isFetching}
 						onClick={() => setPage((value) => value - 1)}
 					>
-						Previous
+						{" "}
+						<LocalizedText text="Previous" />{" "}
 					</button>
 					<span>
-						Page {page} of {totalPages}
+						{" "}
+						<LocalizedText text="Page" /> {page} <LocalizedText text="of" />{" "}
+						{totalPages}
 					</span>
 					<button
 						className={button}
@@ -404,7 +451,8 @@ export default function Dashboard({
 						disabled={page >= totalPages || accounts.isFetching}
 						onClick={() => setPage((value) => value + 1)}
 					>
-						Next
+						{" "}
+						<LocalizedText text="Next" />{" "}
 					</button>
 				</div>
 				{createOpen && (
@@ -424,7 +472,7 @@ export default function Dashboard({
 				)}
 				{action && (
 					<Modal
-						title={`${action.kind === "fund" ? "Add funds to" : action.kind === "rename" ? "Edit" : action.kind === "password" ? "Reset password for" : action.account.banned ? "Enable" : "Suspend"} ${action.account.name}`}
+						title={`${t(action.kind === "fund" ? "Add funds to" : action.kind === "rename" ? "Edit" : action.kind === "password" ? "Reset password for" : action.account.banned ? "Enable" : "Suspend")} ${action.account.name}`}
 						onClose={() => {
 							if (!actionMutation.isPending) setAction(null);
 						}}
@@ -443,8 +491,9 @@ export default function Dashboard({
 							{action.kind === "fund" && (
 								<div className="space-y-3">
 									<p className="text-sm text-white/60">
-										Current balance: {formatTnd(action.account.balanceMillimes)}
-										.
+										{" "}
+										<LocalizedText text="Current balance:" />{" "}
+										{formatTnd(action.account.balanceMillimes)}.
 									</p>
 									<p className="text-sm text-white/50">
 										{action.account.role === "fournisseur"
@@ -452,7 +501,8 @@ export default function Dashboard({
 											: `This amount is deducted from the ${action.account.role === "client" ? "fournisseur" : "client"} parent wallet and credited to this account.`}
 									</p>
 									<label className="block text-sm">
-										Amount to add (TND)
+										{" "}
+										<LocalizedText text="Amount to add (TND)" />{" "}
 										<input
 											className={`${field} mt-2`}
 											name="amount"
@@ -468,7 +518,8 @@ export default function Dashboard({
 							)}
 							{action.kind === "rename" && (
 								<label className="block text-sm">
-									Display name
+									{" "}
+									<LocalizedText text="Display name" />{" "}
 									<input
 										className={`${field} mt-2`}
 										name="name"
@@ -481,7 +532,8 @@ export default function Dashboard({
 							)}
 							{action.kind === "password" && (
 								<label className="block text-sm">
-									New password
+									{" "}
+									<LocalizedText text="New password" />{" "}
 									<input
 										className={`${field} mt-2`}
 										name="password"
@@ -492,16 +544,20 @@ export default function Dashboard({
 										required
 									/>
 									<span className="mt-2 block text-white/45 text-xs">
-										Use at least 12 characters. Existing sessions will be
-										revoked.
+										{" "}
+										<LocalizedText text="Use at least 12 characters. Existing sessions will be revoked." />{" "}
 									</span>
 								</label>
 							)}
 							{action.kind === "disable" && (
 								<p className="text-sm text-white/60 leading-6">
-									{action.account.banned
-										? "This account can sign in again if its parent accounts are active."
-										: "This account and all accounts under it will lose access. Existing sessions will be revoked."}
+									<LocalizedText
+										text={
+											action.account.banned
+												? "This account can sign in again if its parent accounts are active."
+												: "This account and all accounts under it will lose access. Existing sessions will be revoked."
+										}
+									/>
 								</p>
 							)}
 							{actionMutation.error && (
@@ -514,7 +570,9 @@ export default function Dashboard({
 								type="submit"
 								disabled={actionMutation.isPending}
 							>
-								{actionMutation.isPending ? "Saving…" : "Confirm"}
+								<LocalizedText
+									text={actionMutation.isPending ? "Saving…" : "Confirm"}
+								/>
 							</button>
 						</form>
 					</Modal>
@@ -550,14 +608,17 @@ function Modal({
 			className="m-auto max-h-[90vh] w-[90vw] max-w-lg overflow-y-auto rounded-2xl border border-white/15 bg-[#111713] p-6 text-white backdrop:bg-black/75"
 		>
 			<div className="mb-6 flex items-center justify-between gap-4">
-				<h2 className="font-bold text-lg">{title}</h2>
+				<h2 className="font-bold text-lg">
+					<LocalizedText text={title} />
+				</h2>
 				<button
 					type="button"
 					className={button}
 					onClick={onClose}
 					aria-label="Close dialog"
 				>
-					Close
+					{" "}
+					<LocalizedText text="Close" />{" "}
 				</button>
 			</div>
 			{children}
@@ -578,6 +639,7 @@ function CreateAccount({
 	onClose: () => void;
 	onCreated: () => Promise<void>;
 }) {
+	const { t } = useI18n();
 	const [role, setRole] = useState(
 		availableRoles[0] as "fournisseur" | "client" | "user",
 	);
@@ -640,7 +702,8 @@ function CreateAccount({
 		>
 			<form onSubmit={submit} className="space-y-4">
 				<label className="block text-sm">
-					Role
+					{" "}
+					<LocalizedText text="Role" />{" "}
 					<select
 						className={`${field} mt-2`}
 						value={role}
@@ -652,7 +715,7 @@ function CreateAccount({
 					>
 						{availableRoles.map((item) => (
 							<option key={item} value={item}>
-								{item}
+								<LocalizedText text={item} />
 							</option>
 						))}
 					</select>
@@ -660,11 +723,12 @@ function CreateAccount({
 				{!ownParent && (
 					<div className="space-y-2">
 						<label className="block text-sm" htmlFor="parent-search">
-							Find {parentRole}
+							{" "}
+							<LocalizedText text="Find" /> <LocalizedText text={parentRole} />
 							<input
 								id="parent-search"
 								className={`${field} mt-2`}
-								placeholder="Search parent by name or phone"
+								placeholder={t("Search parent by name or phone")}
 								maxLength={80}
 								value={parentSearch}
 								onChange={(e) => {
@@ -674,13 +738,16 @@ function CreateAccount({
 							/>
 						</label>
 						<select
-							aria-label={`Parent ${parentRole}`}
+							aria-label={"Parent $<LocalizedText text={parentRole} />"}
 							className={field}
 							value={parentId}
 							onChange={(e) => setParentId(e.target.value)}
 							required
 						>
-							<option value="">Select {parentRole}</option>
+							<option value="">
+								<LocalizedText text="Select" />{" "}
+								<LocalizedText text={parentRole} />
+							</option>
 							{parents.data?.items
 								.filter((item) => !item.banned)
 								.map((item) => (
@@ -695,13 +762,14 @@ function CreateAccount({
 							</p>
 						)}
 						<p className="text-white/40 text-xs">
-							Only your accessible accounts are available. Search to narrow the
-							first 100 results.
+							{" "}
+							<LocalizedText text="Only your accessible accounts are available. Search to narrow the first 100 results." />{" "}
 						</p>
 					</div>
 				)}
 				<label className="block text-sm">
-					Display name
+					{" "}
+					<LocalizedText text="Display name" />{" "}
 					<input
 						className={`${field} mt-2`}
 						name="name"
@@ -712,7 +780,8 @@ function CreateAccount({
 					/>
 				</label>
 				<label className="block text-sm">
-					Phone number
+					{" "}
+					<LocalizedText text="Phone number" />{" "}
 					<input
 						className={`${field} mt-2`}
 						name="phoneNumber"
@@ -724,7 +793,8 @@ function CreateAccount({
 					/>
 				</label>
 				<label className="block text-sm">
-					Initial password
+					{" "}
+					<LocalizedText text="Initial password" />{" "}
 					<input
 						className={`${field} mt-2`}
 						name="password"
@@ -735,11 +805,13 @@ function CreateAccount({
 						required
 					/>
 					<span className="mt-1 block text-white/40 text-xs">
-						At least 12 characters. Share this privately with the account owner.
+						{" "}
+						<LocalizedText text="At least 12 characters. Share this privately with the account owner." />{" "}
 					</span>
 				</label>
 				<label className="block text-sm">
-					Initial wallet amount (TND)
+					{" "}
+					<LocalizedText text="Initial wallet amount (TND)" />{" "}
 					<input
 						className={`${field} mt-2`}
 						name="initialAmount"
@@ -753,7 +825,7 @@ function CreateAccount({
 					<span className="mt-2 block text-white/45 text-xs">
 						{role === "fournisseur"
 							? "Admin allocates this amount to the new fournisseur."
-							: `Deducted from the selected ${parentRole}'s wallet. The account and transfer are created together.`}
+							: `Deducted from the selected $<LocalizedText text={parentRole} />'s wallet. The account and transfer are created together.`}
 					</span>
 				</label>
 
@@ -767,7 +839,9 @@ function CreateAccount({
 					disabled={create.isPending || (!ownParent && !parentId)}
 					className="w-full rounded-xl bg-[#c6f36b] py-3 font-bold text-[#11160b] disabled:opacity-50"
 				>
-					{create.isPending ? "Creating…" : "Create account"}
+					<LocalizedText
+						text={create.isPending ? "Creating…" : "Create account"}
+					/>
 				</button>
 			</form>
 		</Modal>

@@ -1,5 +1,7 @@
 "use client";
+
 import { marketRestriction } from "@gold-bet-clean-money365/api/market-availability";
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import { useI18n } from "@/features/i18n/locale-provider";
 import { sameMarket } from "@/features/sports/selection-key";
@@ -114,7 +116,7 @@ export function PrimaryOdds({
 							<span
 								className={`max-w-full truncate text-[10px] ${active ? "text-[#11160b]" : "text-white/60"}`}
 							>
-								{label}
+								<LocalizedText text={label} />
 								{offer.handicap ? ` ${offer.handicap}` : ""}
 							</span>
 							<strong

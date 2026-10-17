@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
+
 import {
 	ArrowRight,
 	ArrowUpRight,
@@ -77,7 +79,7 @@ function HeaderNavigation() {
 								item.active ? "text-[#c6f36b]" : "transition hover:text-white"
 							}
 						>
-							{item.label}
+							<LocalizedText text={item.label} />
 						</Link>
 					))}
 				</nav>
@@ -113,7 +115,7 @@ function HeaderNavigation() {
 							aria-current={item.active ? "page" : undefined}
 							className={`rounded-lg p-2 ${item.active ? "bg-[#c6f36b]/10 text-[#c6f36b]" : "hover:text-white"}`}
 						>
-							{item.label}
+							<LocalizedText text={item.label} />
 						</Link>
 					))}
 				</nav>
@@ -176,7 +178,7 @@ export function HeroSection({ featuredMatch }: { featuredMatch?: Match }) {
 						{featuredMatch?.home ?? t("Fixtures")}
 					</span>
 					<span className="font-black text-[10px] text-white/35 tracking-tight">
-						{featuredMatch ? "VS" : "&"}
+						<LocalizedText text={featuredMatch ? "VS" : "&"} />
 					</span>
 					<span className="font-bold text-xs">
 						{featuredMatch?.away ?? t("Live odds")}
@@ -247,8 +249,8 @@ export function HighlightsSection() {
 					{t("Play for fun. Set limits. Take a break.")}
 				</span>
 				<span>
-					18+ · Flashscore fixtures and odds · Feed may be delayed · Account bet
-					slip
+					{" "}
+					<LocalizedText text="18+ · Flashscore fixtures and odds · Feed may be delayed · Account bet slip" />{" "}
 				</span>
 				<a
 					href="https://www.gambleaware.org/"

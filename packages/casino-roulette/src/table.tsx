@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import "./styles.css";
 import type { TableProps } from "@gold-bet-clean-money365/casino-core";
 import { ActionButton, BetZone } from "@gold-bet-clean-money365/casino-core/ui";
@@ -135,7 +136,8 @@ export function Table(p: TableProps) {
 					onClick={p.onStart}
 					disabled={p.disabled || (p.choice === "number" && !p.numbers.length)}
 				>
-					Spin roulette
+					{" "}
+					<LocalizedText text="Spin roulette" />{" "}
 				</ActionButton>
 			</div>
 		</div>

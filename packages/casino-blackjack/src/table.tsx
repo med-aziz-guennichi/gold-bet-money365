@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import "./styles.css";
 import type { TableProps } from "@gold-bet-clean-money365/casino-core";
 import { ActionButton, Card } from "@gold-bet-clean-money365/casino-core/ui";
@@ -34,17 +35,25 @@ export function Table(p: TableProps) {
 		<div className="blackjack-room">
 			<div className="shoe-stack" aria-hidden="true">
 				<Card value="hidden" />
-				<span>6 DECKS</span>
+				<span>
+					<LocalizedText text="6 DECKS" />
+				</span>
 			</div>
-			<p className="table-overline">DEALER</p>
+			<p className="table-overline">
+				<LocalizedText text="DEALER" />
+			</p>
 			<div className="hand dealer-hand">
 				{dealer.map((c, i) => (
 					<Card key={i} value={c} />
 				))}
 			</div>
 			<div className="blackjack-inscription">
-				<strong>BLACKJACK PAYS 3 TO 2</strong>
-				<span>Dealer stands on all 17s</span>
+				<strong>
+					<LocalizedText text="BLACKJACK PAYS 3 TO 2" />
+				</strong>
+				<span>
+					<LocalizedText text="Dealer stands on all 17s" />
+				</span>
 				<i />
 			</div>
 			<div className="hand player-hand">
@@ -53,7 +62,9 @@ export function Table(p: TableProps) {
 				))}
 			</div>
 			<p className="table-overline">
-				YOUR HAND {p.view?.cards ? ` · ${score(player)}` : ""}
+				{" "}
+				<LocalizedText text="YOUR HAND" />{" "}
+				{p.view?.cards ? ` · ${score(player)}` : ""}
 			</p>
 			<div className="game-controls">
 				{active ? (
@@ -62,19 +73,22 @@ export function Table(p: TableProps) {
 							onClick={() => p.onAction({ type: "hit" })}
 							disabled={p.busy}
 						>
-							Hit +
+							{" "}
+							<LocalizedText text="Hit +" />{" "}
 						</ActionButton>
 						<ActionButton
 							onClick={() => p.onAction({ type: "stand" })}
 							disabled={p.busy}
 							secondary
 						>
-							Stand
+							{" "}
+							<LocalizedText text="Stand" />{" "}
 						</ActionButton>
 					</>
 				) : (
 					<ActionButton onClick={p.onStart} disabled={p.disabled}>
-						Deal a hand
+						{" "}
+						<LocalizedText text="Deal a hand" />{" "}
 					</ActionButton>
 				)}
 			</div>

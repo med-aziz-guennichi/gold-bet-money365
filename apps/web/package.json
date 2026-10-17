@@ -39,7 +39,8 @@
 		"@gold-bet-clean-money365/casino-mines": "workspace:*",
 		"@gold-bet-clean-money365/casino-crash": "workspace:*",
 		"@gold-bet-clean-money365/casino-video-poker": "workspace:*",
-		"@gold-bet-clean-money365/casino-plinko": "workspace:*"
+		"@gold-bet-clean-money365/casino-plinko": "workspace:*",
+		"@gold-bet-clean-money365/i18n": "workspace:*"
 	},
 	"devDependencies": {
 		"@gold-bet-clean-money365/config": "workspace:*",

@@ -1,3 +1,4 @@
+import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import "./styles.css";
 import type { TableProps } from "@gold-bet-clean-money365/casino-core";
 import { ActionButton } from "@gold-bet-clean-money365/casino-core/ui";
@@ -84,12 +85,14 @@ export function Table(p: TableProps) {
 					</ActionButton>
 				) : (
 					<ActionButton disabled={p.disabled} onClick={p.onStart}>
-						Launch flight
+						{" "}
+						<LocalizedText text="Launch flight" />{" "}
 					</ActionButton>
 				)}
 			</div>
 			<p className="table-caption">
-				CASH-OUT USES SERVER PROCESSING TIME · WAIT FOR CONFIRMATION
+				{" "}
+				<LocalizedText text="CASH-OUT USES SERVER PROCESSING TIME · WAIT FOR CONFIRMATION" />{" "}
 			</p>
 		</div>
 	);
