@@ -1,5 +1,5 @@
-import { casinoGames } from "@gold-bet-clean-money365/api/casino-catalog";
 import type { MetadataRoute } from "next";
+import { arcadeGames } from "@/features/practice-arcade/games";
 import { SITE_URL } from "@/lib/seo";
 export default function sitemap(): MetadataRoute.Sitemap {
 	return [
@@ -8,6 +8,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 		"/about",
 		"/how-it-works",
 		"/responsible-play",
-		...casinoGames.map((game) => `/casino/${game.id}`),
+		...arcadeGames.map((game) => `/casino/${game.id}`),
 	].map((path) => ({ url: `${SITE_URL}${path === "/" ? "/" : path}` }));
 }
