@@ -1,6 +1,7 @@
 import { casinoGames } from "@gold-bet-clean-money365/api/casino-catalog";
 import { notFound } from "next/navigation";
 import { ArcadeRoom } from "@/features/practice-arcade/arcade";
+import { arcadeGames } from "@/features/practice-arcade/games";
 import { publicMetadata } from "@/lib/seo";
 import GameHost from "../game-host";
 
@@ -35,8 +36,9 @@ export default async function GamePage({
 
 	if (!game) notFound();
 
-	return game.id === "dino" ? (
-		<ArcadeRoom key={game.id} id="dino" />
+	const arcade = arcadeGames.find((g) => g.id === game.id);
+	return arcade ? (
+		<ArcadeRoom key={game.id} id={arcade.id} />
 	) : (
 		<GameHost key={game.id} gameId={game.id} />
 	);

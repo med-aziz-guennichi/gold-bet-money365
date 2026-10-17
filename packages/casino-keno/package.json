@@ -1,0 +1,26 @@
+{
+	"name": "@gold-bet-clean-money365/casino-keno",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./engine": "./src/engine.ts",
+		"./table": "./src/table.tsx",
+		"./styles.css": "./src/styles.css"
+	},
+	"scripts": {
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"react": "catalog:",
+		"@gold-bet-clean-money365/casino-core": "workspace:*",
+		"@gold-bet-clean-money365/i18n": "workspace:*",
+		"motion": "^14.3.0"
+	},
+	"devDependencies": {
+		"@gold-bet-clean-money365/config": "workspace:*",
+		"@types/react": "catalog:",
+		"typescript": "catalog:"
+	}
+}

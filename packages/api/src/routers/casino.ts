@@ -28,7 +28,7 @@ export const casinoRouter = {
 			z
 				.object({
 					requestId: z.uuid(),
-					game: z.enum(sessionGames),
+					game: z.enum(sessionGames.filter(g => g !== "dino")),
 					version: z.string().max(30),
 					stake: z.string().max(20),
 				})

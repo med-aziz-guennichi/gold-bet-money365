@@ -42,7 +42,12 @@
 		"sonner": "catalog:",
 		"varlock": "catalog:",
 		"zod": "catalog:",
-		"@gold-bet-clean-money365/casino-dino": "workspace:*"
+		"@gold-bet-clean-money365/casino-dino": "workspace:*",
+		"@gold-bet-clean-money365/casino-coin": "workspace:*",
+		"@gold-bet-clean-money365/casino-dice": "workspace:*",
+		"@gold-bet-clean-money365/casino-keno": "workspace:*",
+		"@gold-bet-clean-money365/casino-wheel": "workspace:*",
+		"@gold-bet-clean-money365/casino-limbo": "workspace:*"
 	},
 	"devDependencies": {
 		"@gold-bet-clean-money365/config": "workspace:*",

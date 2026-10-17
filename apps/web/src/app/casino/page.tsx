@@ -3,7 +3,7 @@ import Lobby from "./lobby";
 
 export const metadata = publicMetadata(
 	"Casino Games & Free Practice | GoldBet365",
-	"Explore ten classic games and four arcade editions on GoldBet365. Play with free practice credits or your saved non-redeemable play credits.",
+	"Explore fifteen distinct GoldBet365 games including Coin Flip, Dice, Keno, Prize Wheel and Limbo. Play with practice credits or saved non-redeemable play credits.",
 	"/casino",
 );
 export default function CasinoPage() {

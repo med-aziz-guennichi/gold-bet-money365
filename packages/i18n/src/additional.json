@@ -308,7 +308,19 @@
 		"98.94% banker · 98.76% player · 85.64% tie": "98,94 % banque · 98,76 % joueur · 85,64 % égalité",
 		"96.27% sides · 89.64% tie": "96,27 % côtés · 89,64 % égalité",
 		"97.22% small/big · 86.11% triple": "97,22 % petit/grand · 86,11 % triple",
-		"Loading…": "Chargement…"
+		"Loading…": "Chargement…",
+		"You won": "Vous avez gagné",
+		"No return this round": "Aucun retour pour cette manche",
+		"Stake returned": "Mise restituée",
+		"Partial return": "Retour partiel",
+		"Credits played": "Crédits joués",
+		"Credits returned": "Crédits restitués",
+		"Net change": "Variation nette",
+		"Action needs attention": "Action à vérifier",
+		"Checking your round…": "Vérification de votre manche…",
+		"Please wait for confirmation. Your credits are protected from duplicate requests.": "Patientez pendant la confirmation. Les demandes répétées ne débitent pas deux fois vos crédits.",
+		"Choose your next move or collect when available.": "Choisissez votre prochain coup ou récupérez le retour disponible.",
+		"Choose your options, then start a round. Results stay here until your next round.": "Choisissez vos options et lancez une manche. Le résultat reste visible jusqu’à la suivante."
 	},
 	"ar": {
 		"Welcome back": "مرحباً بعودتك",
@@ -619,6 +631,18 @@
 		"98.94% banker · 98.76% player · 85.64% tie": "98.94٪ المصرف · 98.76٪ اللاعب · 85.64٪ التعادل",
 		"96.27% sides · 89.64% tie": "96.27٪ الطرفان · 89.64٪ التعادل",
 		"97.22% small/big · 86.11% triple": "97.22٪ الصغير والكبير · 86.11٪ الثلاثية",
-		"Loading…": "جارٍ التحميل…"
+		"Loading…": "جارٍ التحميل…",
+		"You won": "لقد ربحت",
+		"No return this round": "لا عائد في هذه الجولة",
+		"Stake returned": "تم إرجاع الرصيد المستخدم",
+		"Partial return": "عائد جزئي",
+		"Credits played": "الرصيد المستخدم",
+		"Credits returned": "الرصيد المسترجع",
+		"Net change": "صافي التغيير",
+		"Action needs attention": "يرجى التحقق من الإجراء",
+		"Checking your round…": "جارٍ التحقق من جولتك…",
+		"Please wait for confirmation. Your credits are protected from duplicate requests.": "يرجى انتظار التأكيد. رصيدك محمي من خصم الطلبات المتكررة.",
+		"Choose your next move or collect when available.": "اختر خطوتك التالية أو استرجع العائد عندما يكون متاحًا.",
+		"Choose your options, then start a round. Results stay here until your next round.": "اختر خياراتك ثم ابدأ الجولة. تبقى النتائج ظاهرة حتى الجولة التالية."
 	}
 }

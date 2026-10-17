@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 export const SITE_URL = "https://www.goldbet365.xyz";
 export const SITE_NAME = "GoldBet365";
 export const SITE_DESCRIPTION =
-	"Explore sports fixtures, follow live scores and compare odds on GoldBet365. Discover ten original casino games with practice mode and published rules.";
+	"Explore sports fixtures, follow live scores and compare odds on GoldBet365. Discover fifteen distinct casino games with practice mode and published rules.";
 export function publicMetadata(
 	title: string,
 	description: string,

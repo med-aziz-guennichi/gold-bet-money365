@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { casinoGames } from "./casino-catalog";
 
-export const casinoGameSchema = z.enum(casinoGames.map((game) => game.id));
+export const casinoGameSchema = z.enum([
+	...casinoGames.map((game) => game.id),
+	"dino",
+]);
 export const casinoInputSchema = z
 	.object({
 		requestId: z.uuid(),

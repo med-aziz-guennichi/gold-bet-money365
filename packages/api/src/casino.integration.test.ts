@@ -98,7 +98,7 @@ test("casino wallet atomicity, retries, isolation and authorization", {
 						input({
 							game: game.id,
 							choice: game.choices[0],
-							numbers: [],
+							numbers: game.id === "keno" ? [1, 2, 3] : [],
 						}),
 					);
 					assert.equal(
@@ -285,7 +285,10 @@ test("casino wallet atomicity, retries, isolation and authorization", {
 				0,
 			);
 			const mine = await service.history(String(user), { page: 1 });
-			assert.equal(mine.total, 7);
+			assert.equal(
+				mine.total,
+				casinoGames.filter((g) => g.mode === "instant").length + 1,
+			);
 			assert.ok(
 				mine.items.every((r) => !("userId" in r) && !("fingerprint" in r)),
 			);

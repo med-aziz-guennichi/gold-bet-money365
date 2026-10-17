@@ -18,6 +18,11 @@ export const tables: Record<
 	Exclude<GameId, "dino">,
 	ComponentType<TableProps>
 > = {
+ coin: load(() => import("@gold-bet-clean-money365/casino-coin/table")),
+ dice: load(() => import("@gold-bet-clean-money365/casino-dice/table")),
+ keno: load(() => import("@gold-bet-clean-money365/casino-keno/table")),
+ wheel: load(() => import("@gold-bet-clean-money365/casino-wheel/table")),
+ limbo: load(() => import("@gold-bet-clean-money365/casino-limbo/table")),
 	roulette: load(
 		() => import("@gold-bet-clean-money365/casino-roulette/table"),
 	),

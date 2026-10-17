@@ -16,7 +16,12 @@ export type GameId =
 	| "crash"
 	| "video-poker"
 	| "plinko"
-	| "dino";
+	| "dino"
+	| "coin"
+	| "dice"
+	| "keno"
+	| "wheel"
+	| "limbo";
 export type Action = {
 	type: "hit" | "stand" | "reveal" | "cashout" | "draw" | "jump";
 	index?: number;
@@ -71,6 +76,7 @@ export function take(deck: number[]) {
 	return card;
 }
 export type TableProps = {
+	resultNumbers?: number[];
 	outcome: CasinoOutcome | null;
 	view: GameView | null;
 	busy: boolean;

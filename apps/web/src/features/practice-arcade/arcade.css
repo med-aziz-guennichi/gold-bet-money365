@@ -319,72 +319,6 @@
 	letter-spacing: 3px;
 	color: #a895c5;
 }
-.arcade-dino {
-	height: 330px;
-	width: 100%;
-	position: relative;
-	background: linear-gradient(#102738, #314442);
-	border-radius: 16px;
-	overflow: hidden;
-}
-.arcade-sun {
-	width: 65px;
-	height: 65px;
-	border-radius: 50%;
-	background: #f8c984;
-	position: absolute;
-	right: 12%;
-	top: 25px;
-	box-shadow: 0 0 80px #f8c98477;
-}
-.arcade-mountain {
-	position: absolute;
-	bottom: 30px;
-	font-size: 100px;
-	white-space: nowrap;
-	letter-spacing: -25px;
-	color: #446e64;
-	opacity: 0.5;
-}
-.arcade-runner {
-	position: absolute;
-	bottom: 32px;
-	left: 17%;
-	font-size: 65px;
-	z-index: 2;
-	transform: scaleX(-1);
-}
-.arcade-cactus {
-	position: absolute;
-	bottom: 35px;
-	right: 20%;
-	font-size: 55px;
-}
-.arcade-ground {
-	position: absolute;
-	bottom: 0;
-	height: 35px;
-	width: 100%;
-	background: repeating-linear-gradient(
-		90deg,
-		#887052 0 15px,
-		#9c825c 15px 20px
-	);
-	border-top: 5px solid #b59e6e;
-}
-.arcade-dino-score {
-	position: absolute;
-	top: 24px;
-	left: 25px;
-	font-size: 36px;
-	font-weight: 800;
-}
-.arcade-dino-score small {
-	display: block;
-	font-size: 11px;
-	font-weight: 400;
-	color: #a9c3bc;
-}
 .arcade-status {
 	padding: 20px 0;
 	font-size: 14px;
@@ -485,9 +419,6 @@
 	.arcade-grid {
 		max-width: 300px;
 		gap: 7px;
-	}
-	.arcade-dino {
-		height: 270px;
 	}
 	.arcade-stage-label {
 		font-size: 8px;

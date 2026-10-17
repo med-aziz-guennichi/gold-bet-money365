@@ -10,7 +10,7 @@ assert.ok(robots.includes(`Sitemap: ${base}/sitemap.xml`));
 assert.ok(!robots.includes("Disallow: /\n"));
 const sitemap = await read("/sitemap.xml");
 const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]);
-assert.equal(urls.length, 19);
+assert.equal(urls.length, 20);
 assert.equal(new Set(urls).size, urls.length);
 for (let offset = 0; offset < urls.length; offset += 4) {
  await Promise.all(urls.slice(offset, offset + 4).map(async url => {

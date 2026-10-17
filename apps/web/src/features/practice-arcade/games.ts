@@ -26,15 +26,6 @@ export const arcadeGames = [
 		rules:
 			"Three mines are hidden among 25 tiles. Reveal gems to grow your multiplier; collect at any time after finding a gem.",
 	},
-	{
-		id: "dino",
-		name: "Dino Dash",
-		icon: "🦖",
-		color: "#fb9475",
-		description: "A little courage. One more jump.",
-		rules:
-			"Choose Jump to attempt the next obstacle, with an independent 80% success chance. Each success multiplies the return by 1.2. Collect before a collision.",
-	},
 ] as const;
 export type ArcadeId = (typeof arcadeGames)[number]["id"];
 

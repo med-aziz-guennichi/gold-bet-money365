@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { arcadeGames, pockets } from "./games";
 
-test("practice catalog has exactly the four independently routed games", () => {
+test("practice catalog has exactly the three unique arcade games", () => {
 	assert.deepEqual(
 		arcadeGames.map((g) => g.id),
-		["crash", "plinko", "mines", "dino"],
+		["crash", "plinko", "mines"],
 	);
 });
 test("all 256 Plinko paths map to the actual engine multipliers", () => {

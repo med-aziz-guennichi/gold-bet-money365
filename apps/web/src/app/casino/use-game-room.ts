@@ -38,7 +38,7 @@ type Operation =
 			kind: "start";
 			input: {
 				requestId: string;
-				game: SessionGame;
+				game: Exclude<SessionGame, "dino">;
 				version: string;
 				stake: string;
 			};
@@ -73,6 +73,8 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 	const [demoState, setDemoState] = useState<GameState | null>(null);
 	const [demoBalance, setDemoBalance] = useState(1_000_000);
 	const [pending, setPending] = useState<Operation | null>(null);
+	const [resultNumbers, setResultNumbers] = useState<number[]>([]);
+	const [roundStake, setRoundStake] = useState(0);
 	const [lastNet, setLastNet] = useState<number | null>(null);
 	const [sound, setSound] = useState(true);
 	const audio = useRef<AudioContext | null>(null);
@@ -96,6 +98,17 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 			staleTime: 0,
 		}),
 	);
+	const restoring =
+		!!canUseWallet &&
+		mode === "wallet" &&
+		game.mode === "session" &&
+		(active.isPending || (!session && active.isFetching));
+	const restoreError =
+		!!canUseWallet &&
+		mode === "wallet" &&
+		game.mode === "session" &&
+		active.isError &&
+		!session;
 	const recent = useQuery(
 		orpc.casino.history.queryOptions({
 			input: { page: 1, game: gameId },
@@ -106,6 +119,7 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 		}),
 	);
 	const applySession = useCallback((next: GameSession) => {
+		setRoundStake(next.stakeMillimes);
 		setSession(next);
 		setOutcome(next.outcome);
 		setPhase(next.status === "active" ? "active" : "settled");
@@ -116,8 +130,9 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 			);
 	}, []);
 	useEffect(() => {
-		if (active.data) applySession(active.data);
-	}, [active.data, applySession]);
+		if (active.data && mode === "wallet" && !guard.current && !pending)
+			applySession(active.data);
+	}, [active.data, applySession, mode, busy, pending]);
 	useEffect(() => {
 		if (!key) return;
 		try {
@@ -183,12 +198,23 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 		}
 		try {
 			sessionStorage.setItem(key, JSON.stringify(op));
+			await cache.cancelQueries({
+				queryKey: ["casino", userId, gameId, "active"],
+			});
 			if (op.kind === "instant") {
+				const began = performance.now();
 				const receipt = await orpc.casino.play.call(op.input);
+				setRoundStake(receipt.stakeMillimes);
+				setResultNumbers(op.input.numbers);
 				await new Promise((resolve) =>
-					setTimeout(resolve, gameId === "slots" ? 1800 : 1200),
+					setTimeout(
+						resolve,
+						Math.max(
+							0,
+							(gameId === "slots" ? 1500 : 650) - (performance.now() - began),
+						),
+					),
 				);
-				await refresh();
 				setOutcome(receipt.outcome);
 				setLastNet(receipt.payoutMillimes - receipt.stakeMillimes);
 				setPhase("settled");
@@ -198,12 +224,16 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 					op.kind === "start"
 						? await orpc.casino.start.call(op.input)
 						: await orpc.casino.action.call(op.input);
-				await refresh();
+				cache.setQueryData(
+					["casino", userId, gameId, "active"],
+					next.status === "active" ? next : null,
+				);
 				applySession(next);
 				if (next.outcome) playSound(next.outcome.multiplierHundredths > 100);
 			}
 			setPending(null);
 			sessionStorage.removeItem(key);
+			void refresh().catch(() => {});
 		} catch (e) {
 			if (
 				e &&
@@ -232,6 +262,7 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 		nextOutcome: CasinoOutcome | undefined,
 		amount: number,
 	) {
+		setRoundStake(amount);
 		setDemoState(state);
 		const view = practiceEngines[gameId]?.view(
 			state,
@@ -240,7 +271,7 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 		);
 		setSession({
 			id: "practice",
-			game: gameId as SessionGame,
+			game: gameId as Exclude<SessionGame, "dino">,
 			status: nextOutcome ? "settled" : "active",
 			view,
 			outcome: nextOutcome ?? null,
@@ -292,7 +323,15 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 		return () => clearInterval(timer);
 	}, [mode, phase, demoState]);
 	async function start() {
-		if (authLoading || busy || guard.current || pending || phase === "active")
+		if (
+			authLoading ||
+			restoring ||
+			restoreError ||
+			busy ||
+			guard.current ||
+			pending ||
+			phase === "active"
+		)
 			return;
 		setError("");
 		let amount: number;
@@ -301,6 +340,10 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 			if (amount < 100 || amount > 100000) throw new Error();
 		} catch {
 			setError("Stake must be 0.100–100.000 TND.");
+			return;
+		}
+		if (gameId === "keno" && numbers.length !== 3) {
+			setError("Select exactly three numbers before playing.");
 			return;
 		}
 		if (gameId === "roulette" && choice === "number" && !numbers.length) {
@@ -314,7 +357,7 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 					? {
 							kind: "start",
 							input: {
-								game: gameId as SessionGame,
+								game: gameId as Exclude<SessionGame, "dino">,
 								requestId,
 								version: CASINO_VERSION,
 								stake,
@@ -328,7 +371,8 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 								version: CASINO_VERSION,
 								stake,
 								choice,
-								numbers: choice === "number" ? numbers : [],
+								numbers:
+									choice === "number" || gameId === "keno" ? numbers : [],
 							},
 						},
 			);
@@ -338,6 +382,8 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 			setError("Practice balance is too low. Reset practice credits below.");
 			return;
 		}
+		setResultNumbers([...numbers]);
+		setRoundStake(amount);
 		setDemoBalance((b) => b - amount);
 		setOutcome(null);
 		setLastNet(null);
@@ -348,7 +394,7 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 			await new Promise((resolve) =>
 				setTimeout(
 					resolve,
-					game.mode === "session" ? 250 : gameId === "slots" ? 1800 : 1200,
+					game.mode === "session" ? 150 : gameId === "slots" ? 1500 : 650,
 				),
 			);
 			if (game.mode === "session") {
@@ -379,10 +425,13 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 		setError("");
 	}
 	const props: TableProps = {
+		resultNumbers,
 		outcome,
 		view: session?.view ?? null,
-		busy: busy || !!pending,
+		busy: busy || !!pending || restoring,
 		disabled:
+			restoring ||
+			restoreError ||
 			authLoading ||
 			busy ||
 			!!pending ||
@@ -393,11 +442,20 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 		onChoice: (c) => {
 			if (!busy && !pending && phase !== "active") {
 				setChoice(c);
-				setOutcome(null);
 			}
 		},
 		onNumber: (n) => {
-			if (!busy && !pending) setNumbers([n]);
+			if (!guard.current && !busy && !pending && phase !== "active") {
+				if (gameId === "keno")
+					setNumbers((previous) =>
+						previous.includes(n)
+							? previous.filter((value) => value !== n)
+							: previous.length < 3
+								? [...previous, n]
+								: previous,
+					);
+				else setNumbers([n]);
+			}
 		},
 		onStart: () => void start(),
 		onAction: act,
@@ -419,6 +477,8 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 					);
 					return;
 				}
+				setRoundStake(found.stakeMillimes);
+				setResultNumbers(pending.input.numbers);
 				setOutcome(found.outcome);
 				setLastNet(found.payoutMillimes - found.stakeMillimes);
 				setPhase("settled");
@@ -434,6 +494,10 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 					);
 					return;
 				}
+				cache.setQueryData(
+					["casino", userId, gameId, "active"],
+					found.status === "active" ? found : null,
+				);
 				applySession(found);
 			}
 			setPending(null);
@@ -452,6 +516,7 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 	}
 	return {
 		game,
+		roundStake,
 		authLoading,
 		session,
 		canUseWallet,
@@ -459,7 +524,9 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 		switchMode,
 		sound,
 		setSound,
-		busy,
+		busy: authLoading || busy || restoring,
+		restoreError,
+		retryActive: () => active.refetch(),
 		pending,
 		phase,
 		props,

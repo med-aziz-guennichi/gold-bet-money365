@@ -4,6 +4,7 @@ import { CASINO_VERSION } from "@gold-bet-clean-money365/api/casino-catalog";
 import type { GameId } from "@gold-bet-clean-money365/casino-core";
 import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import Link from "next/link";
+import { RoundFeedback } from "@/components/casino/round-feedback";
 import { SiteHeader } from "@/components/sports/page-chrome";
 import { formatPlayCredits as formatTnd } from "@/lib/play-credits";
 import { tables } from "./tables";
@@ -16,6 +17,9 @@ export default function GameHost({
 }) {
 	const {
 		game,
+		roundStake,
+		restoreError,
+		retryActive,
 		canUseWallet,
 		mode,
 		switchMode,
@@ -26,7 +30,6 @@ export default function GameHost({
 		phase,
 		props,
 		outcome,
-		lastNet,
 		demoBalance,
 		wallet,
 		stake,
@@ -100,56 +103,13 @@ export default function GameHost({
 						aria-label={game.name}
 					>
 						<Table {...props} />
-						<div className="stage-result" aria-live="polite">
-							{outcome ? (
-								<>
-									<strong>
-										<LocalizedText text={outcome.detail} />
-									</strong>
-									<span>
-										{outcome.multiplierHundredths / 100}
-										<LocalizedText text="× return · Net" />{" "}
-										{formatTnd(lastNet ?? 0)}
-									</span>
-								</>
-							) : phase === "active" ? (
-								<>
-									<strong>
-										<LocalizedText text="Your round is active" />
-									</strong>
-									<span>
-										<LocalizedText
-											text={
-												mode === "wallet"
-													? "Stake saved. Your decisions are validated by the server."
-													: "Practice round · no wallet credits used"
-											}
-										/>
-									</span>
-								</>
-							) : (
-								<>
-									<strong>
-										<LocalizedText
-											text={
-												phase === "playing"
-													? "Round in progress…"
-													: "The table is yours."
-											}
-										/>
-									</strong>
-									<span>
-										<LocalizedText
-											text={
-												mode === "practice"
-													? "Practice uses separate demo credits."
-													: "Wallet credits are used when you start a round."
-											}
-										/>
-									</span>
-								</>
-							)}
-						</div>
+						<RoundFeedback
+							outcome={outcome}
+							stakeMillimes={roundStake}
+							busy={busy || !!pending}
+							phase={phase}
+							error={error}
+						/>
 					</section>
 					<aside className="studio-panel">
 						<span className="panel-overline">
@@ -193,6 +153,14 @@ export default function GameHost({
 						<small>
 							<LocalizedText text="Min 0.100 · Max 100.000 play credits" />
 						</small>
+						{restoreError && (
+							<p role="alert">
+								Could not check your saved round.{" "}
+								<button type="button" onClick={() => void retryActive()}>
+									Retry connection
+								</button>
+							</p>
+						)}
 						{error && (
 							<p className="studio-error" role="alert">
 								<LocalizedText text={error} />

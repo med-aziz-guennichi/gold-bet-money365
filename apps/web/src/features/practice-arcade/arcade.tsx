@@ -6,6 +6,7 @@ import { MotionConfig, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useGameRoom } from "@/app/casino/use-game-room";
+import { RoundFeedback } from "@/components/casino/round-feedback";
 import { SiteHeader } from "@/components/sports/page-chrome";
 import { type ArcadeId, arcadeGames, pockets } from "./games";
 import "./arcade.css";
@@ -27,8 +28,8 @@ export function ArcadeLobby() {
 							<em>Big energy.</em>
 						</h1>
 						<p>
-							Your classic tables and four new arcade editions. Play for fun
-							with credits that have no cash value.
+							Fifteen distinct games. One play-credit balance. Choose your table
+							and play at your own pace.
 						</p>
 						<span className="arcade-pill">
 							No purchases · No cash value · No withdrawals
@@ -44,7 +45,7 @@ export function ArcadeLobby() {
 							>
 								<Link
 									className={`arcade-card card-${g.id}`}
-									href={{ pathname: `/casino/arcade/${g.id}` }}
+									href={{ pathname: `/casino/${g.id}` }}
 								>
 									<span className="arcade-card-icon" aria-hidden="true">
 										{g.icon}
@@ -60,7 +61,7 @@ export function ArcadeLobby() {
 					<h2 className="arcade-collection-title">The classic collection</h2>
 					<div className="arcade-cards">
 						{casinoGames
-							.filter((g) => g.id !== "dino")
+							.filter((g) => !arcadeGames.some((a) => a.id === g.id))
 							.map((g) => (
 								<Link
 									key={g.id}
@@ -151,19 +152,9 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 		multiplier,
 		mines: view?.mines ?? [],
 		revealed: view?.revealed ?? [],
-		steps: view?.steps ?? 0,
 		path: outcome?.path ?? [],
 		serial: outcome ? outcome.path?.join("") + String(room.lastNet) : "ready",
 	};
-	const message =
-		room.error ||
-		(outcome
-			? `${outcome.detail} · ${number(outcome.multiplierHundredths / 100)}× return`
-			: locked
-				? "Checking your round…"
-				: active
-					? "Your round is active. Choose your next move."
-					: "Ready when you are.");
 	const history =
 		room.recent.data?.items.map((r) => ({
 			id: r.id,
@@ -178,14 +169,11 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 	function reveal(index: number) {
 		if (!locked) props.onAction({ type: "reveal", index });
 	}
-	function jump() {
-		if (!locked) props.onAction({ type: "jump" });
-	}
 	const canCollect =
 		active &&
 		!locked &&
 		id !== "plinko" &&
-		(id === "crash" || round.steps > 0 || round.revealed.length > 0);
+		(id === "crash" || round.revealed.length > 0);
 	return (
 		<MotionConfig reducedMotion="user">
 			<div className={`arcade room-${id}`}>
@@ -204,7 +192,7 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 							<Link
 								key={g.id}
 								aria-current={g.id === id ? "page" : undefined}
-								href={{ pathname: `/casino/arcade/${g.id}` }}
+								href={{ pathname: `/casino/${g.id}` }}
 							>
 								{g.icon} {g.name}
 							</Link>
@@ -265,20 +253,12 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 							</div>
 							<Button
 								className="arcade-primary"
-								disabled={round.active || locked}
+								disabled={round.active || locked || room.restoreError}
 								onClick={start}
 							>
 								{id === "plinko" ? "Drop a ball" : "Start round"}
 							</Button>
-							{id === "dino" && (
-								<Button
-									className="arcade-primary"
-									disabled={!round.active || locked}
-									onClick={jump}
-								>
-									Jump · 80% chance
-								</Button>
-							)}
+
 							{id !== "plinko" && (
 								<Button
 									variant="outline"
@@ -302,6 +282,14 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 								<p>
 									<Link href="/login">Sign in with a user account</Link> to use
 									your saved play credits.
+								</p>
+							)}
+							{room.restoreError && (
+								<p role="alert">
+									Could not check your saved round.{" "}
+									<Button onClick={() => void room.retryActive()}>
+										Retry connection
+									</Button>
 								</p>
 							)}
 							{room.error && <p role="alert">{room.error}</p>}
@@ -400,35 +388,7 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 										</span>
 									</div>
 								</div>
-							) : (
-								<div className="arcade-dino">
-									<div className="arcade-sun" />
-									<span className="arcade-mountain">△ △ △</span>
-									<motion.div
-										key={round.steps}
-										className="arcade-runner"
-										initial={{ y: 0 }}
-										animate={{ y: round.steps ? [0, -75, 0] : 0 }}
-										transition={{ duration: 0.55 }}
-									>
-										🦖
-									</motion.div>
-									<motion.span
-										key={`c${round.steps}`}
-										className="arcade-cactus"
-										initial={{ x: 150 }}
-										animate={{ x: 0 }}
-										transition={{ duration: 0.5 }}
-									>
-										🌵
-									</motion.span>
-									<div className="arcade-dino-score">
-										{round.multiplier.toFixed(2)}×
-										<small>{round.steps} successful jumps</small>
-									</div>
-									<div className="arcade-ground" />
-								</div>
-							)}
+							) : null}
 							<div className="arcade-stage-bottom">
 								<span>
 									{id === "mines"
@@ -439,9 +399,14 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 							</div>
 						</section>
 					</div>
-					<div className="arcade-status" role="status" aria-live="polite">
-						{message}
-					</div>
+					<RoundFeedback
+						outcome={outcome}
+						stakeMillimes={room.roundStake}
+						busy={locked}
+						phase={phase}
+						error={room.error}
+					/>
+
 					<section className="arcade-history" aria-label="Recent round returns">
 						{history.map((h) => (
 							<span key={h.id} className={h.multiplier > 0 ? "positive" : ""}>

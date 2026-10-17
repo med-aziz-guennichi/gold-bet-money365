@@ -6,7 +6,8 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./cards": "./src/cards.ts",
-		"./ui": "./src/ui.tsx"
+		"./ui": "./src/ui.tsx",
+		"./arcade.css": "./src/arcade.css"
 	},
 	"scripts": {
 		"check-types": "tsc --noEmit"

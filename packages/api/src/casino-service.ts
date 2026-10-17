@@ -81,7 +81,11 @@ export class CasinoService {
 					Number.isInteger(numbers[0]) &&
 					numbers[0]! >= 0 &&
 					numbers[0]! <= 36
-				: numbers.length === 0;
+				: input.game === "keno"
+					? numbers.length === 3 &&
+						new Set(numbers).size === 3 &&
+						numbers.every((n) => Number.isInteger(n) && n >= 1 && n <= 20)
+					: numbers.length === 0;
 		if (!validNumbers)
 			throw new ManagementError("BAD_REQUEST", "Invalid game numbers.");
 		let stake: number;
