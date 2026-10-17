@@ -24,14 +24,6 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		document.documentElement.lang = locale;
 		document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
-		const description = document.querySelector<HTMLMetaElement>(
-			'meta[name="description"]',
-		);
-		if (description)
-			description.content = translate(
-				locale,
-				"Follow sports matchups, compare odds, and place bets with your account wallet credits.",
-			);
 		localStorage.setItem(STORAGE_KEY, locale);
 	}, [locale]);
 

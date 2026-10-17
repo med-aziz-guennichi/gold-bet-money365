@@ -3,6 +3,7 @@ import { Figtree, Geist, Geist_Mono, Outfit } from "next/font/google";
 
 import "../index.css";
 import Providers from "@/components/providers";
+import { SITE_DESCRIPTION, SITE_URL } from "@/lib/seo";
 
 const figtreeHeading = Figtree({
 	subsets: ["latin"],
@@ -23,7 +24,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: "GoldBet365 | Sports & Casino",
 	applicationName: "GoldBet365",
-	metadataBase: new URL("https://www.goldbet365.xyz"),
+	metadataBase: new URL(SITE_URL),
+	robots: {
+		index: true,
+		follow: true,
+		googleBot: {
+			index: true,
+			follow: true,
+			"max-image-preview": "large",
+			"max-snippet": -1,
+			"max-video-preview": -1,
+		},
+	},
 	icons: {
 		icon: "/icon.svg",
 		shortcut: "/icon.svg",
@@ -48,8 +60,7 @@ export const metadata: Metadata = {
 		images: ["/brand/social.png"],
 		title: "GoldBet365 | Sports & Casino",
 	},
-	description:
-		"Follow sports matchups, compare odds, and place bets with your account wallet credits.",
+	description: SITE_DESCRIPTION,
 };
 
 export default function RootLayout({

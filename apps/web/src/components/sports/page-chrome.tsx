@@ -57,7 +57,11 @@ function HeaderNavigation() {
 			href: "/casino",
 			active: pathname === "/casino" || pathname.startsWith("/casino/"),
 		},
-		{ label: t("Responsible play"), href: "/#responsible", active: false },
+		{
+			label: t("Responsible play"),
+			href: "/responsible-play",
+			active: pathname === "/responsible-play",
+		},
 	] as const;
 	return (
 		<header className="sticky top-0 z-40 border-white/[.07] border-b bg-[#080b0a]/95 backdrop-blur-xl">
