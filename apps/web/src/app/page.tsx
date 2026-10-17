@@ -127,6 +127,7 @@ function HomeContent() {
 							onClick={() => {
 								const next = new URLSearchParams(params.toString());
 								next.set("day", String(item.value));
+								next.delete("view");
 								router.push(`/?${next}`, { scroll: false });
 							}}
 						>
@@ -161,6 +162,15 @@ function HomeContent() {
 				)}
 				<MatchCenter
 					key={`${sport}:${day}`}
+					liveOnly={params.get("view") === "live"}
+					onLiveChange={(live) => {
+						const next = new URLSearchParams(params.toString());
+						if (live) {
+							next.set("view", "live");
+							next.set("day", "0");
+						} else next.delete("view");
+						router.push(`/?${next}#matches`, { scroll: false });
+					}}
 					matches={eventsFeed.matches}
 					regions={eventsFeed.regions}
 					loading={eventsFeed.events.isFetching && !eventsFeed.matches.length}

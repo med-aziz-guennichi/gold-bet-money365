@@ -11,7 +11,9 @@ import {
 	Trophy,
 	X,
 } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import UserMenu from "@/components/user-menu";
 import { useI18n } from "@/features/i18n/locale-provider";
@@ -19,8 +21,41 @@ import type { Match } from "@/features/sports/types";
 import { formatKickoff } from "@/features/sports/utils";
 
 export function SiteHeader() {
+	return (
+		<Suspense>
+			<HeaderNavigation />
+		</Suspense>
+	);
+}
+
+function HeaderNavigation() {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const { t } = useI18n();
+	const pathname = usePathname();
+	const params = useSearchParams();
+	const sport = params.get("sport") ?? "football";
+	const sportsHref = `/?sport=${encodeURIComponent(sport)}&day=0#matches` as const;
+	const liveHref = `/?sport=${encodeURIComponent(sport)}&day=0&view=live#matches` as const;
+	const navigation = [
+		{
+			label: t("Sports"),
+			href: sportsHref,
+			active:
+				(pathname === "/" && params.get("view") !== "live") ||
+				pathname.startsWith("/match/"),
+		},
+		{
+			label: t("Live"),
+			href: liveHref,
+			active: pathname === "/" && params.get("view") === "live",
+		},
+		{
+			label: "Casino",
+			href: "/casino",
+			active: pathname === "/casino" || pathname.startsWith("/casino/"),
+		},
+		{ label: t("Responsible play"), href: "/#responsible", active: false },
+	] as const;
 	return (
 		<header className="sticky top-0 z-40 border-white/[.07] border-b bg-[#080b0a]/95 backdrop-blur-xl">
 			<div className="mx-auto flex min-h-[72px] max-w-[1440px] flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-8">
@@ -37,25 +72,25 @@ export function SiteHeader() {
 					</span>
 				</a>
 				<nav className="hidden items-center gap-8 font-semibold text-[13px] text-white/55 md:flex">
-					<a className="text-white" href="/#matches">
-						{t("Sports")}
-					</a>
-					<a className="transition hover:text-white" href="/#live">
-						{t("Live")}
-					</a>
-					<a className="transition hover:text-white" href="/casino">
-						Casino
-					</a>
-					<a className="transition hover:text-white" href="/#responsible">
-						{t("Responsible play")}
-					</a>
+					{navigation.map((item) => (
+						<Link
+							key={item.label}
+							href={item.href}
+							aria-current={item.active ? "page" : undefined}
+							className={
+								item.active ? "text-[#c6f36b]" : "transition hover:text-white"
+							}
+						>
+							{item.label}
+						</Link>
+					))}
 				</nav>
 				<div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
 					<LanguageSwitcher compact />
 					<UserMenu />
 
 					<a
-						href="/#matches"
+						href={sportsHref}
 						className="hidden rounded-xl bg-[#c6f36b] px-4 py-2.5 font-extrabold text-[#11160b] text-xs transition hover:bg-[#d5ff85] xl:block"
 					>
 						{t("Explore games")}{" "}
@@ -74,22 +109,16 @@ export function SiteHeader() {
 			</div>
 			{menuOpen && (
 				<nav className="grid gap-1 border-white/[.07] border-t px-5 py-3 text-sm text-white/65 md:hidden">
-					<a className="rounded-lg p-2" href="/casino">
-						Casino
-					</a>
-					{[
-						["Sports", "matches"],
-						["Live games", "live"],
-						["Responsible play", "responsible"],
-					].map(([label, id]) => (
-						<a
-							key={id}
-							className="rounded-lg p-2"
-							href={`/#${id}`}
+					{navigation.map((item) => (
+						<Link
+							key={item.label}
+							href={item.href}
 							onClick={() => setMenuOpen(false)}
+							aria-current={item.active ? "page" : undefined}
+							className={`rounded-lg p-2 ${item.active ? "bg-[#c6f36b]/10 text-[#c6f36b]" : "hover:text-white"}`}
 						>
-							{t(label!)}
-						</a>
+							{item.label}
+						</Link>
 					))}
 				</nav>
 			)}
@@ -123,7 +152,7 @@ export function HeroSection({ featuredMatch }: { featuredMatch?: Match }) {
 				</p>
 				<a
 					className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#c6f36b] px-5 py-3 font-extrabold text-[#11160b] text-[13px] transition hover:-translate-y-0.5 hover:bg-[#d5ff85]"
-					href="#matches"
+					href="/?day=0#matches"
 				>
 					{t("Browse today's games")}{" "}
 					<ArrowRight className="rtl-mirror" size={15} />
@@ -191,10 +220,10 @@ export function HighlightsSection() {
 			icon: Clock3,
 			tone: "text-[#90a9ff] bg-[#90a9ff]/10",
 		},
-	];
+	] as const;
 	return (
 		<>
-			<section className="mt-10 grid gap-3 sm:grid-cols-3" id="live">
+			<section className="mt-10 grid gap-3 sm:grid-cols-3">
 				{features.map(({ title, copy, icon: Icon, tone }) => (
 					<article
 						key={title}
@@ -215,6 +244,7 @@ export function HighlightsSection() {
 			<footer
 				className="mt-12 flex flex-col gap-4 border-white/[.08] border-t pt-6 text-[10px] text-white/35 sm:flex-row sm:items-center sm:justify-between"
 				id="responsible"
+				style={{ scrollMarginTop: 100 }}
 			>
 				<span className="flex items-center gap-2">
 					<ShieldCheck size={14} className="text-[#c6f36b]" />{" "}

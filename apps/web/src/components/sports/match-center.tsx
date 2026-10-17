@@ -17,7 +17,11 @@ export function MatchCenter({
 	selected,
 	onPick,
 	slip,
+	liveOnly,
+	onLiveChange,
 }: {
+	liveOnly: boolean;
+	onLiveChange: (live: boolean) => void;
 	matches: Match[];
 	regions: Region[];
 	loading: boolean;
@@ -33,7 +37,7 @@ export function MatchCenter({
 }) {
 	const { t } = useI18n();
 	const [region, setRegion] = useState("");
-	const [liveOnly, setLiveOnly] = useState(false);
+	const [showAll, setShowAll] = useState(false);
 	const activeRegion = regions.some((item) => item.key === region)
 		? region
 		: "";
@@ -49,7 +53,7 @@ export function MatchCenter({
 	const groups = useMemo(() => groupMatchesByLeague(filtered), [filtered]);
 
 	return (
-		<section className="mt-10" id="matches">
+		<section className="mt-10 scroll-mt-24" id="matches">
 			<div className="mb-5 flex flex-wrap items-end justify-between gap-4">
 				<div>
 					<div className="mb-2 flex items-center gap-2 font-bold text-[#c6f36b] text-[10px] uppercase tracking-[.18em]">
@@ -64,7 +68,8 @@ export function MatchCenter({
 					className="flex items-center gap-2 font-semibold text-white/45 text-xs transition hover:text-white"
 					onClick={() => {
 						setRegion("");
-						setLiveOnly(false);
+						onLiveChange(false);
+						setShowAll(true);
 					}}
 				>
 					<Search size={14} /> {t("View all fixtures")} <ArrowRight size={13} />
@@ -76,7 +81,7 @@ export function MatchCenter({
 				activeRegion={activeRegion}
 				liveOnly={liveOnly}
 				onRegionChange={setRegion}
-				onLiveToggle={() => setLiveOnly((value) => !value)}
+				onLiveToggle={() => onLiveChange(!liveOnly)}
 			/>
 
 			<div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -96,6 +101,7 @@ export function MatchCenter({
 					)}
 					<MatchList
 						groups={groups}
+						showAll={showAll}
 						filterKey={`${activeRegion}:${liveOnly ? "live" : "all"}`}
 						selected={selected}
 						onPick={onPick}

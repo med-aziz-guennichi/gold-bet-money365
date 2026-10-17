@@ -34,10 +34,12 @@ function getPageNumbers(current: number, total: number) {
 /** Paginate by competition so a league's fixtures stay together. */
 export function MatchList({
 	groups,
+	showAll = false,
 	filterKey,
 	selected,
 	onPick,
 }: {
+	showAll?: boolean;
 	groups: MatchGroup[];
 	filterKey: string;
 	selected: Selection[];
@@ -51,21 +53,30 @@ export function MatchList({
 	const { t } = useI18n();
 	const [pageState, setPageState] = useState({ filterKey, page: 1 });
 	const listTop = useRef<HTMLDivElement>(null);
-	const currentPage = pageState.filterKey === filterKey ? pageState.page : 1;
+	const currentPage = showAll
+		? 1
+		: Math.min(
+				pageState.filterKey === filterKey ? pageState.page : 1,
+				Math.max(1, Math.ceil(groups.length / GROUPS_PER_PAGE)),
+			);
 	const totalPages = Math.max(1, Math.ceil(groups.length / GROUPS_PER_PAGE));
 	const visibleGroups = useMemo(
 		() =>
-			groups.slice(
-				(currentPage - 1) * GROUPS_PER_PAGE,
-				currentPage * GROUPS_PER_PAGE,
-			),
-		[currentPage, groups],
+			showAll
+				? groups
+				: groups.slice(
+						(currentPage - 1) * GROUPS_PER_PAGE,
+						currentPage * GROUPS_PER_PAGE,
+					),
+		[currentPage, groups, showAll],
 	);
 	const pageNumbers = getPageNumbers(currentPage, totalPages);
 	const firstGroup = groups.length
 		? (currentPage - 1) * GROUPS_PER_PAGE + 1
 		: 0;
-	const lastGroup = Math.min(currentPage * GROUPS_PER_PAGE, groups.length);
+	const lastGroup = showAll
+		? groups.length
+		: Math.min(currentPage * GROUPS_PER_PAGE, groups.length);
 
 	useEffect(() => {
 		setPageState({ filterKey, page: 1 });
@@ -109,7 +120,7 @@ export function MatchList({
 				/>
 			))}
 
-			{totalPages > 1 && (
+			{!showAll && totalPages > 1 && (
 				<nav
 					aria-label={t("Match list pages")}
 					className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[.07] bg-[#101411] px-3 py-3 sm:px-4"
