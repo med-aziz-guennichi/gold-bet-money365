@@ -139,7 +139,7 @@ export default function Lobby() {
 								role="tab"
 								aria-selected={category === c}
 								className={category === c ? "selected" : ""}
-								key=<LocalizedText text={c} />
+								key={c}
 								onClick={() => setCategory(c)}
 							>
 								<LocalizedText text={c} />
