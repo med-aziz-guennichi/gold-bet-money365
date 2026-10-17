@@ -6,6 +6,7 @@ import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import { ChevronDown } from "lucide-react";
 import { useId, useState } from "react";
 import { useI18n } from "@/features/i18n/locale-provider";
+import { sameMarket } from "@/features/sports/selection-key";
 import type { Match, Selection } from "@/features/sports/types";
 
 /** Renders all normalized Flashscore offers on a match's dedicated page. */
@@ -177,9 +178,6 @@ function MarketCard({
 						const odd = price.value ?? "—";
 						const label = formatSelection(market, price);
 						const outcome = `${formatMarketType(market.betType)} · ${scope} · ${market.bookmaker} · ${label}`;
-						const isSelected = selected.some(
-							(pick) => pick.match.id === match.id && pick.outcome === outcome,
-						);
 						const allowed = restriction === null;
 						const metadata = {
 							type: market.betType,
@@ -191,10 +189,15 @@ function MarketCard({
 								: null,
 							score: price.score ? cleanScraperValue(price.score) : null,
 						};
+						const isSelected = selected.some(
+							(pick) =>
+								pick.match.id === match.id && sameMarket(pick.market, metadata),
+						);
 						return (
 							<Button
 								variant="outline"
 								aria-describedby={restriction ? restrictionId : undefined}
+								aria-pressed={isSelected}
 								key={`${price.selection}-${price.handicap}-${price.score}-${index}`}
 								type="button"
 								disabled={!allowed}
@@ -207,16 +210,20 @@ function MarketCard({
 									if (price.value)
 										onPick(match, outcome, price.value, metadata);
 								}}
-								className={`h-auto flex-col items-stretch whitespace-normal rounded-xl border bg-transparent hover:bg-white/[.05] hover:text-white p-3 text-left transition ${
+								className={`h-auto flex-col items-stretch whitespace-normal rounded-xl border p-3 text-left transition ${
 									isSelected
-										? "border-[#c6f36b]/50 bg-[#c6f36b]/10"
+										? "border-[#c6f36b] bg-[#c6f36b] text-[#11160b] ring-2 ring-[#c6f36b]/30 hover:bg-[#d8ff9d]"
 										: "border-white/[.07] bg-black/10 hover:border-white/20"
 								} ${allowed ? "" : "cursor-not-allowed opacity-45"}`}
 							>
-								<span className="block truncate font-semibold text-white/65 text-xs">
+								<span
+									className={`block truncate font-semibold text-xs ${isSelected ? "text-[#11160b]" : "text-white/65"}`}
+								>
 									{t(label === "Home" ? "Home outcome" : label)}
 								</span>
-								<span className="mt-1 block font-extrabold text-[#d8ff9d] text-lg tabular-nums">
+								<span
+									className={`mt-1 block font-extrabold text-lg tabular-nums ${isSelected ? "text-[#11160b]" : "text-[#d8ff9d]"}`}
+								>
 									{odd}
 								</span>
 								{price.openingValue && (

@@ -2,6 +2,7 @@
 import { marketRestriction } from "@gold-bet-clean-money365/api/market-availability";
 import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import { useI18n } from "@/features/i18n/locale-provider";
+import { sameMarket } from "@/features/sports/selection-key";
 import type { Match, Selection } from "@/features/sports/types";
 import { formatMarketType } from "./market-offers";
 
@@ -71,7 +72,16 @@ export function PrimaryOdds({
 				{offers.map((offer, index) => {
 					const outcome = `${market.betType} · ${market.scope} · ${offer.selection} · ${offer.handicap ?? ""} · ${offer.score ?? ""} · ${market.bookmaker}`;
 					const active = selected.some(
-						(pick) => pick.match.id === match.id && pick.outcome === outcome,
+						(pick) =>
+							pick.match.id === match.id &&
+							sameMarket(pick.market, {
+								type: market.betType,
+								scope: market.scope,
+								selection: offer.selection,
+								handicap: offer.handicap,
+								score: offer.score,
+								bookmaker: market.bookmaker,
+							}),
 					);
 					const label =
 						offer.selection === "home"
@@ -88,6 +98,7 @@ export function PrimaryOdds({
 							type="button"
 							disabled={disabled || restriction !== null}
 							aria-label={`${label} odds ${offer.value}`}
+							aria-pressed={active}
 							onClick={() =>
 								onPick(match, outcome, offer.value!, {
 									type: market.betType,
@@ -98,13 +109,17 @@ export function PrimaryOdds({
 									bookmaker: market.bookmaker,
 								})
 							}
-							className={`h-auto min-w-0 flex-col items-center whitespace-normal rounded-lg border bg-transparent hover:bg-white/[.05] hover:text-white px-1 py-2 disabled:cursor-not-allowed ${active ? "border-[#c6f36b]/50 bg-[#c6f36b]/10" : "border-white/10 bg-white/[.025]"}`}
+							className={`h-auto min-h-12 min-w-0 flex-col items-center whitespace-normal rounded-lg border px-1 py-3 disabled:cursor-not-allowed ${active ? "border-[#c6f36b] bg-[#c6f36b] text-[#11160b] ring-2 ring-[#c6f36b]/30 hover:bg-[#d8ff9d]" : "border-white/10 bg-white/[.025] hover:bg-white/[.05] hover:text-white"}`}
 						>
-							<span className="max-w-full truncate text-[9px] text-white/50">
+							<span
+								className={`max-w-full truncate text-[10px] ${active ? "text-[#11160b]" : "text-white/60"}`}
+							>
 								{label}
 								{offer.handicap ? ` ${offer.handicap}` : ""}
 							</span>
-							<strong className="text-[#c6f36b] text-xs tabular-nums">
+							<strong
+								className={`text-sm tabular-nums ${active ? "text-[#11160b]" : "text-[#c6f36b]"}`}
+							>
 								{offer.value}
 							</strong>
 						</Button>

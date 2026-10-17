@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
+import { sameMarket } from "./selection-key";
 import type { Match, Selection } from "./types";
 import { isMatchUnavailable } from "./utils";
 
@@ -119,7 +120,7 @@ export function useBetting() {
 		)
 			return;
 		const picks = selected.some(
-			(pick) => pick.match.id === match.id && pick.outcome === outcome,
+			(pick) => pick.match.id === match.id && sameMarket(pick.market, market),
 		)
 			? selected.filter((pick) => pick.match.id !== match.id)
 			: [

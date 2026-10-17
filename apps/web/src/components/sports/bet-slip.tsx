@@ -2,8 +2,15 @@
 
 import { formatTnd } from "@gold-bet-clean-money365/api/access";
 import type { SavedBet } from "@gold-bet-clean-money365/api/betting";
-import { ArrowRight, Plus, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, Plus, ShieldCheck, Ticket, X } from "lucide-react";
 import Link from "next/link";
+import {
+	useEffect,
+	useId,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from "react";
 import { useI18n } from "@/features/i18n/locale-provider";
 import type { Selection } from "@/features/sports/types";
 
@@ -26,7 +33,7 @@ export type BetSlipProps = {
 };
 
 /** Displays server wallet credits and persisted bets; never credits or settles money. */
-export function BetSlip({
+function BetSlipContent({
 	selected,
 	balanceMillimes,
 	bets,
@@ -44,10 +51,10 @@ export function BetSlip({
 	onPlace,
 }: BetSlipProps) {
 	const { t, locale } = useI18n();
+	const stakeId = useId();
 	return (
 		<aside
-			className="sticky top-[88px] rounded-2xl border border-white/[.09] bg-[#101512] p-5"
-			id="bet-slip"
+			className="min-w-0 rounded-2xl border border-white/[.09] bg-[#101512] p-5"
 			aria-busy={placing}
 		>
 			<header className="flex items-center justify-between">
@@ -96,11 +103,13 @@ export function BetSlip({
 								>
 									<X size={14} />
 								</button>
-								<p className="font-semibold text-[9px] text-white/35 uppercase tracking-wide">
+								<p className="break-words font-semibold text-[9px] text-white/35 uppercase tracking-wide">
 									{pick.match.home} {t("vs")} {pick.match.away}
 								</p>
 								<div className="mt-2 flex items-center justify-between gap-2">
-									<span className="font-bold text-[11px]">{pick.outcome}</span>
+									<span className="min-w-0 break-words font-bold text-[11px]">
+										{pick.outcome}
+									</span>
 									<span className="rounded-md bg-[#c6f36b]/10 px-2 py-1 font-extrabold text-[#c6f36b] text-[11px]">
 										{pick.odd}
 									</span>
@@ -110,14 +119,14 @@ export function BetSlip({
 					</div>
 					<div className="mt-5">
 						<label
-							htmlFor="stake"
+							htmlFor={stakeId}
 							className="font-bold text-[10px] text-white/40 uppercase tracking-[.13em]"
 						>
 							{t("Stake (TND credits)")}
 						</label>
 						<div className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 bg-[#090d0a] px-3">
 							<input
-								id="stake"
+								id={stakeId}
 								type="number"
 								min="0.001"
 								max="1000000000"
@@ -297,5 +306,102 @@ export function BetSlip({
 				</p>
 			</div>
 		</aside>
+	);
+}
+
+const mobileQuery = "(max-width: 1279px)";
+function subscribeMobile(callback: () => void) {
+	const media = window.matchMedia(mobileQuery);
+	media.addEventListener("change", callback);
+	return () => media.removeEventListener("change", callback);
+}
+
+/** Native modal supplies focus trapping, Escape dismissal and focus restoration. */
+export function BetSlip(props: BetSlipProps) {
+	const { t } = useI18n();
+	const mobile = useSyncExternalStore(
+		subscribeMobile,
+		() => window.matchMedia(mobileQuery).matches,
+		() => false,
+	);
+	const [open, setOpen] = useState(false);
+	const dialog = useRef<HTMLDialogElement>(null);
+	const titleId = useId();
+	useEffect(() => {
+		const element = dialog.current;
+		if (mobile && open) element?.showModal();
+		else element?.close();
+	}, [mobile, open]);
+	useEffect(() => {
+		if (!mobile || !open) return;
+		const previous = document.body.style.overflow;
+		document.body.style.overflow = "hidden";
+		return () => {
+			document.body.style.overflow = previous;
+		};
+	}, [mobile, open]);
+	if (!mobile)
+		return (
+			<div className="sticky top-[88px]">
+				<BetSlipContent {...props} />
+			</div>
+		);
+	return (
+		<>
+			<div className="fixed end-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2">
+				{props.notice && !open && (
+					<p
+						role="status"
+						className="max-w-72 rounded-xl border border-white/15 bg-[#101512] p-3 text-white text-xs shadow-xl"
+					>
+						{t(props.notice)}
+					</p>
+				)}
+				<button
+					type="button"
+					aria-haspopup="dialog"
+					aria-expanded={open}
+					onClick={() => setOpen(true)}
+					className="flex min-h-14 items-center gap-3 rounded-full border border-[#d8ff9d] bg-[#c6f36b] px-5 py-3 font-extrabold text-[#11160b] text-sm shadow-[0_8px_32px_#0008] transition hover:bg-[#d8ff9d] focus-visible:outline-2 focus-visible:outline-[#c6f36b] focus-visible:outline-offset-4"
+				>
+					<Ticket size={21} />
+					<span>{t("Your bet slip")}</span>
+					<span
+						key={props.selected.length}
+						className="flex h-7 min-w-7 items-center justify-center rounded-full bg-[#11160b] px-2 text-[#c6f36b] tabular-nums"
+						aria-live="polite"
+					>
+						{props.selected.length}
+					</span>
+				</button>
+			</div>
+			<dialog
+				ref={dialog}
+				aria-labelledby={titleId}
+				onClose={() => setOpen(false)}
+				onKeyDown={(event) => {
+					if (event.key === "Escape") dialog.current?.close();
+				}}
+				onClick={(event) => {
+					if (event.target === event.currentTarget) dialog.current?.close();
+				}}
+				className="fixed inset-x-0 top-auto bottom-0 m-0 max-h-[88dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-3xl border border-white/15 bg-[#101512] p-0 pb-[env(safe-area-inset-bottom)] text-white shadow-2xl backdrop:bg-black/65 backdrop:backdrop-blur-sm"
+			>
+				<div className="sticky top-0 z-10 flex items-center justify-between border-white/10 border-b bg-[#101512] px-5 py-3">
+					<h2 id={titleId} className="font-bold text-sm">
+						{t("Your bet slip")}
+					</h2>
+					<button
+						type="button"
+						aria-label={t("Close")}
+						onClick={() => dialog.current?.close()}
+						className="flex h-11 w-11 items-center justify-center rounded-full bg-white/5 hover:bg-white/10"
+					>
+						<X size={20} />
+					</button>
+				</div>
+				{open && <BetSlipContent {...props} />}
+			</dialog>
+		</>
 	);
 }
