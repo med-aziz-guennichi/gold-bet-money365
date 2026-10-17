@@ -16,7 +16,9 @@ for (let offset = 0; offset < urls.length; offset += 4) {
  await Promise.all(urls.slice(offset, offset + 4).map(async url => {
   assert.equal(new URL(url).origin, base);
   const html = await read(new URL(url).pathname);
-  assert.ok(html.includes(`rel="canonical" href="${url}"`), `${url} canonical`);
+  const canonical = html.match(/rel="canonical" href="([^"]+)"/)?.[1];
+  assert.ok(canonical, `${url} canonical exists`);
+  assert.equal(new URL(canonical).href, new URL(url).href, `${url} canonical`);
   assert.ok(!/<meta name="robots" content="[^"]*noindex/.test(html), `${url} indexable`);
   assert.ok(html.includes('property="og:image"'), `${url} share image`);
  }));
@@ -30,5 +32,5 @@ for (const path of ["/login", "/casino/history"]) {
  assert.match(html, /<meta name="robots" content="[^"]*noindex/);
 }
 const filtered = await read("/?sport=tennis&day=1&view=live");
-assert.ok(filtered.includes(`rel="canonical" href="${base}/"`));
+assert.equal(new URL(filtered.match(/rel="canonical" href="([^"]+)"/)?.[1]).href, `${base}/`);
 console.log(`SEO smoke checks passed: ${urls.length} public URLs, canonicals, sitemap, robots, structured data and private-page noindex.`);
