@@ -5,6 +5,7 @@ import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
+import { ContentLoading } from "@/components/loading-screen";
 import { SiteHeader } from "@/components/sports/page-chrome";
 import { authClient } from "@/lib/auth-client";
 import { formatPlayCredits as formatTnd } from "@/lib/play-credits";
@@ -41,9 +42,7 @@ export default function CasinoHistory() {
 					</div>
 				</div>
 				{isPending ? (
-					<p>
-						<LocalizedText text="Loading account…" />
-					</p>
+					<ContentLoading label="Loading account…" />
 				) : !session ? (
 					<p>
 						<Link href="/login">
@@ -58,9 +57,7 @@ export default function CasinoHistory() {
 				) : (
 					<section className="studio-history">
 						{history.isPending ? (
-							<p>
-								<LocalizedText text="Loading rounds…" />
-							</p>
+							<ContentLoading label="Loading rounds…" />
 						) : history.isError ? (
 							<p role="alert">
 								{" "}

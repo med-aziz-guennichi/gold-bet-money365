@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { ContentLoading } from "@/components/loading-screen";
 import { SiteHeader } from "@/components/sports/page-chrome";
 import { useI18n } from "@/features/i18n/locale-provider";
 import { orpc } from "@/utils/orpc";
@@ -376,9 +377,7 @@ export default function BetHistory({ userId }: { userId: string }) {
 					</div>
 				)}
 				{history.isPending ? (
-					<p role="status" className="py-12 text-center text-white/45">
-						{t("Loading bet history…")}
-					</p>
+					<ContentLoading label="Loading bet history…" />
 				) : (
 					history.data && (
 						<>

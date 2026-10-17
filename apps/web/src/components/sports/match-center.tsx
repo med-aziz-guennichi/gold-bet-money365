@@ -1,9 +1,9 @@
 "use client";
 
 import { LocalizedText } from "@gold-bet-clean-money365/i18n";
-
 import { ArrowRight, Flame, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { ContentLoading } from "@/components/loading-screen";
 import { useI18n } from "@/features/i18n/locale-provider";
 import type { Match, Region, Selection } from "@/features/sports/types";
 import { groupMatchesByLeague } from "@/features/sports/utils";
@@ -88,10 +88,8 @@ export function MatchCenter({
 
 			<div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
 				<div className="min-w-0 space-y-3">
-					{loading && (
-						<div className="rounded-2xl border border-white/[.08] p-8 text-center text-sm text-white/45">
-							{t("Checking games and prices…")}
-						</div>
+					{loading && filtered.length === 0 && (
+						<ContentLoading kind="sports" label="Checking games and prices…" />
 					)}
 					{error && (
 						<div

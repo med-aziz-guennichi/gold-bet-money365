@@ -307,7 +307,8 @@
 		"99.54% with optimal 9/6 strategy, before millime rounding": "99,54 % avec stratégie optimale 9/6, avant arrondi au millime",
 		"98.94% banker · 98.76% player · 85.64% tie": "98,94 % banque · 98,76 % joueur · 85,64 % égalité",
 		"96.27% sides · 89.64% tie": "96,27 % côtés · 89,64 % égalité",
-		"97.22% small/big · 86.11% triple": "97,22 % petit/grand · 86,11 % triple"
+		"97.22% small/big · 86.11% triple": "97,22 % petit/grand · 86,11 % triple",
+		"Loading…": "Chargement…"
 	},
 	"ar": {
 		"Welcome back": "مرحباً بعودتك",
@@ -617,6 +618,7 @@
 		"99.54% with optimal 9/6 strategy, before millime rounding": "99.54٪ باستراتيجية 9/6 المثلى قبل تقريب المليم",
 		"98.94% banker · 98.76% player · 85.64% tie": "98.94٪ المصرف · 98.76٪ اللاعب · 85.64٪ التعادل",
 		"96.27% sides · 89.64% tie": "96.27٪ الطرفان · 89.64٪ التعادل",
-		"97.22% small/big · 86.11% triple": "97.22٪ الصغير والكبير · 86.11٪ الثلاثية"
+		"97.22% small/big · 86.11% triple": "97.22٪ الصغير والكبير · 86.11٪ الثلاثية",
+		"Loading…": "جارٍ التحميل…"
 	}
 }

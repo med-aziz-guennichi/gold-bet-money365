@@ -10,6 +10,7 @@ import { LocalizedText, useI18n } from "@gold-bet-clean-money365/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Brand } from "@/components/brand";
+import { ContentLoading } from "@/components/loading-screen";
 import UserMenu from "@/components/user-menu";
 import { WalletPanel } from "@/features/accounts/wallet-panel";
 import type { authClient } from "@/lib/auth-client";
@@ -418,12 +419,7 @@ export default function Dashboard({
 							))}
 						</tbody>
 					</table>
-					{accounts.isPending && (
-						<p role="status" className="p-8 text-center text-white/50">
-							{" "}
-							<LocalizedText text="Loading accounts…" />{" "}
-						</p>
-					)}
+					{accounts.isPending && <ContentLoading label="Loading accounts…" />}
 					{!accounts.isPending && rows.length === 0 && (
 						<p className="p-8 text-center text-white/50">
 							<LocalizedText text="No accounts found." />

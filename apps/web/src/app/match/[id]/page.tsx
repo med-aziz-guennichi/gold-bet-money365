@@ -4,6 +4,7 @@ import { currentEventStatus } from "@gold-bet-clean-money365/api/event-status";
 import { ArrowLeft, Clock3 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
+import { ContentLoading } from "@/components/loading-screen";
 import { BetSlip } from "@/components/sports/bet-slip";
 import { MarketOffers } from "@/components/sports/market-offers";
 import { SiteHeader } from "@/components/sports/page-chrome";
@@ -53,7 +54,7 @@ export default function MatchPage() {
 				</Link>
 
 				{football.matchesQuery.isLoading ? (
-					<PanelMessage>{t("Loading match details…")}</PanelMessage>
+					<ContentLoading kind="game" label="Loading match details…" />
 				) : football.matchesQuery.error ? (
 					<PanelMessage>{football.matchesQuery.error.message}</PanelMessage>
 				) : !match ? (
@@ -160,7 +161,7 @@ export default function MatchPage() {
 									</p>
 								</div>
 								{football.oddsLoading && match.odds.markets.length === 0 ? (
-									<PanelMessage>{t("Loading Flashscore offers…")}</PanelMessage>
+									<ContentLoading label="Loading Flashscore offers…" />
 								) : (
 									<MarketOffers
 										match={match}
