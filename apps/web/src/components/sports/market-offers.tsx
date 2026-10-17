@@ -212,7 +212,7 @@ function MarketCard({
 								}}
 								className={`h-auto flex-col items-stretch whitespace-normal rounded-xl border p-3 text-left transition ${
 									isSelected
-										? "border-[#c6f36b] bg-[#c6f36b] text-[#11160b] ring-2 ring-[#c6f36b]/30 hover:bg-[#d8ff9d]"
+										? "border-[#c6f36b] bg-[#c6f36b] text-[#11160b] ring-2 ring-[#c6f36b]/30 hover:bg-[#d8ff9d] dark:bg-[#c6f36b] dark:hover:bg-[#d8ff9d]"
 										: "border-white/[.07] bg-black/10 hover:border-white/20"
 								} ${allowed ? "" : "cursor-not-allowed opacity-45"}`}
 							>

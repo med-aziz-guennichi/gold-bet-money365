@@ -109,7 +109,7 @@ export function PrimaryOdds({
 									bookmaker: market.bookmaker,
 								})
 							}
-							className={`h-auto min-h-12 min-w-0 flex-col items-center whitespace-normal rounded-lg border px-1 py-3 disabled:cursor-not-allowed ${active ? "border-[#c6f36b] bg-[#c6f36b] text-[#11160b] ring-2 ring-[#c6f36b]/30 hover:bg-[#d8ff9d]" : "border-white/10 bg-white/[.025] hover:bg-white/[.05] hover:text-white"}`}
+							className={`h-auto min-h-12 min-w-0 flex-col items-center whitespace-normal rounded-lg border px-1 py-3 disabled:cursor-not-allowed ${active ? "border-[#c6f36b] bg-[#c6f36b] text-[#11160b] ring-2 ring-[#c6f36b]/30 hover:bg-[#d8ff9d] dark:bg-[#c6f36b] dark:hover:bg-[#d8ff9d]" : "border-white/10 bg-white/[.025] hover:bg-white/[.05] hover:text-white"}`}
 						>
 							<span
 								className={`max-w-full truncate text-[10px] ${active ? "text-[#11160b]" : "text-white/60"}`}
