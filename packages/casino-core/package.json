@@ -1,0 +1,22 @@
+{
+	"name": "@gold-bet-clean-money365/casino-core",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./cards": "./src/cards.ts",
+		"./ui": "./src/ui.tsx"
+	},
+	"scripts": {
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"react": "catalog:"
+	},
+	"devDependencies": {
+		"@gold-bet-clean-money365/config": "workspace:*",
+		"@types/react": "catalog:",
+		"typescript": "catalog:"
+	}
+}

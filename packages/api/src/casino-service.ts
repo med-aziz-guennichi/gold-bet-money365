@@ -17,7 +17,7 @@ import {
 } from "./casino-catalog";
 import { casinoPayout, playCasino } from "./casino-engine";
 
-type RoundDocument = CasinoRound & {
+export type RoundDocument = CasinoRound & {
 	_id: string;
 	userId: string;
 	fingerprint: string;
@@ -69,18 +69,19 @@ export class CasinoService {
 		const game = casinoGames.find((g) => g.id === input.game);
 		if (!game || !(game.choices as readonly string[]).includes(input.choice))
 			throw new ManagementError("BAD_REQUEST", "Invalid game selection.");
+		if (game.mode !== "instant")
+			throw new ManagementError(
+				"BAD_REQUEST",
+				"Start an interactive session for this game.",
+			);
 		const numbers = [...input.numbers].sort((a, b) => a - b);
 		const validNumbers =
-			input.game === "keno"
-				? numbers.length === 3 &&
-					new Set(numbers).size === 3 &&
-					numbers.every((n) => Number.isInteger(n) && n >= 1 && n <= 20)
-				: input.game === "roulette" && input.choice === "number"
-					? numbers.length === 1 &&
-						Number.isInteger(numbers[0]) &&
-						numbers[0]! >= 0 &&
-						numbers[0]! <= 36
-					: numbers.length === 0;
+			input.game === "roulette" && input.choice === "number"
+				? numbers.length === 1 &&
+					Number.isInteger(numbers[0]) &&
+					numbers[0]! >= 0 &&
+					numbers[0]! <= 36
+				: numbers.length === 0;
 		if (!validNumbers)
 			throw new ManagementError("BAD_REQUEST", "Invalid game numbers.");
 		let stake: number;
@@ -106,6 +107,15 @@ export class CasinoService {
 			)
 			.digest("hex");
 		const id = `${userId}:${input.requestId}`;
+		if (
+			await this.db
+				.collection<{ _id: string }>("casinoSession")
+				.findOne({ _id: id })
+		)
+			throw new ManagementError(
+				"CONFLICT",
+				"This request belongs to an interactive round.",
+			);
 		const previous = async (session?: ClientSession) => {
 			const round = await this.rounds().findOne(
 				{ _id: id, userId },

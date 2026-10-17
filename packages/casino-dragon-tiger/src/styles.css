@@ -1,0 +1,74 @@
+.duel-zones {
+	display: grid;
+	grid-template-columns: 1fr 0.7fr 1fr;
+	gap: 12px;
+	max-width: 650px;
+	margin: 25px auto;
+}
+.dragon-room {
+	padding: 30px;
+	background:
+		radial-gradient(ellipse at 20% 30%, #63272b66, transparent 60%),
+		radial-gradient(ellipse at 90% 30%, #49447b66, transparent 60%), #182128;
+	min-height: 500px;
+}
+.dragon-duel {
+	display: grid;
+	grid-template-columns: 1fr 50px 1fr;
+	align-items: center;
+	gap: 20px;
+	text-align: center;
+}
+.dragon-duel h3 {
+	font-size: 12px;
+	letter-spacing: 0.2em;
+	margin: 8px 0 20px;
+	color: #c2ae7b;
+}
+.dragon-duel .studio-card {
+	margin: auto;
+}
+.duel-emblem {
+	font:
+		75px Georgia,
+		serif;
+	color: #d7a586;
+	text-shadow: 0 0 30px #c05d4677;
+}
+.tiger-side .duel-emblem {
+	color: #c6b5dc;
+	text-shadow: 0 0 30px #8f72b8aa;
+}
+.duel-versus {
+	font:
+		italic 23px Georgia,
+		serif;
+	color: #b8a374;
+}
+@media (max-width: 520px) {
+	.duel-zones {
+		gap: 7px;
+	}
+	.dragon-room {
+		padding: 22px 15px 25px;
+		min-height: 480px;
+	}
+	.dragon-duel {
+		gap: 5px;
+		grid-template-columns: 1fr 30px 1fr;
+	}
+	.duel-emblem {
+		font-size: 60px;
+	}
+	.dragon-duel h3 {
+		font-size: 10px;
+		margin-bottom: 15px;
+	}
+	.dragon-duel .studio-card {
+		width: 75px;
+		height: 108px;
+	}
+	.duel-versus {
+		font-size: 18px;
+	}
+}

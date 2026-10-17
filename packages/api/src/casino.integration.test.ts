@@ -80,17 +80,17 @@ test("casino wallet atomicity, retries, isolation and authorization", {
 		const service = new CasinoService(db, "isolated-casino-test-secret");
 		const input = (overrides: Partial<CasinoInput> = {}): CasinoInput => ({
 			requestId: randomUUID(),
-			game: "coin",
+			game: "roulette",
 			version: CASINO_VERSION,
-			choice: "heads",
+			choice: "red",
 			numbers: [],
 			stake: "1.000",
 			...overrides,
 		});
 		await t.test(
-			"all ten games persist a result and exact ledger arithmetic",
+			"all instant games persist a result and exact ledger arithmetic",
 			async () => {
-				for (const game of casinoGames) {
+				for (const game of casinoGames.filter((g) => g.mode === "instant")) {
 					const before = (await wallets.findOne({ _id: String(user) }))!
 						.balanceMillimes;
 					const round = await service.play(
@@ -98,7 +98,7 @@ test("casino wallet atomicity, retries, isolation and authorization", {
 						input({
 							game: game.id,
 							choice: game.choices[0],
-							numbers: game.id === "keno" ? [1, 2, 3] : [],
+							numbers: [],
 						}),
 					);
 					assert.equal(
@@ -177,7 +177,7 @@ test("casino wallet atomicity, retries, isolation and authorization", {
 				await assert.rejects(
 					service.play(
 						String(user),
-						input({ game: "keno", choice: "draw", numbers: [1, 1, 2] }),
+						input({ game: "roulette", choice: "number", numbers: [1, 1, 2] }),
 					),
 					/Invalid game numbers/,
 				);
@@ -274,7 +274,7 @@ test("casino wallet atomicity, retries, isolation and authorization", {
 				);
 				assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
 				assert.equal(
-					(await wallets.findOne({ _id: String(poor) }))?.balanceMillimes,
+					(await wallets.findOne({ _id: String(poor) }))!.balanceMillimes,
 					0,
 				);
 			},
@@ -285,7 +285,7 @@ test("casino wallet atomicity, retries, isolation and authorization", {
 				0,
 			);
 			const mine = await service.history(String(user), { page: 1 });
-			assert.equal(mine.total, 11);
+			assert.equal(mine.total, 7);
 			assert.ok(
 				mine.items.every((r) => !("userId" in r) && !("fingerprint" in r)),
 			);

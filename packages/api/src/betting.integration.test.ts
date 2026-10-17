@@ -19,6 +19,7 @@ import type { PlaceBetInput } from "./betting";
 import { BettingService } from "./betting-service";
 import { CASINO_VERSION, type CasinoInput } from "./casino-catalog";
 import { CasinoService } from "./casino-service";
+import { CasinoSessions } from "./casino-sessions";
 import type { Context } from "./context";
 import type { FlashscoreService, FootballMatch } from "./football";
 import { type AppRouterClient, appRouter } from "./routers/index";
@@ -457,6 +458,7 @@ test("server betting debits persisted wallets and saves isolated bets", {
 					accounts,
 					bets,
 					casino: new CasinoService(db, "test-only-casino-secret"),
+					casinoSessions: new CasinoSessions(db, "test-only-casino-secret"),
 					flashscore: feed,
 					session: null,
 				};
@@ -485,13 +487,22 @@ test("server betting debits persisted wallets and saves isolated bets", {
 				const http = await createAuthHttpHandler(auth, db, env);
 				const casinoInput: CasinoInput = {
 					requestId: randomUUID(),
-					game: "coin",
-					choice: "heads",
+					game: "roulette",
+					choice: "red",
 					numbers: [],
 					version: CASINO_VERSION,
 					stake: "1.000",
 				};
 				await assert.rejects(rpc.casino.play(casinoInput), {
+					code: "UNAUTHORIZED",
+				});
+				const sessionStart = {
+					requestId: randomUUID(),
+					game: "mines" as const,
+					version: CASINO_VERSION,
+					stake: "1.000",
+				};
+				await assert.rejects(rpc.casino.start(sessionStart), {
 					code: "UNAUTHORIZED",
 				});
 				const login = await http(
@@ -511,6 +522,28 @@ test("server betting debits persisted wallets and saves isolated bets", {
 					.join("; ");
 				context.session = await auth.api.getSession({ headers: { cookie } });
 				assert.ok(context.session);
+				await assert.rejects(
+					rpc.casino.start({ ...sessionStart, userId: admin } as Parameters<
+						AppRouterClient["casino"]["start"]
+					>[0]),
+					{ code: "BAD_REQUEST" },
+				);
+				await assert.rejects(
+					rpc.casino.action({
+						id: "unused",
+						requestId: randomUUID(),
+						action: { type: "cashout" },
+						payoutMillimes: 1000000,
+					} as Parameters<AppRouterClient["casino"]["action"]>[0]),
+					{ code: "BAD_REQUEST" },
+				);
+				for (const path of ["start", "action"]) {
+					const rejected = await handler.handle(
+						new Request(`http://test/rpc/casino/${path}`),
+						{ prefix: "/rpc", context },
+					);
+					assert.equal(rejected.matched && rejected.response.status, 405);
+				}
 				await assert.rejects(
 					rpc.casino.play({
 						...casinoInput,

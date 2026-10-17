@@ -1,25 +1,36 @@
 {
-  "name": "@gold-bet-clean-money365/api",
-  "type": "module",
-  "exports": {
-    ".": "./src/index.ts",
-    "./*": "./src/*.ts"
-  },
-  "scripts": {
-    "build": "tsc -b",
-    "check-types": "tsc -b"
-  },
-  "dependencies": {
-    "@gold-bet-clean-money365/auth": "workspace:*",
-    "@gold-bet-clean-money365/db": "workspace:*",
-    "@orpc/client": "catalog:",
-    "@orpc/openapi": "catalog:",
-    "@orpc/server": "catalog:",
-    "@orpc/zod": "catalog:",
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@gold-bet-clean-money365/config": "workspace:*",
-    "typescript": "catalog:"
-  }
+	"name": "@gold-bet-clean-money365/api",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./*": "./src/*.ts"
+	},
+	"scripts": {
+		"build": "tsc -b",
+		"check-types": "tsc -b"
+	},
+	"dependencies": {
+		"@gold-bet-clean-money365/auth": "workspace:*",
+		"@gold-bet-clean-money365/db": "workspace:*",
+		"@orpc/client": "catalog:",
+		"@orpc/openapi": "catalog:",
+		"@orpc/server": "catalog:",
+		"@orpc/zod": "catalog:",
+		"zod": "catalog:",
+		"@gold-bet-clean-money365/casino-core": "workspace:*",
+		"@gold-bet-clean-money365/casino-roulette": "workspace:*",
+		"@gold-bet-clean-money365/casino-blackjack": "workspace:*",
+		"@gold-bet-clean-money365/casino-baccarat": "workspace:*",
+		"@gold-bet-clean-money365/casino-dragon-tiger": "workspace:*",
+		"@gold-bet-clean-money365/casino-sic-bo": "workspace:*",
+		"@gold-bet-clean-money365/casino-slots": "workspace:*",
+		"@gold-bet-clean-money365/casino-mines": "workspace:*",
+		"@gold-bet-clean-money365/casino-crash": "workspace:*",
+		"@gold-bet-clean-money365/casino-video-poker": "workspace:*",
+		"@gold-bet-clean-money365/casino-plinko": "workspace:*"
+	},
+	"devDependencies": {
+		"@gold-bet-clean-money365/config": "workspace:*",
+		"typescript": "catalog:"
+	}
 }

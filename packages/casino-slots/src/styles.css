@@ -1,0 +1,162 @@
+.slots-room {
+	padding: 25px 35px 30px;
+	background: radial-gradient(ellipse at 50% 15%, #603f6e88, #1d1728);
+	min-height: 500px;
+}
+.slot-marquee {
+	text-align: center;
+	color: #e6bd69;
+	text-shadow: 0 2px 2px #0009;
+}
+.slot-marquee small {
+	letter-spacing: 0.25em;
+	font-size: 8px;
+	color: #bb9b63;
+}
+.slot-marquee h3 {
+	font:
+		800 clamp(25px, 3.5vw, 45px) Georgia,
+		serif;
+	letter-spacing: -0.025em;
+	margin: 10px 0;
+}
+.slot-marquee > span {
+	font-size: 8px;
+	letter-spacing: 0.2em;
+	color: #e9d4a3;
+}
+.slot-cabinet {
+	position: relative;
+	display: flex;
+	gap: 9px;
+	border: 8px ridge #c6a160;
+	background: #2c1e15;
+	border-radius: 15px;
+	padding: 12px;
+	box-shadow: 0 12px 25px #0008;
+	margin: 30px auto 20px;
+	max-width: 570px;
+	align-items: center;
+}
+.reel-window {
+	width: 33.33%;
+	height: 260px;
+	overflow: hidden;
+	border-radius: 6px;
+	background: linear-gradient(#bebdaa, #fffce2 30% 70%, #bebdaa);
+	box-shadow: inset 0 0 15px #0006;
+}
+.reel-strip > div {
+	height: 86px;
+	display: grid;
+	place-items: center;
+	opacity: 0.45;
+}
+.reel-strip > div.payline-cell {
+	opacity: 1;
+	border-top: 1px solid #bd7d4b55;
+	border-bottom: 1px solid #bd7d4b55;
+}
+.reel-symbol {
+	height: 75px;
+	width: 75px;
+	fill: #d1394a;
+	filter: drop-shadow(0 3px 1px #0005);
+}
+.symbol-line {
+	fill: none;
+	stroke: #537344;
+	stroke-width: 5;
+	stroke-linejoin: round;
+}
+.symbol-1 {
+	fill: #eacb45;
+}
+.symbol-2 {
+	fill: #9660ba;
+}
+.symbol-3 {
+	fill: #e79c37;
+}
+.symbol-4 {
+	fill: #d7ac47;
+}
+.symbol-5 {
+	fill: #48a8bc;
+}
+.symbol-5 .symbol-line {
+	stroke: #b4f1f0;
+	stroke-width: 2;
+}
+.payline-arrow {
+	position: absolute;
+	color: #f3cd68;
+	top: 45%;
+	left: -10px;
+	text-shadow: 0 0 10px #f3cd68;
+	font-size: 18px;
+	z-index: 2;
+}
+.payline-arrow:last-child {
+	left: auto;
+	right: -10px;
+}
+.slot-paytable {
+	display: flex;
+	justify-content: center;
+	gap: 25px;
+	font-size: 8px;
+	letter-spacing: 0.05em;
+	color: #bca77c;
+	text-align: center;
+}
+.slot-paytable b {
+	display: block;
+	color: #e2c584;
+	font-size: 14px;
+	margin-top: 4px;
+}
+.spinning .reel-strip {
+	animation: reels-roll 0.22s linear infinite;
+	filter: blur(2px);
+}
+@keyframes reels-roll {
+	to {
+		transform: translateY(-170px);
+	}
+}
+@media (max-width: 520px) {
+	.slots-room {
+		padding: 22px 14px 25px;
+		min-height: 440px;
+	}
+	.slot-marquee h3 {
+		font-size: 25px;
+	}
+	.slot-marquee > span {
+		font-size: 7px;
+	}
+	.slot-cabinet {
+		padding: 7px;
+		gap: 5px;
+		border-width: 6px;
+		margin: 25px auto 15px;
+	}
+	.reel-window {
+		height: 204px;
+	}
+	.reel-strip > div {
+		height: 68px;
+	}
+	.reel-symbol {
+		width: 55px;
+		height: 55px;
+	}
+	.slot-paytable {
+		gap: 14px;
+		font-size: 7px;
+	}
+	.slot-paytable b {
+		font-size: 12px;
+	}
+}

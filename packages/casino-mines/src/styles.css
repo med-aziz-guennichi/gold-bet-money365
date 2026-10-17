@@ -1,0 +1,97 @@
+.mines-room {
+	padding: 30px;
+	background: radial-gradient(ellipse at 50% 50%, #173c3c, #0e2027);
+	min-height: 540px;
+}
+.mines-metrics {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	max-width: 450px;
+	margin: 0 auto 20px;
+}
+.mines-metrics span {
+	display: flex;
+	flex-direction: column;
+	text-align: center;
+}
+.mines-metrics small {
+	font-size: 8px;
+	letter-spacing: 0.12em;
+	color: #829e9b;
+}
+.mines-metrics b {
+	font-size: 22px;
+	color: #e2c98c;
+	margin-top: 5px;
+}
+.minefield {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 9px;
+	max-width: 430px;
+	margin: auto;
+}
+.minefield button {
+	position: relative;
+	aspect-ratio: 1;
+	border-radius: 9px;
+	border: 1px solid #5a8a7e55;
+	background: linear-gradient(145deg, #2d4e49, #1d3333);
+	box-shadow: 0 5px 0 #061918;
+	color: #5b8277;
+	display: grid;
+	place-items: center;
+	transition:
+		transform 0.12s,
+		background 0.2s;
+}
+.minefield button:not(:disabled):hover {
+	transform: translateY(-3px);
+	background: #44685a;
+}
+.minefield .covered span {
+	font-size: 25px;
+	opacity: 0.4;
+}
+.minefield .diamond {
+	background: radial-gradient(#4c9c7f, #1c443e);
+	border-color: #67baa2;
+	color: #72dfc4;
+}
+.minefield .mine {
+	background: #6e3135;
+	border-color: #cf6a65;
+	color: #ff9b8b;
+}
+.minefield svg {
+	width: 65%;
+	fill: currentColor;
+}
+.minefield button:disabled {
+	opacity: 1;
+}
+.minefield .covered:disabled {
+	opacity: 0.55;
+}
+@media (max-width: 520px) {
+	.mines-room {
+		padding: 22px 15px 25px;
+		min-height: 420px;
+	}
+	.minefield {
+		gap: 7px;
+	}
+	.mines-metrics b {
+		font-size: 20px;
+	}
+	.mines-metrics small {
+		font-size: 7px;
+	}
+	.minefield button {
+		border-radius: 6px;
+	}
+	.mines-room .studio-action {
+		width: 100%;
+	}
+}

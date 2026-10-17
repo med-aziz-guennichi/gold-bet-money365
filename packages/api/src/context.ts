@@ -4,6 +4,7 @@ import type { Database } from "@gold-bet-clean-money365/db";
 
 import type { BettingService } from "./betting-service";
 import type { CasinoService } from "./casino-service";
+import type { CasinoSessions } from "./casino-sessions";
 import type { FlashscoreService } from "./football";
 
 export type Context = {
@@ -12,5 +13,6 @@ export type Context = {
 	accounts: AccountManagement;
 	bets: BettingService;
 	casino: CasinoService;
+	casinoSessions: CasinoSessions;
 	flashscore: FlashscoreService;
 };

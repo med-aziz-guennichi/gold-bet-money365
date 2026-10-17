@@ -1,0 +1,89 @@
+.crash-room {
+	padding: 25px 25px 30px;
+	background: radial-gradient(ellipse at 65% 20%, #2d293e, #0d1520);
+	min-height: 500px;
+}
+.flight-status {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 9px;
+	letter-spacing: 0.16em;
+	color: #adabbc;
+	text-transform: uppercase;
+}
+.status-dot {
+	width: 6px;
+	height: 6px;
+	background: #8e8b79;
+	border-radius: 50%;
+}
+.status-dot.active {
+	background: #a9de7f;
+	box-shadow: 0 0 8px #a9de7f;
+}
+.flight-chart {
+	position: relative;
+	margin: 15px 0 0;
+}
+.flight-chart > svg {
+	width: 100%;
+	height: auto;
+	max-height: 350px;
+}
+.chart-grid {
+	stroke: #c6d3d411;
+	stroke-dasharray: 3 8;
+}
+.flight-path {
+	fill: none;
+	stroke: #e9bf69;
+	stroke-width: 4;
+	stroke-linecap: round;
+}
+.flight-multiplier {
+	position: absolute;
+	inset: 17% 0 auto;
+	text-align: center;
+	font-size: clamp(40px, 7vw, 90px);
+	font-weight: 850;
+	letter-spacing: -0.06em;
+	color: #f5dfb3;
+	text-shadow: 0 0 40px #d8bc7433;
+}
+.flight-multiplier small {
+	font-size: 0.55em;
+	margin-left: 3px;
+}
+.crashed .flight-multiplier {
+	color: #e58276;
+}
+.crashed .flight-path {
+	stroke: #ae584f;
+}
+.flight-axis {
+	display: flex;
+	justify-content: space-between;
+	color: #6b7882;
+	font-size: 8px;
+	margin: 0 4% 15px;
+}
+@media (max-width: 520px) {
+	.crash-room {
+		padding: 20px 15px 25px;
+		min-height: 380px;
+	}
+	.flight-chart {
+		margin-top: 30px;
+	}
+	.flight-multiplier {
+		font-size: 55px;
+		inset: 10% 0 auto;
+	}
+	.flight-axis {
+		margin-top: 15px;
+	}
+	.flight-status {
+		font-size: 8px;
+	}
+}

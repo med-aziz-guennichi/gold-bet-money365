@@ -1,0 +1,127 @@
+.baccarat-room {
+	padding: 30px 35px;
+	min-height: 500px;
+	background: radial-gradient(ellipse at 50% 25%, #153b55, #071b2d);
+}
+.stage-baccarat {
+	border-color: #7398b255;
+}
+.baccarat-brand {
+	text-align: center;
+	font-size: 10px;
+	letter-spacing: 0.3em;
+	color: #a2b7c2;
+}
+.baccarat-brand > span {
+	display: block;
+	font:
+		italic 32px Georgia,
+		serif;
+	letter-spacing: 0.1em;
+	color: #d7c591;
+	margin-top: 5px;
+}
+.baccarat-hands {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 25px;
+	margin: 30px 0;
+}
+.baccarat-hands .studio-card {
+	width: 70px;
+	height: 102px;
+}
+.baccarat-hands .card-pip {
+	font-size: 35px;
+}
+.baccarat-hands .hand {
+	gap: 7px;
+	min-height: 102px;
+}
+.baccarat-hands .card-corner {
+	font-size: 14px;
+}
+.baccarat-hands .card-corner small {
+	font-size: 12px;
+}
+.baccarat-zones {
+	display: grid;
+	grid-template-columns: 1fr 0.7fr 1fr;
+	gap: 12px;
+	max-width: 650px;
+	margin: 25px auto;
+}
+.baccarat-zones .bet-zone {
+	border-color: #91b1c077;
+}
+.baccarat-zones .bet-zone:first-child {
+	background: #265f7833;
+}
+.baccarat-zones .bet-zone:last-child {
+	background: #913b4433;
+}
+@media (max-width: 1100px) {
+	.baccarat-room {
+		padding: 25px 15px;
+	}
+	.baccarat-hands {
+		gap: 12px;
+	}
+	.baccarat-hands .studio-card {
+		width: 55px;
+		height: 80px;
+	}
+	.baccarat-hands .hand {
+		min-height: 80px;
+		gap: 5px;
+	}
+	.baccarat-hands .card-corner {
+		font-size: 11px;
+	}
+	.baccarat-hands .card-corner small {
+		font-size: 9px;
+	}
+	.baccarat-hands .card-pip {
+		font-size: 28px;
+	}
+}
+@media (max-width: 800px) {
+	.baccarat-hands .studio-card {
+		width: 75px;
+		height: 108px;
+	}
+	.baccarat-hands .card-pip {
+		font-size: 35px;
+	}
+}
+@media (max-width: 520px) {
+	.baccarat-room {
+		padding: 22px 12px 25px;
+		min-height: 470px;
+	}
+	.baccarat-brand > span {
+		font-size: 27px;
+	}
+	.baccarat-hands {
+		gap: 9px;
+		margin: 25px 0;
+	}
+	.baccarat-hands .hand {
+		gap: 4px;
+		min-height: 93px;
+		flex-wrap: wrap;
+	}
+	.baccarat-hands .studio-card {
+		width: 52px;
+		height: 76px;
+	}
+	.baccarat-hands .studio-card:nth-child(3) {
+		margin-top: 5px;
+	}
+	.baccarat-hands .card-pip {
+		font-size: 27px;
+	}
+	.baccarat-zones {
+		gap: 7px;
+	}
+}

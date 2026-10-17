@@ -1,0 +1,89 @@
+.blackjack-room {
+	position: relative;
+	padding: 25px 30px 30px;
+	min-height: 530px;
+	background: radial-gradient(ellipse at 50% 45%, #285d48, #102f27 75%);
+}
+.blackjack-inscription {
+	text-align: center;
+	transform: perspective(400px) rotateX(12deg);
+	padding: 25px 0;
+	color: #b3bb8d;
+}
+.blackjack-inscription strong {
+	display: block;
+	font:
+		19px Georgia,
+		serif;
+	letter-spacing: 0.12em;
+}
+.blackjack-inscription span {
+	display: block;
+	font-size: 9px;
+	margin: 8px 0 15px;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+}
+.blackjack-inscription i {
+	display: block;
+	border: 1px solid #b9ad6d77;
+	border-bottom: 0;
+	border-radius: 100% 100% 0 0;
+	width: 75%;
+	height: 24px;
+	margin: auto;
+}
+.shoe-stack {
+	position: absolute;
+	right: 25px;
+	top: 28px;
+	transform: scale(0.65) rotate(12deg);
+	transform-origin: top right;
+}
+.shoe-stack:before,
+.shoe-stack:after {
+	content: "";
+	position: absolute;
+	inset: 4px -5px -4px 5px;
+	border-radius: 8px;
+	border: 2px solid #d9d9c0;
+	background: #284034;
+	z-index: -1;
+}
+.shoe-stack:after {
+	inset: 8px -9px -8px 9px;
+	z-index: -2;
+}
+.shoe-stack > span {
+	font-size: 10px;
+	display: block;
+	text-align: center;
+	margin-top: 12px;
+	color: #d2c690;
+}
+@media (max-width: 520px) {
+	.blackjack-room {
+		padding: 18px 12px 25px;
+		min-height: 500px;
+	}
+	.shoe-stack {
+		right: 10px;
+		top: 18px;
+		transform: scale(0.4) rotate(12deg);
+	}
+	.blackjack-inscription {
+		padding: 20px 0;
+	}
+	.blackjack-inscription strong {
+		font-size: 13px;
+	}
+	.blackjack-inscription span {
+		font-size: 7px;
+	}
+	.blackjack-room .hand .studio-card:only-child {
+		margin: auto;
+	}
+	.blackjack-room .hand .studio-card:nth-child(n + 4) {
+		margin-left: -35px;
+	}
+}

@@ -1,0 +1,36 @@
+.plinko-room {
+	padding: 25px 30px 30px;
+	background: radial-gradient(ellipse at 50% 40%, #203c4a, #0b1c29);
+	min-height: 510px;
+}
+.plinko-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 8px;
+	letter-spacing: 0.14em;
+	color: #8fa7af;
+}
+.plinko-top strong {
+	font-size: 20px;
+	color: #ddc88f;
+	letter-spacing: 0.2em;
+}
+.plinko-room > svg {
+	display: block;
+	max-height: 370px;
+	width: 100%;
+	margin: auto;
+}
+@media (max-width: 520px) {
+	.plinko-room {
+		padding: 22px 10px 25px;
+		min-height: 390px;
+	}
+	.plinko-top {
+		font-size: 7px;
+	}
+	.plinko-top strong {
+		font-size: 17px;
+	}
+}

@@ -1,0 +1,138 @@
+.poker-room {
+	padding: 25px 25px 35px;
+	background: radial-gradient(ellipse at 50% 60%, #214d5e, #0c2236);
+	min-height: 530px;
+}
+.poker-paytable {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 2px 12px;
+	padding: 15px;
+	border: 1px solid #ac985b;
+	border-radius: 5px;
+	background: #06172c;
+	max-width: 680px;
+	margin: auto;
+}
+.poker-paytable > div {
+	display: flex;
+	justify-content: space-between;
+	gap: 6px;
+	font-size: 8px;
+	color: #dec378;
+	padding: 5px 3px;
+	border-bottom: 1px solid #c0a96622;
+}
+.poker-paytable b {
+	color: #f0da9b;
+	white-space: nowrap;
+}
+.poker-paytable .lit {
+	background: #c19c3d;
+	color: #0a1729;
+}
+.poker-title {
+	text-align: center;
+	font:
+		800 27px Georgia,
+		serif;
+	color: #e6c67d;
+	text-shadow: 0 2px 2px #0007;
+	margin: 25px 0;
+}
+.poker-title small {
+	font-size: 11px;
+}
+.poker-title > span {
+	font: 11px system-ui;
+	display: inline-block;
+	background: #a38b53;
+	color: #0d2437;
+	border-radius: 3px;
+	padding: 3px 6px;
+	margin-left: 8px;
+	vertical-align: middle;
+}
+.poker-hand {
+	display: flex;
+	justify-content: center;
+	gap: 14px;
+	min-height: 170px;
+	align-items: start;
+	padding-top: 15px;
+}
+.poker-hand .studio-card {
+	width: min(16%, 90px);
+	height: auto;
+	aspect-ratio: 9 / 13;
+}
+.poker-hand .card-corner {
+	font-size: 17px;
+}
+.poker-hand .card-pip {
+	font-size: 40px;
+}
+@media (max-width: 1100px) {
+	.poker-hand {
+		gap: 8px;
+	}
+	.poker-hand .card-corner {
+		font-size: 14px;
+	}
+	.poker-hand .card-pip {
+		font-size: 30px;
+	}
+}
+@media (max-width: 800px) {
+	.poker-hand .studio-card {
+		width: 16%;
+		max-width: 90px;
+	}
+	.poker-hand .card-corner {
+		font-size: 16px;
+	}
+}
+@media (max-width: 520px) {
+	.poker-room {
+		padding: 20px 10px 25px;
+		min-height: 430px;
+	}
+	.poker-paytable {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 2px 7px;
+		padding: 9px;
+	}
+	.poker-paytable > div {
+		font-size: 7px;
+	}
+	.poker-title {
+		font-size: 22px;
+		margin: 20px 0;
+	}
+	.poker-hand {
+		gap: 7px;
+		min-height: 130px;
+		padding-top: 12px;
+	}
+	.poker-hand .studio-card {
+		width: 17%;
+		border-radius: 5px;
+	}
+	.poker-hand .card-corner {
+		font-size: 12px;
+		top: 4px;
+		left: 4px;
+	}
+	.poker-hand .card-corner small {
+		font-size: 10px;
+	}
+	.poker-hand .card-corner.bottom {
+		bottom: 4px;
+		right: 4px;
+		top: auto;
+		left: auto;
+	}
+	.poker-hand .card-pip {
+		font-size: 23px;
+	}
+}

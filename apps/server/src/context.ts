@@ -1,7 +1,7 @@
 import type { Context as ApiContext } from "@gold-bet-clean-money365/api/context";
 import { activeAccount } from "@gold-bet-clean-money365/auth/storage";
 import type { Context as HonoContext } from "hono";
-import { accounts, auth, bets, casino, db } from "./services";
+import { accounts, auth, bets, casino, casinoSessions, db } from "./services";
 import { flashscoreService } from "./services/flashscore";
 
 export type CreateContextOptions = {
@@ -19,6 +19,7 @@ export async function createContext({
 		accounts,
 		bets,
 		casino,
+		casinoSessions,
 		session:
 			session && (await activeAccount(db, session.user.id)) ? session : null,
 		flashscore: flashscoreService,

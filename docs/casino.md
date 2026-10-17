@@ -1,24 +1,38 @@
-# Animated casino
+# Fieldhouse Originals
 
-`/casino` hosts ten RNG games. These are animated games, not live dealer streams. The lobby is public; only active role `user` can wager existing wallet credits. Managers cannot play. No provider, paid hosting tier or background worker is required.
+Ten independent game workspace projects share a secure account and wallet host. Each `packages/casino-<game>/` project owns its package manifest, TypeScript configuration, server engine, client table, stylesheet and README. They can be checked independently with `pnpm --filter @gold-bet-clean-money365/casino-<game> check-types`.
 
-## Architecture
+| Project | Production route | Interaction |
+| --- | --- | --- |
+| casino-blackjack | /casino/blackjack | Hit, stand, dealer play and natural blackjack |
+| casino-mines | /casino/mines | Reveal tiles, avoid mines, cash out |
+| casino-crash | /casino/crash | Timed flight and authoritative cash-out |
+| casino-video-poker | /casino/video-poker | Hold individual cards, draw once, hand evaluation |
+| casino-roulette | /casino/roulette | Number grid and outside wagers, wheel and ball |
+| casino-baccarat | /casino/baccarat | Player/banker/tie, standard third-card rules |
+| casino-dragon-tiger | /casino/dragon-tiger | Two-card duel, rank comparisons and ties |
+| casino-sic-bo | /casino/sic-bo | Three dice, small/big/any-triple |
+| casino-slots | /casino/slots | Three reels, one payline, custom vector symbols |
+| casino-plinko | /casino/plinko | Eight-step path and nine payout bins |
 
-- `packages/api/src/casino-catalog.ts`: public game definitions, fixed paytables and version. Multipliers include the original stake. Version changes require clients to reload before wagering.
-- `casino-engine.ts`: deterministic rules with injected random integer source, independently testable. Production uses Node crypto `randomInt`; no `Math.random`, balance-based adjustment, forced wins or forced losses.
-- `casino-service.ts`: validation, distributed 20-round/minute user limit, immutable round receipts, owner-only history and recovery. Stakes 0.100–100.000 TND. Invalid choices and extraneous numbers are rejected.
-- `WalletService.casinoRound`: one MongoDB transaction checks the entire active hierarchy, locks accounts, checks available credits, debits stake, credits return, stores the result, writes both ledger entries and audit, and inserts a private settlement notification. Failed writes roll everything back. All arithmetic uses integer millimes and payout multiplication uses BigInt, rounding down.
-- `casinoRound` collection: deterministic primary key `userId:requestId` protects against duplicates across instances. Request fingerprints reject changed parameters on retries. Outcomes are drawn once before the retryable transaction; transaction retries cannot reroll. Simultaneous duplicates serialize on wallet guards and return the committed receipt.
-- UI: no automatic replay, one request at a time, pending request persisted per user in sessionStorage before sending. An interrupted request can be retried with the exact same ID or recovered. Animation never controls outcomes. Recent rounds show wager, return, outcome, selection, timestamp and rules version. Notifications use the existing private WebSocket and sound system.
+## Boundaries
 
-Payouts are recorded separately from sports bets. Wallet history includes casino stake and return entries. Existing sports settlement does not process casino rounds.
+`casino-core` supplies contracts, card utilities and low-level visual primitives. Game projects never write balances or choose account ownership. The API chooses a registered engine; the host performs authenticated wallet operations. Code is split by game, not duplicated into ten independently funded services. The existing free Vercel project serves the lobby and all dedicated routes; no additional provider or paid service is required.
 
-## Rules
+Instant games use `CasinoService` and a single atomic stake/result/payout transaction. Interactive games use `CasinoSessions`: start commits the stake and private session, actions update the same session, and settlement atomically writes its return, immutable receipt, ledger, audit and private notification. Integer millimes and BigInt payout multiplication prevent floating-point balance errors. Parent guards serialize wallet operations with funding, sports wagers and suspension checks. A failed final receipt write rolls back the payout and leaves the game resumable.
 
-The catalog is the source of truth. Roulette uses single zero. Baccarat uses an eight-deck shoe freshly sampled without replacement for each round, standard third-card rules and 5% banker commission. Dragon Tiger also uses eight decks, ace low and half-stake refunds on equal ranks. Sic Bo excludes triples from small/big bets. Slots, Keno 20, Plinko, wheel, coin and Dice 100 use the custom fixed paytables published in the lobby; they do not claim a third-party provider's RTP or certification. Theoretical RTP describes the long-run expectation, never a guarantee per session. Millime rounding can slightly reduce returns on fractional stakes.
+Private decks, mine positions and Crash's hidden bust point remain in MongoDB. Public session views reveal only legal information. Every action has a unique idempotency ID and payload fingerprint. Concurrent cash-outs can pay only once. Reloading or service restarts preserve wallet rounds. One active session per user per interactive game is enforced under the account guard. Invalid actions, user impersonation, stale rules, managers, suspended ancestors and insufficient funds fail closed.
 
-Research: [table game rules index](https://massgaming.com/regulations/table-games-rules/), [Node 24 crypto randomInt](https://nodejs.org/docs/latest-v24.x/api/crypto.html#cryptorandomintmin-max-callback). These sources informed implementation; no independent game certification is claimed.
+Crash uses a personal timed round. The server processing time determines whether a cash-out wins and its actual return; the displayed multiplier is an estimate between authenticated status reads. Active Crash status refreshes every 700 ms while the game is open. An expired offline round is finalized on the next status/recovery/action request; this free setup does not run a permanent game daemon. Maximum 100x rounds automatically pay on that same finalization. No claim is made of a provider's shared multiplayer Crash room or live dealer stream.
 
-## Verification
+## Practice
 
-From `apps/server`, run `node --import tsx --test ../../packages/api/src/casino-engine.test.ts ../../packages/api/src/casino.integration.test.ts`. Integration tests require `RUN_AUTH_INTEGRATION=1` and `AUTH_TEST_DATABASE_URL` pointing at a local replica set. They create a random `goldbet_casino_test_*` database, never production records. They cover all games, exact wallet arithmetic, concurrent duplicate requests, changed-request conflicts, private recovery/history, role/ancestor checks, insufficient credits, rollback and distributed limits.
+Every room defaults to explicitly labeled practice mode with a separate 1,000 TND demo balance. Practice runs the same pure rules locally using Web Crypto random integers and never calls wallet wager endpoints or persists fake account history. Wallet mode requires an active role `user`; managers can practice. Switching modes is blocked during a round or uncertain request. Wallet results are always computed by the server, regardless of any client-side practice code.
+
+Completed wallet rounds, including older retired games, remain available at `/casino/history`. No historical records or production balances are migrated or removed. Each game also shows recent wallet receipts. The old shared-board UI has been removed.
+
+## Rules and verification
+
+Rules and fixed total-return tables are versioned in each project. There is no balance-based win adjustment or forced-loss algorithm. Casino results are original RNG implementations, with no claim of independent certification or affiliation with another operator. Research references: [Evolution first-person game experiences](https://games.evolution.com/first-person/), [Pragmatic Play game interaction features](https://www.pragmaticplay.com/en/live-casino/), [published table-game rules](https://massgaming.com/regulations/table-games-rules/), and [Node crypto randomness](https://nodejs.org/docs/latest-v24.x/api/crypto.html#cryptorandomintmin-max-callback).
+
+From `apps/server`, run `node --import tsx --test ../../packages/api/src/casino-engine.test.ts ../../packages/api/src/casino-interactive.test.ts ../../packages/api/src/casino.integration.test.ts ../../packages/api/src/casino-sessions.integration.test.ts`. Set `RUN_AUTH_INTEGRATION=1` and `AUTH_TEST_DATABASE_URL` to a local MongoDB replica set. Tests use randomly named disposable databases, never production wallet records. Coverage includes third-card rules, probability tables, poker hand categories, player actions, hidden state, restart recovery, duplicate actions, cash-out races, exact ledger arithmetic, transaction rollback, rate limits and account hierarchy checks.

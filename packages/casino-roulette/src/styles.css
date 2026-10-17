@@ -1,0 +1,135 @@
+.roulette-room {
+	display: grid;
+	grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.1fr);
+	gap: 20px;
+	align-items: center;
+	padding: 30px 25px;
+}
+.roulette-apparatus {
+	position: relative;
+	max-width: 420px;
+	margin: auto;
+	width: 100%;
+	filter: drop-shadow(0 15px 15px #0008);
+}
+.roulette-apparatus svg {
+	width: 100%;
+}
+.roulette-spinning {
+	animation: wheel-turn 0.65s linear infinite;
+}
+.roulette-result {
+	display: block;
+	text-align: center;
+	font-size: 9px;
+	color: #c8b887;
+	letter-spacing: 0.15em;
+	margin-top: 10px;
+	text-transform: uppercase;
+}
+.roulette-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 3px;
+}
+.roulette-grid button {
+	font-size: 13px;
+	font-weight: 650;
+	padding: 6px 4px;
+	border: 1px solid #d8c58e60;
+	border-radius: 3px;
+}
+.roulette-grid .zero {
+	grid-column: 1 / -1;
+	background: #2d6951;
+}
+.red-pocket {
+	background: #8c2832;
+}
+.black-pocket {
+	background: #17211e;
+}
+.roulette-grid button.selected {
+	outline: 2px solid #f4d074;
+	outline-offset: -3px;
+	box-shadow: inset 0 0 15px #f4d07488;
+}
+.roulette-outside {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 4px;
+	margin-top: 10px;
+}
+.roulette-outside .bet-zone {
+	min-height: 52px;
+	padding: 6px 2px;
+}
+.roulette-outside .bet-zone strong {
+	font-size: 10px;
+	letter-spacing: 0.03em;
+}
+.roulette-outside .bet-zone small {
+	font-size: 8px;
+}
+.roulette-outside .zone-chip {
+	width: 18px;
+	height: 18px;
+	bottom: -8px;
+	border-width: 3px;
+}
+@keyframes wheel-turn {
+	to {
+		transform: rotate(360deg);
+	}
+}
+@media (max-width: 1100px) {
+	.roulette-room {
+		grid-template-columns: 1fr;
+		padding: 20px;
+	}
+	.roulette-apparatus {
+		max-width: 280px;
+	}
+	.roulette-grid {
+		grid-template-columns: repeat(12, minmax(0, 1fr));
+	}
+	.roulette-grid .zero {
+		grid-column: 1 / -1;
+	}
+	.roulette-grid button {
+		font-size: 10px;
+		padding: 7px 2px;
+	}
+}
+@media (max-width: 800px) {
+	.roulette-room {
+		grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+		gap: 15px;
+	}
+	.roulette-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+@media (max-width: 520px) {
+	.roulette-room {
+		grid-template-columns: 1fr;
+		padding: 18px 15px 25px;
+	}
+	.roulette-apparatus {
+		max-width: 245px;
+	}
+	.roulette-grid {
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+		gap: 3px;
+	}
+	.roulette-grid button {
+		font-size: 12px;
+		padding: 9px 2px;
+	}
+	.roulette-grid .zero {
+		grid-column: 1 / -1;
+	}
+	.roulette-outside .bet-zone {
+		min-height: 55px;
+	}
+}

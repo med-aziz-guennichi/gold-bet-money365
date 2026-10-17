@@ -624,20 +624,110 @@ export class WalletService {
 				{ session },
 			);
 			const round = await input.save(session, wallet.balanceMillimes);
-			await this.db
-				.collection("managementAudit")
-				.insertOne(
-					{
-						actorId,
-						action: "casino.settle",
-						targetId: input.id,
-						stakeMillimes: input.stakeMillimes,
-						payoutMillimes: input.payoutMillimes,
-						createdAt: now,
-					},
-					{ session },
-				);
+			await this.db.collection("managementAudit").insertOne(
+				{
+					actorId,
+					action: "casino.settle",
+					targetId: input.id,
+					stakeMillimes: input.stakeMillimes,
+					payoutMillimes: input.payoutMillimes,
+					createdAt: now,
+				},
+				{ session },
+			);
 			return round;
+		});
+	}
+
+	/** Interactive games may debit at start and pay later, under the same wallet guard. */
+	async casinoSession<T>(
+		actorId: string,
+		work: (
+			session: ClientSession,
+			move: (id: string, stake: number, payout: number) => Promise<number>,
+		) => Promise<T>,
+	) {
+		return this.transaction(async (session) => {
+			const actor = await this.active(actorId, session);
+			if (actor.role !== "user")
+				throw new ManagementError("FORBIDDEN", "Only user accounts can play.");
+			await this.lockAccounts([actor], session);
+			return work(session, async (id, stake, payout) => {
+				if (
+					!Number.isSafeInteger(stake) ||
+					!Number.isSafeInteger(payout) ||
+					stake < 0 ||
+					payout < 0 ||
+					stake > MAX_WALLET_MILLIMES ||
+					payout > MAX_WALLET_MILLIMES
+				)
+					throw new ManagementError("BAD_REQUEST", "Invalid game amounts.");
+				const delta = payout - stake;
+				const wallet = await this.wallets().findOneAndUpdate(
+					{
+						_id: actorId,
+						balanceMillimes: {
+							$gte: stake,
+							$lte: MAX_WALLET_MILLIMES - Math.max(0, delta),
+						},
+					},
+					{ $inc: { balanceMillimes: delta }, $set: { updatedAt: new Date() } },
+					{ session, returnDocument: "after" },
+				);
+				if (!wallet)
+					throw new ManagementError(
+						"BAD_REQUEST",
+						"Insufficient credits or wallet balance limit reached.",
+					);
+				const now = new Date();
+				const entries: TransferDocument[] = [];
+				if (stake > 0)
+					entries.push({
+						_id: `casino:stake:${id}`,
+						fingerprint: this.fingerprint(id),
+						kind: "casino.stake",
+						actorId,
+						sourceId: actorId,
+						targetId: `casino:${id}`,
+						sourceName: "User wallet",
+						targetName: "Casino stake",
+						amountMillimes: stake,
+						sourceBalanceAfter: wallet.balanceMillimes - payout,
+						targetBalanceAfter: 0,
+						createdAt: now,
+					});
+				if (stake === 0 || payout > 0)
+					entries.push({
+						_id: `casino:payout:${id}`,
+						fingerprint: this.fingerprint(id),
+						kind: "casino.payout",
+						actorId: "system",
+						sourceId: `casino:${id}`,
+						targetId: actorId,
+						sourceName: "Casino return",
+						targetName: "User wallet",
+						amountMillimes: payout,
+						sourceBalanceAfter: null,
+						targetBalanceAfter: wallet.balanceMillimes,
+						createdAt: now,
+					});
+				if (entries.length)
+					await this.transfers().insertMany(entries, { session });
+				await this.db
+					.collection("managementAudit")
+					.insertOne(
+						{
+							actorId,
+							action: stake > 0 ? "casino.start" : "casino.settle",
+							targetId: id,
+							stakeMillimes: stake,
+							payoutMillimes: payout,
+							createdAt: now,
+						},
+						{ session },
+					);
+				return wallet.balanceMillimes;
+			});
 		});
 	}
 
