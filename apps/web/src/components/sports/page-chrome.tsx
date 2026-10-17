@@ -43,6 +43,9 @@ export function SiteHeader() {
 					<a className="transition hover:text-white" href="/#live">
 						{t("Live")}
 					</a>
+					<a className="transition hover:text-white" href="/casino">
+						Casino
+					</a>
 					<a className="transition hover:text-white" href="/#responsible">
 						{t("Responsible play")}
 					</a>
@@ -71,6 +74,9 @@ export function SiteHeader() {
 			</div>
 			{menuOpen && (
 				<nav className="grid gap-1 border-white/[.07] border-t px-5 py-3 text-sm text-white/65 md:hidden">
+					<a className="rounded-lg p-2" href="/casino">
+						Casino
+					</a>
 					{[
 						["Sports", "matches"],
 						["Live games", "live"],

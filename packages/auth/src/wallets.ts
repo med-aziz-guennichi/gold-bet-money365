@@ -17,7 +17,13 @@ type WalletDocument = { _id: string; balanceMillimes: number; updatedAt: Date };
 type TransferDocument = {
 	_id: string;
 	fingerprint: string;
-	kind: "account.create" | "wallet.transfer" | "bet.stake" | "bet.payout";
+	kind:
+		| "account.create"
+		| "wallet.transfer"
+		| "bet.stake"
+		| "bet.payout"
+		| "casino.stake"
+		| "casino.payout";
 	actorId: string;
 	sourceId: string | null;
 	targetId: string;
@@ -534,6 +540,104 @@ export class WalletService {
 				{ session },
 			);
 			return true;
+		});
+	}
+
+	/** An instant casino round, debit and return are a single all-or-nothing commit. */
+	async casinoRound<T>(
+		actorId: string,
+		input: {
+			id: string;
+			stakeMillimes: number;
+			payoutMillimes: number;
+			existing: (session: ClientSession) => Promise<T | null>;
+			save: (session: ClientSession, balance: number) => Promise<T>;
+		},
+	) {
+		if (
+			!Number.isSafeInteger(input.stakeMillimes) ||
+			input.stakeMillimes <= 0 ||
+			!Number.isSafeInteger(input.payoutMillimes) ||
+			input.payoutMillimes < 0 ||
+			input.stakeMillimes > MAX_WALLET_MILLIMES ||
+			input.payoutMillimes > MAX_WALLET_MILLIMES
+		)
+			throw new ManagementError("BAD_REQUEST", "Invalid casino amounts.");
+		return this.transaction(async (session) => {
+			const actor = await this.active(actorId, session);
+			if (actor.role !== "user")
+				throw new ManagementError("FORBIDDEN", "Only user accounts can play.");
+			// Serialize rounds with funding, sports wagers and hierarchy suspensions.
+			await this.lockAccounts([actor], session);
+			const previous = await input.existing(session);
+			if (previous) return previous;
+			const delta = input.payoutMillimes - input.stakeMillimes;
+			const wallet = await this.wallets().findOneAndUpdate(
+				{
+					_id: actorId,
+					balanceMillimes: {
+						$gte: input.stakeMillimes,
+						$lte: MAX_WALLET_MILLIMES - Math.max(0, delta),
+					},
+				},
+				{ $inc: { balanceMillimes: delta }, $set: { updatedAt: new Date() } },
+				{ session, returnDocument: "after" },
+			);
+			if (!wallet)
+				throw new ManagementError(
+					"BAD_REQUEST",
+					"Insufficient credits or wallet balance limit reached.",
+				);
+			const now = new Date();
+			const afterStake = wallet.balanceMillimes - input.payoutMillimes;
+			await this.transfers().insertMany(
+				[
+					{
+						_id: `casino:stake:${input.id}`,
+						fingerprint: this.fingerprint(input.id),
+						kind: "casino.stake",
+						actorId,
+						sourceId: actorId,
+						targetId: `casino:${input.id}`,
+						sourceName: "User wallet",
+						targetName: "Casino stake",
+						amountMillimes: input.stakeMillimes,
+						sourceBalanceAfter: afterStake,
+						targetBalanceAfter: 0,
+						createdAt: now,
+					},
+					{
+						_id: `casino:payout:${input.id}`,
+						fingerprint: this.fingerprint(input.id),
+						kind: "casino.payout",
+						actorId: "system",
+						sourceId: `casino:${input.id}`,
+						targetId: actorId,
+						sourceName: "Casino return",
+						targetName: "User wallet",
+						amountMillimes: input.payoutMillimes,
+						sourceBalanceAfter: null,
+						targetBalanceAfter: wallet.balanceMillimes,
+						createdAt: now,
+					},
+				],
+				{ session },
+			);
+			const round = await input.save(session, wallet.balanceMillimes);
+			await this.db
+				.collection("managementAudit")
+				.insertOne(
+					{
+						actorId,
+						action: "casino.settle",
+						targetId: input.id,
+						stakeMillimes: input.stakeMillimes,
+						payoutMillimes: input.payoutMillimes,
+						createdAt: now,
+					},
+					{ session },
+				);
+			return round;
 		});
 	}
 

@@ -77,6 +77,9 @@ export async function activeAccount(
 export async function ensureAuthIndexes(db: Database) {
 	await Promise.all([
 		db
+			.collection("casinoRound")
+			.createIndex({ userId: 1, createdAt: -1, _id: -1 }),
+		db
 			.collection("notification")
 			.createIndex({ userId: 1, createdAt: -1, _id: -1 }),
 		db.collection("notification").createIndex({ userId: 1, readAt: 1 }),

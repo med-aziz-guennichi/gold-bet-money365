@@ -102,6 +102,11 @@ function UserMenuContent() {
 							</DropdownMenuItem>
 						)}
 						{session.user.role === "user" && (
+							<DropdownMenuItem render={<Link href="/casino" />}>
+								Casino & rounds
+							</DropdownMenuItem>
+						)}
+						{session.user.role === "user" && (
 							<DropdownMenuItem render={<Link href="/bets" />}>
 								{t("Bet history")}
 							</DropdownMenuItem>

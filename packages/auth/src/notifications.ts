@@ -13,10 +13,11 @@ export type NotificationDocument = {
 		| "client.created"
 		| "client.credit"
 		| "client.low-credit"
-		| "bet.settled";
+		| "bet.settled"
+		| "casino.settled";
 	title: string;
 	message: string;
-	href: "/dashboard" | "/bets";
+	href: "/dashboard" | "/bets" | "/casino";
 	createdAt: Date;
 	readAt: Date | null;
 };

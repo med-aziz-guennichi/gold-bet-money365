@@ -17,6 +17,8 @@ import { RPCLink } from "@orpc/client/fetch";
 import { RPCHandler } from "@orpc/server/fetch";
 import type { PlaceBetInput } from "./betting";
 import { BettingService } from "./betting-service";
+import { CASINO_VERSION, type CasinoInput } from "./casino-catalog";
+import { CasinoService } from "./casino-service";
 import type { Context } from "./context";
 import type { FlashscoreService, FootballMatch } from "./football";
 import { type AppRouterClient, appRouter } from "./routers/index";
@@ -454,6 +456,7 @@ test("server betting debits persisted wallets and saves isolated bets", {
 					db,
 					accounts,
 					bets,
+					casino: new CasinoService(db, "test-only-casino-secret"),
 					flashscore: feed,
 					session: null,
 				};
@@ -480,6 +483,17 @@ test("server betting debits persisted wallets and saves isolated bets", {
 						error.code === "UNAUTHORIZED",
 				);
 				const http = await createAuthHttpHandler(auth, db, env);
+				const casinoInput: CasinoInput = {
+					requestId: randomUUID(),
+					game: "coin",
+					choice: "heads",
+					numbers: [],
+					version: CASINO_VERSION,
+					stake: "1.000",
+				};
+				await assert.rejects(rpc.casino.play(casinoInput), {
+					code: "UNAUTHORIZED",
+				});
 				const login = await http(
 					new Request(`${env.BETTER_AUTH_URL}/api/auth/sign-in/phone-number`, {
 						method: "POST",
@@ -497,6 +511,19 @@ test("server betting debits persisted wallets and saves isolated bets", {
 					.join("; ");
 				context.session = await auth.api.getSession({ headers: { cookie } });
 				assert.ok(context.session);
+				await assert.rejects(
+					rpc.casino.play({
+						...casinoInput,
+						userId: admin,
+						payoutMillimes: 1000000,
+					} as CasinoInput),
+					{ code: "BAD_REQUEST" },
+				);
+				const casinoGet = await handler.handle(
+					new Request("http://test/rpc/casino/play"),
+					{ prefix: "/rpc", context },
+				);
+				assert.equal(casinoGet.matched && casinoGet.response.status, 405);
 				await assert.rejects(
 					rpc.bets.place({ ...input(), userId: admin } as PlaceBetInput),
 					(error: unknown) =>
