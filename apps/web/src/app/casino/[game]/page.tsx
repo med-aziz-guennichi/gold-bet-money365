@@ -12,7 +12,7 @@ export async function generateMetadata({
 	const { game: id } = await params;
 	const game = casinoGames.find((g) => g.id === id);
 	return {
-		title: game ? `${game.name} · Fieldhouse Casino` : "Casino · Fieldhouse",
+		title: game ? `${game.name} · GoldBet365 Casino` : "Casino · GoldBet365",
 		description: game?.rules,
 	};
 }

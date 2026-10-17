@@ -39,7 +39,7 @@ export default function GameHost({ gameId }: { gameId: GameId }) {
 			<main className="studio-shell">
 				<div className="studio-breadcrumb">
 					<Link href="/casino">← Casino lobby</Link>
-					<span>FIELDHOUSE ORIGINAL / {game.name}</span>
+					<span>GOLDBET365 ORIGINAL / {game.name}</span>
 					<button
 						type="button"
 						onClick={() => setSound((s) => !s)}

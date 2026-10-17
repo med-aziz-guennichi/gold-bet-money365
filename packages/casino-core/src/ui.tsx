@@ -39,7 +39,7 @@ export function Card({
 		<div
 			className={`studio-card ${hidden ? "back" : ""} ${"♥♦".includes(suit) ? "red" : ""}`}
 		>
-			{hidden ? <span className="card-monogram">F</span> : content}
+			{hidden ? <span className="card-monogram">G</span> : content}
 		</div>
 	);
 }

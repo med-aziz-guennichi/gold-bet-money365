@@ -4,9 +4,9 @@ import {
 	canUseDashboard,
 	normalizePhone,
 } from "@gold-bet-clean-money365/api/access";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
+import { Brand } from "@/components/brand";
 import { authClient } from "@/lib/auth-client";
 import { queryClient } from "@/utils/orpc";
 
@@ -59,9 +59,7 @@ export default function SignInForm() {
 		"mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white outline-none focus:border-[#c6f36b]";
 	return (
 		<section className="mx-auto mt-14 max-w-md rounded-3xl border border-white/10 bg-[#111713] p-7 shadow-xl">
-			<Link href="/" className="text-[#c6f36b] text-sm">
-				Back to Fieldhouse
-			</Link>
+			<Brand />
 			<h1 className="mt-6 font-bold text-3xl">Welcome back</h1>
 			<p className="mt-2 text-sm text-white/50">
 				Sign in with your phone number and password.

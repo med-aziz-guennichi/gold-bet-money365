@@ -65,7 +65,7 @@ export function Table(p: TableProps) {
 	return (
 		<div className="slots-room">
 			<div className="slot-marquee">
-				<small>FIELDHOUSE ORIGINALS</small>
+				<small>GOLDBET365 ORIGINALS</small>
 				<h3>GOLDEN ORCHARD</h3>
 				<span>3 REELS · ONE PAYLINE · UP TO 30×</span>
 			</div>

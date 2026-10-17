@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, useState } from "react";
+import { Brand } from "@/components/brand";
 import { authClient } from "@/lib/auth-client";
 
 export default function ChangePassword() {
@@ -47,8 +48,9 @@ export default function ChangePassword() {
 		<main className="min-h-screen bg-[#080b0a] px-4 py-16 text-white">
 			<section className="mx-auto max-w-md rounded-2xl border border-white/10 bg-[#111713] p-7">
 				<Link href="/" className="text-[#c6f36b] text-sm">
-					Back to Fieldhouse
+					GoldBet365
 				</Link>
+				<Brand />
 				<h1 className="my-6 font-bold text-2xl">Change your password</h1>
 				<form onSubmit={submit} className="space-y-5">
 					{(

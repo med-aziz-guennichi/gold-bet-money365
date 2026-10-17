@@ -24,10 +24,6 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		document.documentElement.lang = locale;
 		document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
-		document.title = translate(
-			locale,
-			"Fieldhouse — Sports, with a little more soul",
-		);
 		const description = document.querySelector<HTMLMetaElement>(
 			'meta[name="description"]',
 		);

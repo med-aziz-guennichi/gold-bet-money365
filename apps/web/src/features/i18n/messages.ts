@@ -178,8 +178,8 @@ const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 		"Follow sports matchups, compare odds, and place bets with your account wallet credits.":
 			"Suivez les matchs, comparez les cotes et pariez avec les crédits de votre portefeuille.",
 
-		"Fieldhouse — Sports, with a little more soul":
-			"Fieldhouse — Le sport, avec un peu plus d’âme",
+		"GoldBet365 — Sports, with a little more soul":
+			"GoldBet365 — Le sport, avec un peu plus d’âme",
 		"A cleaner way to follow the moments that matter. Explore sports matchups and illustrative odds in demo mode.":
 			"Une façon claire de suivre les grands moments. Découvrez les matchs et leurs cotes en mode démo.",
 		Home: "Accueil",
@@ -551,8 +551,8 @@ const translations: Record<Exclude<Locale, "en">, Record<string, string>> = {
 		"Follow sports matchups, compare odds, and place bets with your account wallet credits.":
 			"تابع المباريات وقارن الأسعار وضع الرهانات باستخدام رصيد محفظتك.",
 
-		"Fieldhouse — Sports, with a little more soul":
-			"Fieldhouse — الرياضة بروح أجمل",
+		"GoldBet365 — Sports, with a little more soul":
+			"GoldBet365 — الرياضة بروح أجمل",
 		"A cleaner way to follow the moments that matter. Explore sports matchups and illustrative odds in demo mode.":
 			"طريقة أوضح لمتابعة اللحظات المهمة. استكشف المباريات والأسعار في الوضع التجريبي.",
 		Home: "الرئيسية",

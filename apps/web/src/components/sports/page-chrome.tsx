@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { Brand } from "@/components/brand";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import UserMenu from "@/components/user-menu";
 import { useI18n } from "@/features/i18n/locale-provider";
@@ -34,8 +35,10 @@ function HeaderNavigation() {
 	const pathname = usePathname();
 	const params = useSearchParams();
 	const sport = params.get("sport") ?? "football";
-	const sportsHref = `/?sport=${encodeURIComponent(sport)}&day=0#matches` as const;
-	const liveHref = `/?sport=${encodeURIComponent(sport)}&day=0&view=live#matches` as const;
+	const sportsHref =
+		`/?sport=${encodeURIComponent(sport)}&day=0#matches` as const;
+	const liveHref =
+		`/?sport=${encodeURIComponent(sport)}&day=0&view=live#matches` as const;
 	const navigation = [
 		{
 			label: t("Sports"),
@@ -59,18 +62,7 @@ function HeaderNavigation() {
 	return (
 		<header className="sticky top-0 z-40 border-white/[.07] border-b bg-[#080b0a]/95 backdrop-blur-xl">
 			<div className="mx-auto flex min-h-[72px] max-w-[1440px] flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-8">
-				<a
-					href="/#top"
-					className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5"
-					aria-label={`Fieldhouse · ${t("Home")}`}
-				>
-					<span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#c6f36b] text-[#11160b]">
-						<CircleDot size={21} strokeWidth={2.5} />
-					</span>
-					<span className="hidden font-extrabold text-[19px] tracking-[-.06em] sm:inline">
-						fieldhouse<span className="text-[#c6f36b]">.</span>
-					</span>
-				</a>
+				<Brand compact />
 				<nav className="hidden items-center gap-8 font-semibold text-[13px] text-white/55 md:flex">
 					{navigation.map((item) => (
 						<Link
@@ -251,7 +243,7 @@ export function HighlightsSection() {
 					{t("Play for fun. Set limits. Take a break.")}
 				</span>
 				<span>
-					18+ · Flashscore fixtures and odds · Feed may be delayed · Demo bet
+					18+ · Flashscore fixtures and odds · Feed may be delayed · Account bet
 					slip
 				</span>
 				<a

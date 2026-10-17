@@ -9,6 +9,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { Brand } from "@/components/brand";
 import UserMenu from "@/components/user-menu";
 import { WalletPanel } from "@/features/accounts/wallet-panel";
 import type { authClient } from "@/lib/auth-client";
@@ -139,7 +140,7 @@ export default function Dashboard({
 				<header className="flex flex-wrap items-center justify-between gap-4 border-white/10 border-b pb-6">
 					<div>
 						<Link href="/" className="text-[#c6f36b] text-sm">
-							Fieldhouse / Management
+							<Brand compact />
 						</Link>
 						<h1 className="mt-3 font-bold text-3xl">Account management</h1>
 						<p className="mt-2 text-sm text-white/50">

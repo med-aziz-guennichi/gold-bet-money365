@@ -1,7 +1,7 @@
 import Lobby from "./lobby";
 
 export const metadata = {
-	title: "Casino · Fieldhouse",
+	title: "Casino · GoldBet365",
 	description:
 		"Ten animated casino games with published rules and wallet round history.",
 };

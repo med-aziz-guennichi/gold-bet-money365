@@ -84,7 +84,7 @@ export default function Lobby() {
 			<main className="studio-shell">
 				<section className="lobby-feature">
 					<div>
-						<p className="lobby-eyebrow">FIELDHOUSE ORIGINALS / VOL. 01</p>
+						<p className="lobby-eyebrow">GOLDBET365 ORIGINALS / VOL. 01</p>
 						<h1>
 							Your seat.
 							<br />
@@ -145,7 +145,7 @@ export default function Lobby() {
 							<Artwork game={g.id} />
 							<div className="lobby-game-info">
 								<div>
-									<small>{g.category} · FIELDHOUSE</small>
+									<small>{g.category} · GOLDBET365</small>
 									<h3>{g.name}</h3>
 									<p>
 										{g.mode === "session"
@@ -191,7 +191,7 @@ export default function Lobby() {
 					</div>
 				</section>
 				<footer className="studio-footer">
-					Original animated games by Fieldhouse. Play at your pace. Set a budget
+					Original animated games by GoldBet365. Play at your pace. Set a budget
 					and take breaks.
 				</footer>
 			</main>
