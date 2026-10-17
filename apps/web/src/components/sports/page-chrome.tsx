@@ -31,6 +31,17 @@ export function SiteHeader() {
 	);
 }
 
+function CasinoBetaBadge() {
+	return (
+		<span
+			dir="ltr"
+			className="inline-flex shrink-0 items-center rounded-md border border-[#e9bd62]/25 bg-[#e9bd62]/10 px-1.5 py-0.5 font-bold text-[#e9bd62] text-[8px] leading-none tracking-[.08em]"
+		>
+			BETA
+		</span>
+	);
+}
+
 function HeaderNavigation() {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const { t } = useI18n();
@@ -75,11 +86,10 @@ function HeaderNavigation() {
 							key={item.label}
 							href={item.href}
 							aria-current={item.active ? "page" : undefined}
-							className={
-								item.active ? "text-[#c6f36b]" : "transition hover:text-white"
-							}
+							className={`inline-flex items-center gap-1.5 ${item.active ? "text-[#c6f36b]" : "transition hover:text-white"}`}
 						>
 							<LocalizedText text={item.label} />
+							{item.href === "/casino" && <CasinoBetaBadge />}
 						</Link>
 					))}
 				</nav>
@@ -113,9 +123,10 @@ function HeaderNavigation() {
 							href={item.href}
 							onClick={() => setMenuOpen(false)}
 							aria-current={item.active ? "page" : undefined}
-							className={`rounded-lg p-2 ${item.active ? "bg-[#c6f36b]/10 text-[#c6f36b]" : "hover:text-white"}`}
+							className={`flex items-center gap-2 rounded-lg p-2 ${item.active ? "bg-[#c6f36b]/10 text-[#c6f36b]" : "hover:text-white"}`}
 						>
 							<LocalizedText text={item.label} />
+							{item.href === "/casino" && <CasinoBetaBadge />}
 						</Link>
 					))}
 				</nav>
