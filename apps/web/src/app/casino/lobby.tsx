@@ -139,10 +139,10 @@ export default function Lobby() {
 								role="tab"
 								aria-selected={category === c}
 								className={category === c ? "selected" : ""}
-								key={c}
+								key=<LocalizedText text={c} />
 								onClick={() => setCategory(c)}
 							>
-								{c}
+								<LocalizedText text={c} />
 							</button>
 						),
 					)}
@@ -217,8 +217,7 @@ export default function Lobby() {
 					</div>
 				</section>
 				<footer className="studio-footer">
-					Original animated games by GoldBet365. Play at your pace. Set a budget
-					and take breaks.
+					<LocalizedText text="Original animated games by GoldBet365. Play at your pace. Set a budget and take breaks." />
 				</footer>
 			</main>
 		</div>
