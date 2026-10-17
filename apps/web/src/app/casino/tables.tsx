@@ -14,7 +14,10 @@ const load = (factory: () => Promise<{ Table: ComponentType<TableProps> }>) =>
 		),
 		ssr: false,
 	});
-export const tables: Record<GameId, ComponentType<TableProps>> = {
+export const tables: Record<
+	Exclude<GameId, "dino">,
+	ComponentType<TableProps>
+> = {
 	roulette: load(
 		() => import("@gold-bet-clean-money365/casino-roulette/table"),
 	),

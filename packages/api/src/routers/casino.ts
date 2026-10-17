@@ -51,7 +51,14 @@ export const casinoRouter = {
 					requestId: z.uuid(),
 					action: z
 						.object({
-							type: z.enum(["hit", "stand", "reveal", "cashout", "draw"]),
+							type: z.enum([
+								"hit",
+								"stand",
+								"reveal",
+								"cashout",
+								"draw",
+								"jump",
+							]),
 							index: z.number().int().min(0).max(24).optional(),
 							holds: z.array(z.number().int().min(0).max(4)).max(5).optional(),
 						})

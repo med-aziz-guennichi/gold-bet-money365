@@ -17,6 +17,7 @@ import type {
 	SessionEngine,
 } from "@gold-bet-clean-money365/casino-core";
 import * as crash from "@gold-bet-clean-money365/casino-crash/engine";
+import * as dino from "@gold-bet-clean-money365/casino-dino/engine";
 import * as mines from "@gold-bet-clean-money365/casino-mines/engine";
 import * as poker from "@gold-bet-clean-money365/casino-video-poker/engine";
 import type { Database } from "@gold-bet-clean-money365/db";
@@ -33,9 +34,11 @@ export const sessionGames = [
 	"mines",
 	"crash",
 	"video-poker",
+	"dino",
 ] as const;
 export type SessionGame = (typeof sessionGames)[number];
 const engines: Record<SessionGame, SessionEngine> = {
+	dino,
 	blackjack,
 	mines,
 	crash,

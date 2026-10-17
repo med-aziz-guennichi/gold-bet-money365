@@ -293,6 +293,72 @@ test("interactive sessions protect stakes, hidden state, actions and payouts", {
 			},
 		);
 		await t.test(
+			"Dino protects hidden future jumps and credits each replayed operation once",
+			async () => {
+				const before = (await wallets.findOne({ _id: String(user) }))!
+					.balanceMillimes;
+				const input = request("dino");
+				const [round, duplicate] = await Promise.all([
+					service.start(String(user), input),
+					service.start(String(user), input),
+				]);
+				assert.equal(round.id, duplicate.id);
+				assert.equal(
+					(await wallets.findOne({ _id: String(user) }))!.balanceMillimes,
+					before - 1000,
+				);
+				assert.equal(JSON.stringify(round.view).includes("collisionAt"), false);
+				await assert.rejects(
+					service.recover(String(other), round.id).then((r) => {
+						if (!r) throw new Error("not found");
+					}),
+				);
+				await assert.rejects(
+					service.action(String(user), {
+						id: round.id,
+						requestId: randomUUID(),
+						action: { type: "cashout" },
+					}),
+					/jump/,
+				);
+				await sessions.updateOne(
+					{ _id: round.id },
+					{ $set: { state: { kind: "dino", steps: 0, collisionAt: 2 } } },
+				);
+				const jump = {
+					id: round.id,
+					requestId: randomUUID(),
+					action: { type: "jump" as const },
+				};
+				const replies = await Promise.all([
+					service.action(String(user), jump),
+					service.action(String(user), jump),
+				]);
+				assert.equal(replies[0]!.view.steps, 1);
+				assert.equal(replies[1]!.view.steps, 1);
+				const collect = {
+					id: round.id,
+					requestId: randomUUID(),
+					action: { type: "cashout" as const },
+				};
+				const returns = await Promise.all([
+					service.action(String(user), collect),
+					service.action(String(user), collect),
+				]);
+				assert.equal(returns[0]!.outcome?.multiplierHundredths, 120);
+				assert.equal(
+					(await wallets.findOne({ _id: String(user) }))!.balanceMillimes,
+					before + 200,
+				);
+				assert.equal(
+					await db
+						.collection<{ _id: string }>("casinoRound")
+						.countDocuments({ _id: round.id }),
+					1,
+				);
+			},
+		);
+		await t.test(
 			"insufficient funds, manager roles, stale rules and banned parents fail closed",
 			async () => {
 				await assert.rejects(

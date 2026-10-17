@@ -1,15 +1,19 @@
 "use client";
 
-import { formatTnd } from "@gold-bet-clean-money365/api/access";
 import { CASINO_VERSION } from "@gold-bet-clean-money365/api/casino-catalog";
 import type { GameId } from "@gold-bet-clean-money365/casino-core";
 import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import Link from "next/link";
 import { SiteHeader } from "@/components/sports/page-chrome";
+import { formatPlayCredits as formatTnd } from "@/lib/play-credits";
 import { tables } from "./tables";
 import { useGameRoom } from "./use-game-room";
 import "./studio.css";
-export default function GameHost({ gameId }: { gameId: GameId }) {
+export default function GameHost({
+	gameId,
+}: {
+	gameId: Exclude<GameId, "dino">;
+}) {
 	const {
 		game,
 		canUseWallet,
@@ -32,13 +36,16 @@ export default function GameHost({ gameId }: { gameId: GameId }) {
 		recoverSaved,
 		recent,
 		setDemoBalance,
-	} = useGameRoom(gameId);
+	} = useGameRoom(gameId, true);
 	const Table = tables[gameId];
 
 	return (
 		<div className={`studio-page theme-${gameId}`}>
 			<SiteHeader />
 			<main className="studio-shell">
+				<p className="studio-notice">
+					Play credits only · No cash value · No purchases or redemption
+				</p>
 				<div className="studio-breadcrumb">
 					<Link href="/casino">
 						<LocalizedText text="← Casino lobby" />
@@ -83,7 +90,7 @@ export default function GameHost({ gameId }: { gameId: GameId }) {
 							onClick={() => switchMode("wallet")}
 						>
 							{" "}
-							<LocalizedText text="Wallet credits" />{" "}
+							<LocalizedText text="My play credits" />{" "}
 						</button>
 					</div>
 				</div>
@@ -160,7 +167,7 @@ export default function GameHost({ gameId }: { gameId: GameId }) {
 									: "Loading…"}
 						</strong>
 						<label htmlFor="studio-stake">
-							<LocalizedText text="Stake · TND" />
+							<LocalizedText text="Play credits per round" />
 						</label>
 						<input
 							id="studio-stake"
@@ -184,7 +191,7 @@ export default function GameHost({ gameId }: { gameId: GameId }) {
 							))}
 						</div>
 						<small>
-							<LocalizedText text="Min 0.100 · Max 100.000 TND" />
+							<LocalizedText text="Min 0.100 · Max 100.000 play credits" />
 						</small>
 						{error && (
 							<p className="studio-error" role="alert">

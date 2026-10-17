@@ -41,7 +41,8 @@
 		"react-dom": "catalog:",
 		"sonner": "catalog:",
 		"varlock": "catalog:",
-		"zod": "catalog:"
+		"zod": "catalog:",
+		"@gold-bet-clean-money365/casino-dino": "workspace:*"
 	},
 	"devDependencies": {
 		"@gold-bet-clean-money365/config": "workspace:*",

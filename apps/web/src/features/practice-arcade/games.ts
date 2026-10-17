@@ -37,33 +37,6 @@ export const arcadeGames = [
 	},
 ] as const;
 export type ArcadeId = (typeof arcadeGames)[number]["id"];
-export const pockets = [12, 4, 1.5, 0.5, 0.3, 0.5, 1.5, 4, 12];
-export function randomInt(max: number) {
-	if (!Number.isInteger(max) || max < 1 || max > 4294967296)
-		throw new Error("Invalid random range");
-	const cutoff = Math.floor(4294967296 / max) * max;
-	const value = new Uint32Array(1);
-	do {
-		crypto.getRandomValues(value);
-	} while (value[0]! >= cutoff);
-	return value[0]! % max;
-}
-export function makeMines(random = randomInt) {
-	const cells = Array.from({ length: 25 }, (_, i) => i);
-	for (let i = 24; i > 0; i--) {
-		const j = random(i + 1);
-		[cells[i], cells[j]] = [cells[j]!, cells[i]!];
-	}
-	return cells.slice(0, 3);
-}
-export function mineMultiplier(count: number) {
-	let multiplier = 0.97;
-	for (let i = 0; i < count; i++) multiplier *= (25 - i) / (22 - i);
-	return Math.floor(multiplier * 100) / 100;
-}
-export function crashPoint(random = randomInt) {
-	return Math.min(
-		50,
-		Math.max(1, Math.floor(97000000 / (1000000 - random(1000000))) / 100),
-	);
-}
+
+import { plinkoReturns } from "@gold-bet-clean-money365/casino-plinko/engine";
+export const pockets = plinkoReturns.map((value) => value / 100);

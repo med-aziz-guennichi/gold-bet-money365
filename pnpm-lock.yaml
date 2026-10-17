@@ -333,6 +333,9 @@ importers:
       '@gold-bet-clean-money365/casino-crash':
         specifier: workspace:*
         version: link:../../packages/casino-crash
+      '@gold-bet-clean-money365/casino-dino':
+        specifier: workspace:*
+        version: link:../../packages/casino-dino
       '@gold-bet-clean-money365/casino-dragon-tiger':
         specifier: workspace:*
         version: link:../../packages/casino-dragon-tiger
@@ -457,6 +460,9 @@ importers:
       '@gold-bet-clean-money365/casino-crash':
         specifier: workspace:*
         version: link:../casino-crash
+      '@gold-bet-clean-money365/casino-dino':
+        specifier: workspace:*
+        version: link:../casino-dino
       '@gold-bet-clean-money365/casino-dragon-tiger':
         specifier: workspace:*
         version: link:../casino-dragon-tiger
@@ -590,6 +596,28 @@ importers:
         version: 6.0.3
 
   packages/casino-crash:
+    dependencies:
+      '@gold-bet-clean-money365/casino-core':
+        specifier: workspace:*
+        version: link:../casino-core
+      '@gold-bet-clean-money365/i18n':
+        specifier: workspace:*
+        version: link:../i18n
+      react:
+        specifier: 'catalog:'
+        version: 19.3.0
+    devDependencies:
+      '@gold-bet-clean-money365/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.3.0
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/casino-dino:
     dependencies:
       '@gold-bet-clean-money365/casino-core':
         specifier: workspace:*

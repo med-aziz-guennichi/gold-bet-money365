@@ -512,3 +512,43 @@
 		transform: none;
 	}
 }
+
+.arcade-collection-title {
+	font-size: 28px;
+	margin-top: 48px;
+	letter-spacing: -1px;
+}
+.classic-card {
+	min-height: 260px;
+}
+.classic-card .arcade-card-icon {
+	font-size: 52px;
+}
+.arcade-mode {
+	display: flex;
+	gap: 7px;
+}
+.arcade-mode button {
+	flex: 1;
+	background: #243744;
+	color: #b6c7cf;
+	font-size: 11px;
+}
+.arcade-mode button[aria-pressed="true"] {
+	background: #e4c47e;
+	color: #14202b;
+}
+.arcade-recovery {
+	padding: 12px;
+	border: 1px solid #caab62;
+	border-radius: 12px;
+	display: grid;
+	gap: 8px;
+}
+.arcade-recovery p {
+	margin: 0;
+}
+.arcade-recovery button {
+	background: #3f3523;
+	color: #f4d387;
+}

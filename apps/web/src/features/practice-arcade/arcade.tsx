@@ -1,45 +1,15 @@
 "use client";
 
+import { casinoGames } from "@gold-bet-clean-money365/api/casino-catalog";
 import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import { MotionConfig, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useGameRoom } from "@/app/casino/use-game-room";
 import { SiteHeader } from "@/components/sports/page-chrome";
-import {
-	type ArcadeId,
-	arcadeGames,
-	crashPoint,
-	makeMines,
-	mineMultiplier,
-	pockets,
-	randomInt,
-} from "./games";
+import { type ArcadeId, arcadeGames, pockets } from "./games";
 import "./arcade.css";
 
-type Round = {
-	active: boolean;
-	stake: number;
-	multiplier: number;
-	mines: number[];
-	revealed: number[];
-	started: number;
-	limit: number;
-	steps: number;
-	path: number[];
-	serial: number;
-};
-const empty: Round = {
-	active: false,
-	stake: 0,
-	multiplier: 1,
-	mines: [],
-	revealed: [],
-	started: 0,
-	limit: 1,
-	steps: 0,
-	path: [],
-	serial: 0,
-};
 const number = (n: number) =>
 	n.toLocaleString("en", { maximumFractionDigits: 2 });
 
@@ -57,7 +27,8 @@ export function ArcadeLobby() {
 							<em>Big energy.</em>
 						</h1>
 						<p>
-							Four ways to play. Free practice points. Just for the fun of it.
+							Your classic tables and four new arcade editions. Play for fun
+							with credits that have no cash value.
 						</p>
 						<span className="arcade-pill">
 							No purchases · No cash value · No withdrawals
@@ -73,12 +44,12 @@ export function ArcadeLobby() {
 							>
 								<Link
 									className={`arcade-card card-${g.id}`}
-									href={`/casino/${g.id}`}
+									href={{ pathname: `/casino/arcade/${g.id}` }}
 								>
 									<span className="arcade-card-icon" aria-hidden="true">
 										{g.icon}
 									</span>
-									<span className="arcade-kicker">0{i + 1} / PRACTICE</span>
+									<span className="arcade-kicker">0{i + 1} / ARCADE</span>
 									<h2>{g.name}</h2>
 									<p>{g.description}</p>
 									<b>Let's play ↗</b>
@@ -86,9 +57,29 @@ export function ArcadeLobby() {
 							</motion.div>
 						))}
 					</div>
+					<h2 className="arcade-collection-title">The classic collection</h2>
+					<div className="arcade-cards">
+						{casinoGames
+							.filter((g) => g.id !== "dino")
+							.map((g) => (
+								<Link
+									key={g.id}
+									className="arcade-card classic-card"
+									href={`/casino/${g.id}`}
+								>
+									<span className="arcade-card-icon" aria-hidden="true">
+										{g.icon}
+									</span>
+									<span className="arcade-kicker">CLASSIC COLLECTION</span>
+									<h2>{g.name}</h2>
+									<p>{g.category} · Original edition</p>
+									<b>Open table ↗</b>
+								</Link>
+							))}
+					</div>
 					<p className="arcade-note">
 						Original GoldBet365 practice games. Outcomes are random; these
-						points cannot be bought, transferred, or redeemed.
+						credits cannot be bought or redeemed for money or prizes.
 					</p>
 				</main>
 			</div>
@@ -98,136 +89,101 @@ export function ArcadeLobby() {
 
 export function ArcadeRoom({ id }: { id: ArcadeId }) {
 	const game = arcadeGames.find((g) => g.id === id)!;
-	const [balance, setBalance] = useState(1000);
-	const [stake, setStake] = useState("10");
-	const [round, setRound] = useState<Round>(empty);
-	const current = useRef(round);
-	const funds = useRef(balance);
-	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-	const [message, setMessage] = useState("Ready when you are.");
-	const [history, setHistory] = useState<{ id: number; multiplier: number }[]>(
-		[],
-	);
+	const room = useGameRoom(id, true);
+	const {
+		mode,
+		canUseWallet,
+		switchMode,
+		props,
+		busy,
+		pending,
+		outcome,
+		phase,
+		session,
+		stake,
+		setStake,
+		wallet,
+		demoBalance,
+	} = room;
+	const [clock, setClock] = useState(0);
+	const offset = useRef(0);
+	const [animating, setAnimating] = useState(false);
 	const reduced = useReducedMotion();
-	function update(next: Round) {
-		current.current = next;
-		setRound(next);
-	}
-	function credit(amount: number) {
-		funds.current = Math.round((funds.current + amount) * 100) / 100;
-		setBalance(funds.current);
-	}
-	function finish(multiplier: number, next = current.current) {
-		if (!current.current.active) return;
-		update({ ...next, active: false, multiplier });
-		credit(next.stake * multiplier);
-		setHistory((h) => [{ id: next.serial, multiplier }, ...h].slice(0, 8));
-		setMessage(
-			multiplier
-				? `Collected ${number(next.stake * multiplier)} practice points`
-				: "Round over. Take a breather or try again.",
-		);
-	}
-	useEffect(
-		() => () => {
-			if (timer.current) clearTimeout(timer.current);
-		},
-		[],
-	);
-	const tick = useEffectEvent(() => {
-		const r = current.current;
-		if (!r.active) return;
-		const value = Math.exp((performance.now() - r.started) / 6500);
-		if (value >= r.limit) finish(r.limit === 50 ? 50 : 0);
-		else update({ ...r, multiplier: value });
-	});
 	useEffect(() => {
-		if (id !== "crash" || !round.active) return;
-		const interval = setInterval(tick, 50);
-		return () => clearInterval(interval);
-	}, [id, round.active]);
+		if (session) offset.current = Date.now() - session.serverTime;
+	}, [session]);
+	useEffect(() => {
+		if (id !== "crash" || phase !== "active") return;
+		const timer = setInterval(() => setClock(Date.now()), 50);
+		return () => clearInterval(timer);
+	}, [id, phase]);
+	useEffect(() => {
+		if (id !== "plinko" || !outcome) return;
+		setAnimating(true);
+		const timer = setTimeout(() => setAnimating(false), reduced ? 100 : 1800);
+		return () => clearTimeout(timer);
+	}, [id, outcome, reduced]);
+	const balance =
+		(mode === "wallet" ? (wallet.data?.balanceMillimes ?? 0) : demoBalance) /
+		1000;
+	const active = phase === "active";
+	const locked = room.authLoading || busy || !!pending || animating;
+	const view = props.view;
+	const multiplier = outcome
+		? outcome.multiplierHundredths / 100
+		: id === "crash" && active && view?.startedAt
+			? Math.min(
+					100,
+					Math.max(
+						1,
+						Math.exp(
+							Math.max(
+								0,
+								(clock || Date.now()) - offset.current - view.startedAt,
+							) * 0.00013,
+						),
+					),
+				)
+			: (view?.multiplierHundredths ?? 100) / 100;
+	const round = {
+		active,
+		stake: (session?.stakeMillimes ?? Number(stake) * 1000) / 1000,
+		multiplier,
+		mines: view?.mines ?? [],
+		revealed: view?.revealed ?? [],
+		steps: view?.steps ?? 0,
+		path: outcome?.path ?? [],
+		serial: outcome ? outcome.path?.join("") + String(room.lastNet) : "ready",
+	};
+	const message =
+		room.error ||
+		(outcome
+			? `${outcome.detail} · ${number(outcome.multiplierHundredths / 100)}× return`
+			: locked
+				? "Checking your round…"
+				: active
+					? "Your round is active. Choose your next move."
+					: "Ready when you are.");
+	const history =
+		room.recent.data?.items.map((r) => ({
+			id: r.id,
+			multiplier: r.outcome.multiplierHundredths / 100,
+		})) ?? [];
 	function start() {
-		const amount = Number(stake);
-		if (current.current.active) return;
-		if (
-			!Number.isFinite(amount) ||
-			amount < 1 ||
-			amount > funds.current ||
-			amount > 100
-		) {
-			setMessage("Choose between 1 and 100 points, within your balance.");
-			return;
-		}
-		credit(-amount);
-		const path =
-			id === "plinko" ? Array.from({ length: 8 }, () => randomInt(2)) : [];
-		const next = {
-			...empty,
-			active: true,
-			stake: amount,
-			started: performance.now(),
-			limit: id === "crash" ? crashPoint() : 1,
-			mines: id === "mines" ? makeMines() : [],
-			path,
-			serial: current.current.serial + 1,
-		};
-		update(next);
-		setMessage(
-			id === "mines"
-				? "Choose a tile to reveal a gem."
-				: id === "dino"
-					? "Jump the next obstacle or collect."
-					: "Round in motion…",
-		);
-		if (id === "plinko")
-			timer.current = setTimeout(
-				() => finish(pockets[path.reduce((a, b) => a + b, 0)]!, next),
-				reduced ? 100 : 1800,
-			);
+		if (!locked) props.onStart();
 	}
 	function collect() {
-		const r = current.current;
-		if (
-			!r.active ||
-			id === "plinko" ||
-			(id === "mines" && !r.revealed.length) ||
-			(id === "dino" && !r.steps)
-		)
-			return;
-		if (id === "crash") {
-			const value = Math.exp((performance.now() - r.started) / 6500);
-			finish(value >= r.limit ? (r.limit === 50 ? 50 : 0) : value, r);
-		} else finish(r.multiplier, r);
+		if (!locked) props.onAction({ type: "cashout" });
 	}
 	function reveal(index: number) {
-		const r = current.current;
-		if (!r.active || r.revealed.includes(index)) return;
-		const next = { ...r, revealed: [...r.revealed, index] };
-		if (r.mines.includes(index)) {
-			finish(0, next);
-			return;
-		}
-		next.multiplier = mineMultiplier(next.revealed.length);
-		update(next);
-		if (next.revealed.length === 22) finish(next.multiplier, next);
+		if (!locked) props.onAction({ type: "reveal", index });
 	}
 	function jump() {
-		const r = current.current;
-		if (!r.active) return;
-		if (randomInt(100) >= 80) {
-			finish(0);
-			return;
-		}
-		const next = {
-			...r,
-			steps: r.steps + 1,
-			multiplier: Math.round(1.2 ** (r.steps + 1) * 100) / 100,
-		};
-		update(next);
-		if (next.steps === 20) finish(next.multiplier, next);
+		if (!locked) props.onAction({ type: "jump" });
 	}
 	const canCollect =
-		round.active &&
+		active &&
+		!locked &&
 		id !== "plinko" &&
 		(id === "crash" || round.steps > 0 || round.revealed.length > 0);
 	return (
@@ -241,14 +197,14 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 							<h1>{game.name}</h1>
 							<p>{game.description}</p>
 						</div>
-						<span className="arcade-pill">FREE PRACTICE ONLY</span>
+						<span className="arcade-pill">PLAY CREDITS · NO CASH VALUE</span>
 					</div>
 					<nav className="arcade-tabs" aria-label="Practice games">
 						{arcadeGames.map((g) => (
 							<Link
 								key={g.id}
 								aria-current={g.id === id ? "page" : undefined}
-								href={`/casino/${g.id}`}
+								href={{ pathname: `/casino/arcade/${g.id}` }}
 							>
 								{g.icon} {g.name}
 							</Link>
@@ -256,27 +212,50 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 					</nav>
 					<div className="arcade-console">
 						<aside className="arcade-controls">
-							<span className="arcade-kicker">YOUR PLAY POINTS</span>
+							<div className="arcade-mode">
+								<Button
+									disabled={locked || active}
+									onClick={() => switchMode("practice")}
+									aria-pressed={mode === "practice"}
+								>
+									Practice
+								</Button>
+								<Button
+									disabled={!canUseWallet || locked || active}
+									onClick={() => switchMode("wallet")}
+									aria-pressed={mode === "wallet"}
+								>
+									My play credits
+								</Button>
+							</div>
+							<span className="arcade-kicker">
+								{mode === "wallet"
+									? "YOUR ACCOUNT CREDITS"
+									: "PRACTICE BALANCE"}
+							</span>
 							<strong className="arcade-balance">
-								{number(balance)} <small>PTS</small>
+								{mode === "wallet" && wallet.isPending
+									? "Loading…"
+									: number(balance)}{" "}
+								<small>CREDITS</small>
 							</strong>
-							<p>Free points. Zero cash value.</p>
-							<label htmlFor="practice-stake">Points per round</label>
+							<p>Play credits only. No cash value.</p>
+							<label htmlFor="practice-stake">Credits per round</label>
 							<input
 								id="practice-stake"
 								type="number"
-								min="1"
+								min="0.1"
 								max={Math.min(100, balance)}
-								step="1"
+								step="0.1"
 								value={stake}
-								disabled={round.active}
+								disabled={round.active || locked}
 								onChange={(e) => setStake(e.target.value)}
 							/>
 							<div className="arcade-quick">
 								{[5, 10, 25, 50].map((n) => (
 									<Button
 										key={n}
-										disabled={round.active}
+										disabled={round.active || locked}
 										variant="outline"
 										onClick={() => setStake(String(n))}
 									>
@@ -286,7 +265,7 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 							</div>
 							<Button
 								className="arcade-primary"
-								disabled={round.active}
+								disabled={round.active || locked}
 								onClick={start}
 							>
 								{id === "plinko" ? "Drop a ball" : "Start round"}
@@ -294,7 +273,7 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 							{id === "dino" && (
 								<Button
 									className="arcade-primary"
-									disabled={!round.active}
+									disabled={!round.active || locked}
 									onClick={jump}
 								>
 									Jump · 80% chance
@@ -307,20 +286,36 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 									disabled={!canCollect}
 									onClick={collect}
 								>
-									Collect {number(round.stake * round.multiplier)} points
+									Collect {number(round.stake * round.multiplier)} credits
 								</Button>
 							)}
-							<Button
-								variant="ghost"
-								disabled={round.active}
-								onClick={() => {
-									funds.current = 1000;
-									setBalance(1000);
-									setMessage("Refilled to 1,000 free practice points.");
-								}}
-							>
-								Refill free points ↻
-							</Button>
+							{mode === "practice" && (
+								<Button
+									variant="ghost"
+									disabled={round.active || locked}
+									onClick={() => room.setDemoBalance(1000000)}
+								>
+									Refill practice credits ↻
+								</Button>
+							)}
+							{!canUseWallet && (
+								<p>
+									<Link href="/login">Sign in with a user account</Link> to use
+									your saved play credits.
+								</p>
+							)}
+							{room.error && <p role="alert">{room.error}</p>}
+							{pending && !busy && (
+								<div className="arcade-recovery">
+									<p>Your previous request needs checking.</p>
+									<Button onClick={() => void room.recoverSaved()}>
+										Check saved round
+									</Button>
+									<Button onClick={() => void room.send(pending)}>
+										Retry identical request
+									</Button>
+								</div>
+							)}
 						</aside>
 						<section
 							className="arcade-stage"
@@ -349,7 +344,7 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 															: "tile gem"
 														: "tile"
 												}
-												disabled={!round.active || shown}
+												disabled={!round.active || shown || locked}
 												aria-label={`Tile ${i + 1}${shown ? (round.mines.includes(i) ? ", mine" : ", gem") : ""}`}
 												onClick={() => reveal(i)}
 											>
@@ -447,10 +442,7 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 					<div className="arcade-status" role="status" aria-live="polite">
 						{message}
 					</div>
-					<section
-						className="arcade-history"
-						aria-label="Recent round returns"
-					>
+					<section className="arcade-history" aria-label="Recent round returns">
 						{history.map((h) => (
 							<span key={h.id} className={h.multiplier > 0 ? "positive" : ""}>
 								{h.multiplier.toFixed(2)}×
@@ -459,16 +451,17 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 					</section>
 					<details className="arcade-rules">
 						<summary>How to play & practice rules</summary>
-						<p>{game.rules}</p>
+						<p>{room.game.rules}</p>
 						<p>
-							Each visit starts with 1,000 free practice points. Refill whenever
-							no round is active. Points are local to this page, have no
-							monetary value and cannot be transferred or redeemed. Leaving a
-							game ends that practice session.
+							Practice starts with 1,000 separate credits. Refill whenever no
+							round is active. Account mode uses your stored non-redeemable play
+							credits. Each round and balance change is saved by the server.
+							Practice mode uses a separate local balance. No purchases,
+							withdrawals, money or prizes are involved.
 						</p>
 						<p>
-							Browser-generated random outcomes are for casual play; this is not
-							a certified wagering system.
+							Account rounds use server-generated outcomes. Play credits cannot
+							be redeemed.
 						</p>
 					</details>
 				</main>
@@ -483,7 +476,7 @@ function Plinko({
 	reduced,
 }: {
 	path: number[];
-	serial: number;
+	serial: string;
 	reduced: boolean;
 }) {
 	let column = 0;

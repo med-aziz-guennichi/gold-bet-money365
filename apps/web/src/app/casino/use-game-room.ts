@@ -47,13 +47,20 @@ type Operation =
 			kind: "action";
 			input: { id: string; requestId: string; action: Action };
 	  };
-export function useGameRoom(gameId: GameId) {
+export function useGameRoom(gameId: GameId, preferWallet = false) {
 	const game = casinoGames.find((g) => g.id === gameId)!;
-	const { data: auth } = authClient.useSession();
+	const { data: auth, isPending: authLoading } = authClient.useSession();
 	const userId = auth?.user.id;
 	const canUseWallet = auth?.user.role === "user";
 	const cache = useQueryClient();
 	const [mode, setMode] = useState<"practice" | "wallet">("practice");
+	const selectedInitialMode = useRef(false);
+	useEffect(() => {
+		if (preferWallet && canUseWallet && !selectedInitialMode.current) {
+			selectedInitialMode.current = true;
+			setMode("wallet");
+		}
+	}, [preferWallet, canUseWallet]);
 	const [stake, setStake] = useState("1.000");
 	const [choice, setChoice] = useState<string>(game.choices[0]);
 	const [numbers, setNumbers] = useState<number[]>([]);
@@ -285,7 +292,8 @@ export function useGameRoom(gameId: GameId) {
 		return () => clearInterval(timer);
 	}, [mode, phase, demoState]);
 	async function start() {
-		if (busy || guard.current || pending || phase === "active") return;
+		if (authLoading || busy || guard.current || pending || phase === "active")
+			return;
 		setError("");
 		let amount: number;
 		try {
@@ -375,6 +383,7 @@ export function useGameRoom(gameId: GameId) {
 		view: session?.view ?? null,
 		busy: busy || !!pending,
 		disabled:
+			authLoading ||
 			busy ||
 			!!pending ||
 			phase === "active" ||
@@ -443,6 +452,8 @@ export function useGameRoom(gameId: GameId) {
 	}
 	return {
 		game,
+		authLoading,
+		session,
 		canUseWallet,
 		mode,
 		switchMode,

@@ -15,18 +15,21 @@ export type GameId =
 	| "mines"
 	| "crash"
 	| "video-poker"
-	| "plinko";
+	| "plinko"
+	| "dino";
 export type Action = {
-	type: "hit" | "stand" | "reveal" | "cashout" | "draw";
+	type: "hit" | "stand" | "reveal" | "cashout" | "draw" | "jump";
 	index?: number;
 	holds?: number[];
 };
 export type GameState =
+	| { kind: "dino"; steps: number; collisionAt: number }
 	| { kind: "blackjack"; deck: number[]; player: number[]; dealer: number[] }
 	| { kind: "mines"; mines: number[]; revealed: number[] }
 	| { kind: "crash"; startedAt: number; bustHundredths: number; bustAt: number }
 	| { kind: "video-poker"; deck: number[]; cards: number[] };
 export type GameView = {
+	steps?: number;
 	kind: GameId;
 	cards?: string[];
 	dealer?: string[];

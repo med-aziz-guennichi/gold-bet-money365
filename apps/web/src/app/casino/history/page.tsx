@@ -1,6 +1,5 @@
 "use client";
 
-import { formatTnd } from "@gold-bet-clean-money365/api/access";
 import { casinoGames } from "@gold-bet-clean-money365/api/casino-catalog";
 import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import { useQuery } from "@tanstack/react-query";
@@ -8,6 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { SiteHeader } from "@/components/sports/page-chrome";
 import { authClient } from "@/lib/auth-client";
+import { formatPlayCredits as formatTnd } from "@/lib/play-credits";
 import { orpc } from "@/utils/orpc";
 import "../studio.css";
 export default function CasinoHistory() {

@@ -3,7 +3,7 @@ import Lobby from "./lobby";
 
 export const metadata = publicMetadata(
 	"Casino Games & Free Practice | GoldBet365",
-	"Play Crash, Plinko, Mines and Dino with free practice points on GoldBet365. No purchases, transfers or cash value.",
+	"Explore ten classic games and four arcade editions on GoldBet365. Play with free practice credits or your saved non-redeemable play credits.",
 	"/casino",
 );
 export default function CasinoPage() {
