@@ -4,9 +4,11 @@ import { formatTnd, parseTnd } from "@gold-bet-clean-money365/auth/money";
 import { NotificationService } from "@gold-bet-clean-money365/auth/notifications";
 import { createRateLimiter } from "@gold-bet-clean-money365/auth/rate-limit";
 import {
+	type AccountDocument,
 	activeAccount,
 	type ClientSession,
 	ObjectId,
+	userCollection,
 } from "@gold-bet-clean-money365/auth/storage";
 import { WalletService } from "@gold-bet-clean-money365/auth/wallets";
 import type { Database } from "@gold-bet-clean-money365/db";
@@ -19,6 +21,7 @@ import { evaluatePick, settleReturns } from "./bet-settlement";
 import type { AcceptedBetPick, PlaceBetInput, SavedBet } from "./betting";
 import { calculateBetReturn } from "./betting-money";
 import type { FlashscoreService } from "./football";
+import { marketRestriction } from "./market-availability";
 
 type BetDocument = Omit<SavedBet, "id" | "placedAt"> & {
 	_id: ObjectId;
@@ -30,6 +33,12 @@ type BetDocument = Omit<SavedBet, "id" | "placedAt"> & {
 	createdAt: Date;
 	quotedAt: Date;
 	checkedAt?: Date;
+	manualResolution?: {
+		actorId: string;
+		requestId: string;
+		reason: string;
+		outcomes: ("won" | "lost" | "void")[];
+	};
 };
 
 function label(value?: string | null) {
@@ -204,14 +213,19 @@ export class BettingService {
 					"SERVICE_UNAVAILABLE",
 					"The event sport could not be verified. No credits were spent.",
 				);
-			if (
-				fixture.sport !== "Football" &&
-				(pick.market.type !== "HOME_AWAY" || pick.market.scope !== "FULL_TIME")
-			)
-				throw new ManagementError(
-					"BAD_REQUEST",
-					"Only full-match winner bets are currently supported for this sport.",
-				);
+			const restriction = marketRestriction(
+				fixture.sport,
+				status ?? "UNKNOWN",
+				{
+					betType: pick.market.type,
+					scope: pick.market.scope,
+					hasLiveBetting: true,
+					selection: pick.market.selection,
+					handicap: pick.market.handicap,
+					score: pick.market.score,
+				},
+			);
+			if (restriction) throw new ManagementError("BAD_REQUEST", restriction);
 			for (const market of snapshot?.markets ?? []) {
 				if (
 					market.betType !== pick.market.type ||
@@ -307,13 +321,24 @@ export class BettingService {
 	}
 
 	/** Internal worker only: bounded batches rotate by last check to avoid starvation. */
-	async settlePending(batchSize = 20, userId?: string) {
+	async settlePending(batchSize = 20, userId?: string, checkedBefore?: Date) {
 		const pending = await this.bets()
-			.find({ status: "Pending", ...(userId ? { userId } : {}) })
+			.find({
+				status: "Pending",
+				...(userId ? { userId } : {}),
+				...(checkedBefore
+					? {
+							$or: [
+								{ checkedAt: { $lt: checkedBefore } },
+								{ checkedAt: { $exists: false } },
+							],
+						}
+					: {}),
+			})
 			.sort({ checkedAt: 1, createdAt: 1 })
 			.limit(Math.max(1, Math.min(20, batchSize)))
 			.toArray();
-		if (!pending.length) return;
+		if (!pending.length) return 0;
 		const ids = [
 			...new Set(
 				pending.flatMap((bet) => bet.picks.map((pick) => pick.matchId)),
@@ -410,6 +435,219 @@ export class BettingService {
 				console.error("Bet settlement deferred", bet._id.toHexString());
 			}
 		}
+		return pending.length;
+	}
+
+	private async admin(actorId: string, session?: ClientSession) {
+		const actor = await activeAccount(this.db, actorId, session);
+		if (actor?.role !== "admin")
+			throw new ManagementError(
+				"FORBIDDEN",
+				"Only active administrators can review bets.",
+			);
+		return actor;
+	}
+	async reviewQueue(actorId: string, page = 1) {
+		await this.admin(actorId);
+		const filter = {
+			status: "Pending" as const,
+			$or: [
+				{ "pickResults.outcome": "review" },
+				{
+					"picks.kickoff": {
+						$lt: new Date(Date.now() - 86400_000).toISOString(),
+					},
+				},
+			],
+		};
+		const [items, total, job] = await Promise.all([
+			this.bets()
+				.find(filter)
+				.sort({ createdAt: 1 })
+				.skip((page - 1) * 20)
+				.limit(20)
+				.maxTimeMS(5000)
+				.toArray(),
+			this.bets().countDocuments(filter, { maxTimeMS: 5000 }),
+			this.db
+				.collection<{
+					_id: string;
+					lastCompletedAt?: Date;
+					lastErrorAt?: Date;
+				}>("settlementJob")
+				.findOne({ _id: "daily" }),
+		]);
+		const owners = await userCollection(this.db)
+			.find({
+				_id: {
+					$in: [...new Set(items.map((item) => item.userId))]
+						.filter((id) => /^[a-f0-9]{24}$/i.test(id))
+						.map((id) => new ObjectId(id)),
+				},
+			})
+			.project<Pick<AccountDocument, "_id" | "name">>({ _id: 1, name: 1 })
+			.toArray();
+		const names = new Map(
+			owners.map((owner) => [owner._id.toHexString(), owner.name]),
+		);
+
+		return {
+			items: items.map((item) => ({
+				...serialize(item),
+				ownerName: names.get(item.userId) ?? "Unknown account",
+			})),
+			total,
+			page,
+			lastCompletedAt: job?.lastCompletedAt?.toISOString() ?? null,
+			lastErrorAt: job?.lastErrorAt?.toISOString() ?? null,
+		};
+	}
+	async resolveReview(
+		actorId: string,
+		input: {
+			betId: string;
+			requestId: string;
+			reason: string;
+			outcomes: ("won" | "lost" | "void")[];
+		},
+	) {
+		await this.admin(actorId);
+		const rate = await this.consume(`bet-review:${actorId}`, {
+			window: 60,
+			max: 20,
+		});
+		if (!rate.allowed)
+			throw new ManagementError(
+				"TOO_MANY_REQUESTS",
+				"Too many review requests.",
+			);
+		if (
+			!/^[a-f0-9]{24}$/i.test(input.betId) ||
+			!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(
+				input.requestId,
+			) ||
+			input.reason.trim().length < 10 ||
+			input.reason.length > 500
+		)
+			throw new ManagementError(
+				"BAD_REQUEST",
+				"Provide a valid receipt and a detailed review reason.",
+			);
+		const id = new ObjectId(input.betId);
+		const bet = await this.bets().findOne({ _id: id });
+		if (!bet) throw new ManagementError("BAD_REQUEST", "Bet not found.");
+		const matchesPrevious = (value: BetDocument) =>
+			value.manualResolution?.actorId === actorId &&
+			value.manualResolution.requestId === input.requestId &&
+			value.manualResolution.reason === input.reason.trim() &&
+			JSON.stringify(value.manualResolution.outcomes) ===
+				JSON.stringify(input.outcomes);
+		if (bet.status !== "Pending") {
+			if (matchesPrevious(bet)) return serialize(bet);
+			throw new ManagementError(
+				"CONFLICT",
+				"This bet has already been settled.",
+			);
+		}
+		const eligible =
+			bet.pickResults?.some((pick) => pick.outcome === "review") ||
+			bet.picks.some(
+				(pick) => Date.parse(pick.kickoff) < Date.now() - 86400_000,
+			);
+		if (!eligible)
+			throw new ManagementError(
+				"CONFLICT",
+				"This bet is still awaiting results and does not require review.",
+			);
+		if (
+			input.outcomes.length !== bet.picks.length ||
+			input.outcomes.some(
+				(outcome) => !["won", "lost", "void"].includes(outcome),
+			)
+		)
+			throw new ManagementError(
+				"BAD_REQUEST",
+				"Provide one final outcome for every selection.",
+			);
+		const settlement = settleReturns(
+			bet.stakeMillimes,
+			bet.picks,
+			input.outcomes,
+		);
+		if (!settlement)
+			throw new ManagementError("BAD_REQUEST", "Invalid review outcomes.");
+		const resolvedAt = new Date();
+		await this.wallets.payBet({
+			betId: input.betId,
+			userId: bet.userId,
+			payoutMillimes: settlement.payoutMillimes,
+			claim: async (session) => {
+				await this.admin(actorId, session);
+				// Serialize an administrator suspension with the privileged decision.
+				await userCollection(this.db).updateOne(
+					{ _id: new ObjectId(actorId) },
+					{ $inc: { walletGuard: 1 } },
+					{ session },
+				);
+				const claim = await this.bets().updateOne(
+					{ _id: id, status: "Pending" },
+					{
+						$set: {
+							...settlement,
+							settledAt: resolvedAt.toISOString(),
+							checkedAt: resolvedAt,
+							settlementNote: `Administrator review: ${input.reason.trim()}`,
+							pickResults: bet.picks.map((pick, index) => ({
+								matchId: pick.matchId,
+								status: "OPERATOR_REVIEW",
+								score: null,
+								outcome: input.outcomes[index] ?? "review",
+							})),
+							manualResolution: {
+								actorId,
+								requestId: input.requestId,
+								reason: input.reason.trim(),
+								outcomes: input.outcomes,
+							},
+						},
+					},
+					{ session },
+				);
+				if (!claim.modifiedCount) return false;
+				await this.db.collection("managementAudit").insertOne(
+					{
+						actorId,
+						action: "bet.manual-settle",
+						targetId: input.betId,
+						requestId: input.requestId,
+						reason: input.reason.trim(),
+						outcomes: input.outcomes,
+						amountMillimes: settlement.payoutMillimes,
+						createdAt: resolvedAt,
+					},
+					{ session },
+				);
+				await new NotificationService(this.db).record(
+					{
+						_id: `bet:${input.betId}:settled`,
+						userId: bet.userId,
+						kind: "bet.settled",
+						title: `Bet ${settlement.status.toLowerCase()}`,
+						message: `Your bet is ${settlement.status.toLowerCase()}. ${formatTnd(settlement.payoutMillimes)} returned to your wallet.`,
+						href: "/bets",
+					},
+					session,
+				);
+				return true;
+			},
+		});
+		const latest = await this.bets().findOne({ _id: id });
+		if (!latest || !matchesPrevious(latest))
+			throw new ManagementError(
+				"CONFLICT",
+				"Another settlement already resolved this bet. Refresh the queue.",
+			);
+		return serialize(latest);
 	}
 
 	/** Free testing can refresh the signed-in user's results without a daemon. */

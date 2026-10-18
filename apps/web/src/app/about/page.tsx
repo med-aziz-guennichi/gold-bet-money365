@@ -17,7 +17,7 @@ export default function Page() {
 				},
 				{
 					heading: "Original casino games",
-					text: "The casino includes Roulette, Blackjack, Baccarat, Dragon Tiger, Sic Bo, Slots, Mines, Crash, Video Poker and Plinko. Rules and return information are available on each game page. Practice mode uses demo credits and does not change your wallet.",
+					text: "Browse the full casino collection, from card and table games to arcade games. Rules and return information are available on each game page. Practice mode uses demo credits and does not change your wallet. All account credits are free, non-redeemable play points.",
 				},
 				{
 					heading: "Account access",

@@ -25,6 +25,7 @@ export function MarketOffers({
 	) => void;
 }) {
 	const { t } = useI18n();
+	const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 	const [showViewOnly, setShowViewOnly] = useState(true);
 	const [bookmaker, setBookmaker] = useState("");
 	const bookmakerFilterId = useId();
@@ -121,6 +122,13 @@ export function MarketOffers({
 				return (
 					<details
 						key={type}
+						open={Boolean(openGroups[type])}
+						onToggle={(event) => {
+							const open = event.currentTarget.open;
+							setOpenGroups((groups) =>
+								groups[type] === open ? groups : { ...groups, [type]: open },
+							);
+						}}
 						className="group overflow-hidden rounded-2xl border border-white/[.08] bg-[#111014]"
 					>
 						<summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4 marker:hidden hover:bg-white/[.025] sm:px-5">
@@ -138,26 +146,28 @@ export function MarketOffers({
 								className="shrink-0 text-white/45 transition-transform group-open:rotate-180"
 							/>
 						</summary>
-						<div className="space-y-4 border-white/[.07] border-t p-3 sm:p-4">
-							{[...periods.entries()].map(([scope, periodMarkets]) => (
-								<section key={scope}>
-									<h3 className="mb-2 font-bold text-white/55 text-xs uppercase tracking-wide">
-										{t(formatScope(scope))}
-									</h3>
-									<div className="space-y-2">
-										{periodMarkets.map((market, marketIndex) => (
-											<MarketCard
-												key={`${scope}-${market.bookmaker}-${marketIndex}`}
-												match={match}
-												market={market}
-												selected={selected}
-												onPick={onPick}
-											/>
-										))}
-									</div>
-								</section>
-							))}
-						</div>
+						{openGroups[type] && (
+							<div className="space-y-4 border-white/[.07] border-t p-3 sm:p-4">
+								{[...periods.entries()].map(([scope, periodMarkets]) => (
+									<section key={scope}>
+										<h3 className="mb-2 font-bold text-white/55 text-xs uppercase tracking-wide">
+											{t(formatScope(scope))}
+										</h3>
+										<div className="space-y-2">
+											{periodMarkets.map((market, marketIndex) => (
+												<MarketCard
+													key={`${scope}-${market.bookmaker}-${marketIndex}`}
+													match={match}
+													market={market}
+													selected={selected}
+													onPick={onPick}
+												/>
+											))}
+										</div>
+									</section>
+								))}
+							</div>
+						)}
 					</details>
 				);
 			})}
@@ -203,7 +213,17 @@ function MarketCard({
 						const odd = price.value ?? "—";
 						const label = formatSelection(market, price);
 						const outcome = `${formatMarketType(market.betType)} · ${scope} · ${market.bookmaker} · ${label}`;
-						const allowed = restriction === null;
+						const offerRestriction = marketRestriction(
+							match.sport,
+							match.status,
+							{
+								...market,
+								selection: price.selection,
+								handicap: price.handicap,
+								score: price.score,
+							},
+						);
+						const allowed = offerRestriction === null;
 						const metadata = {
 							type: market.betType,
 							bookmaker: market.bookmaker,
@@ -229,7 +249,10 @@ function MarketCard({
 								title={
 									allowed
 										? `${t("Add")} ${t(label === "Home" ? "Home outcome" : label)} ${t("to bet slip")}`
-										: t("This offer is display-only or currently unavailable.")
+										: t(
+												offerRestriction ??
+													"This offer is display-only or currently unavailable.",
+											)
 								}
 								onClick={() => {
 									if (price.value)
@@ -274,6 +297,9 @@ export function formatMarketType(type: string) {
 		ASIAN_HANDICAP: "Asian handicap",
 		CORRECT_SCORE: "Correct score",
 		HALF_TIME_FULL_TIME: "Half-time / full-time",
+		HALF_FULL_TIME: "Half-time / full-time",
+		DRAW_NO_BET: "Draw no bet",
+		EUROPEAN_HANDICAP: "European handicap",
 		CORNERS: "Corners",
 		TOTAL_CORNERS: "Total corners",
 		RED_CARD: "Red cards",

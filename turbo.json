@@ -36,7 +36,8 @@
 		"SERVER_URL",
 		"FLASHSCORE_API_URL",
 		"FLASHSCORE_API_KEY",
-		"PORT"
+		"PORT",
+		"CRON_SECRET"
 	],
 	"globalDependencies": [".env*", "apps/*/.env*", "packages/*/.env*"]
 }

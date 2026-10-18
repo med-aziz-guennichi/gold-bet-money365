@@ -9,6 +9,7 @@ import {
 	normalizeDigits,
 	useI18n,
 } from "@gold-bet-clean-money365/i18n";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { Brand } from "@/components/brand";
@@ -143,6 +144,12 @@ export default function SignInForm() {
 				{" "}
 				<LocalizedText text="Accounts are provided by your account manager. Contact them if you need access or a password reset." />{" "}
 			</p>
+			<Link
+				href="/support"
+				className="mt-3 inline-block text-[#e9bd62] text-sm underline underline-offset-4"
+			>
+				<LocalizedText text="Support" />
+			</Link>
 		</section>
 	);
 }

@@ -38,7 +38,7 @@ export function SiteOverview() {
 					</h3>
 					<p>
 						{" "}
-						<LocalizedText text="Explore Blackjack, Mines, Crash, Video Poker and six more animated games. Practice uses separate demo credits. Each game publishes its rules; past results do not predict the next round." />{" "}
+						<LocalizedText text="Explore our casino games, including Blackjack, Mines, Crash and Video Poker. Practice uses separate demo credits. Each game publishes its rules; past results do not predict the next round." />{" "}
 					</p>
 					<Link
 						href="/casino"
@@ -53,12 +53,20 @@ export function SiteOverview() {
 				aria-label="About GoldBet365"
 				className="mt-8 flex flex-wrap gap-6 text-[#e9bd62] text-sm"
 			>
-				<Link href="/about">About GoldBet365</Link>
+				<Link href="/about">
+					<LocalizedText text="About GoldBet365" />
+				</Link>
 				<Link href="/how-it-works">
 					<LocalizedText text="How it works" />
 				</Link>
 				<Link href="/responsible-play">
 					<LocalizedText text="Responsible play" />
+				</Link>
+				<Link href="/support">
+					<LocalizedText text="Support" />
+				</Link>
+				<Link href="/privacy">
+					<LocalizedText text="Privacy information" />
 				</Link>
 			</nav>
 			<p className="mt-6 text-white/40 text-xs">

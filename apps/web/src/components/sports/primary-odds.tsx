@@ -74,6 +74,16 @@ export function PrimaryOdds({
 				className={`grid gap-1 ${offers.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}
 			>
 				{offers.map((offer, index) => {
+					const offerRestriction = marketRestriction(
+						match.sport,
+						match.status,
+						{
+							...market,
+							selection: offer.selection,
+							handicap: offer.handicap,
+							score: offer.score,
+						},
+					);
 					const outcome = `${market.betType} · ${market.scope} · ${offer.selection} · ${offer.handicap ?? ""} · ${offer.score ?? ""} · ${market.bookmaker}`;
 					const active = selected.some(
 						(pick) =>
@@ -100,7 +110,8 @@ export function PrimaryOdds({
 							variant="outline"
 							key={`${offer.selection}:${index}`}
 							type="button"
-							disabled={disabled || restriction !== null}
+							disabled={disabled || offerRestriction !== null}
+							title={offerRestriction ? t(offerRestriction) : undefined}
 							aria-label={`${label} odds ${offer.value}`}
 							aria-pressed={active}
 							onClick={() =>

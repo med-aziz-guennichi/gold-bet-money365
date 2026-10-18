@@ -62,6 +62,12 @@
 	},
 	"rewrites": [
 		{
+			"source": "/internal/settlement/daily",
+			"destination": {
+				"service": "server"
+			}
+		},
+		{
 			"source": "/api/(.*)",
 			"destination": {
 				"service": "server"
@@ -90,6 +96,12 @@
 			"destination": {
 				"service": "web"
 			}
+		}
+	],
+	"crons": [
+		{
+			"path": "/internal/settlement/daily",
+			"schedule": "0 4 * * *"
 		}
 	]
 }

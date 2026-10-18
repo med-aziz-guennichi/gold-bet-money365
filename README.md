@@ -260,3 +260,14 @@ gold-bet-clean-money365/
 - `pnpm run docker:up`: Build and start the Docker Compose stack
 - `pnpm run docker:logs`: Tail logs from the Docker Compose stack
 - `pnpm run docker:down`: Stop the Docker Compose stack
+
+
+### Settlement review and free-hosting fallback
+
+Unsupported football periods, market types and quarter-goal lines are view-only and rejected by the placement API before a stake is debited. Existing unsupported or ambiguous bets remain pending for review.
+
+Active administrators can open **Bet review** from `/dashboard` (`/dashboard/bet-review`). The queue contains explicit review outcomes and bets with a selection kickoff more than 24 hours ago. An operator must verify every selection, enter a detailed reason/result source, and confirm the calculated return. Returns are computed on the server; void selections use odds 1. The pending-to-settled claim, payout ledger, operator audit record and user notification share a transaction. Concurrent retries cannot pay twice. Settled decisions cannot be edited through this flow.
+
+For Vercel Hobby, `/internal/settlement/daily` is an authenticated daily safety net (`0 4 * * *`, UTC; Vercel may invoke it within that hour). Set a private production **CRON_SECRET** of at least 32 characters; Vercel supplies its Bearer header automatically. Requests without the configured credential fail closed. A MongoDB lease prevents overlapping runs; each invocation checks at most 100 receipts in bounded batches and records its last completion/error for the admin screen. Users retain the connected-session refresh path. This daily fallback is not continuous or immediate settlement. The persistent daemon remains disabled to avoid changing the free-testing budget; an always-on worker or a plan supporting frequent schedules is needed for reliable round-the-clock low-latency settlement at scale.
+
+Public `/support` and `/privacy` pages explain managed-account assistance, stored data, preferences, retention, and the non-redeemable nature of play credits. No personal contact address is published and no support messages are transmitted automatically.

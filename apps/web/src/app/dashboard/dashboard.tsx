@@ -8,6 +8,7 @@ import {
 } from "@gold-bet-clean-money365/api/access";
 import { LocalizedText, useI18n } from "@gold-bet-clean-money365/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Brand } from "@/components/brand";
 import { ContentLoading } from "@/components/loading-screen";
@@ -154,6 +155,14 @@ export default function Dashboard({
 					</div>
 					<UserMenu />
 				</header>
+				{role === "admin" && (
+					<Link
+						href="/dashboard/bet-review"
+						className="mt-5 inline-flex rounded-xl border border-[#e9bd62]/30 px-4 py-3 font-semibold text-[#e9bd62]"
+					>
+						<LocalizedText text="Bet review" />
+					</Link>
+				)}
 				<WalletPanel
 					key={branch.at(-1)?.id ?? "root"}
 					actorId={actorId}

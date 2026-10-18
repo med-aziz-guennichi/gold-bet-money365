@@ -8,6 +8,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 		"/about",
 		"/how-it-works",
 		"/responsible-play",
+		"/support",
+		"/privacy",
 		...casinoGames.map((g) => `/casino/${g.id}`),
 	].map((path) => ({ url: `${SITE_URL}${path === "/" ? "/" : path}` }));
 }

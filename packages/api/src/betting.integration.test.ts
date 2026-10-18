@@ -253,7 +253,7 @@ test("server betting debits persisted wallets and saves isolated bets", {
 				verifiedSport = "Tennis";
 				await assert.rejects(
 					() => tennisBets.place(user, input("10")),
-					/Only full-match winner/,
+					/View only/,
 				);
 				const betInput = input("10");
 				betInput.picks[0]!.market.type = "HOME_AWAY";
@@ -916,6 +916,186 @@ test("server betting debits persisted wallets and saves isolated bets", {
 					bets.list(user, { page: 1, limit: 10, minStake: "5", maxStake: "2" }),
 				);
 				await assert.rejects(bets.list(admin, { page: 1, limit: 10 }));
+			},
+		);
+		await t.test(
+			"admin review is private, auditable and cannot pay twice",
+			async () => {
+				currentStatus = "TRADING";
+				currentPrice = "2.00";
+				offerActive = true;
+				missingResults = false;
+				unavailable = false;
+				const user = await newUser();
+				const invalid = input("10");
+				const invalidPick = invalid.picks[0];
+				assert.ok(invalidPick);
+				invalidPick.market.scope = "FIRST_HALF";
+				await assert.rejects(
+					bets.place(user, invalid),
+					(error: unknown) =>
+						error instanceof Error &&
+						"code" in error &&
+						error.code === "BAD_REQUEST",
+				);
+				assert.equal((await accounts.wallet(user)).balanceMillimes, 100000);
+				const bet = await bets.place(user, input("10"));
+				await assert.rejects(bets.reviewQueue(user), forbidden);
+				await assert.rejects(bets.reviewQueue(supplier), forbidden);
+				const decision = {
+					betId: bet.id,
+					requestId: randomUUID(),
+					reason: "Verified abandoned fixture; return the play credits.",
+					outcomes: ["void" as const],
+				};
+				await assert.rejects(
+					bets.resolveReview(admin, decision),
+					/does not require review/,
+				);
+				await db.collection("bet").updateOne(
+					{ _id: new ObjectId(bet.id) },
+					{
+						$set: {
+							pickResults: [
+								{
+									matchId: "match001",
+									status: "CANCELLED",
+									score: null,
+									outcome: "review",
+								},
+							],
+						},
+					},
+				);
+				assert.ok(
+					(await bets.reviewQueue(admin)).items.some(
+						(item) => item.id === bet.id,
+					),
+				);
+				await assert.rejects(bets.resolveReview(user, decision), forbidden);
+				await assert.rejects(
+					bets.resolveReview(admin, { ...decision, outcomes: [] }),
+					/every selection/,
+				);
+				const results = await Promise.all([
+					bets.resolveReview(admin, decision),
+					bets.resolveReview(admin, decision),
+				]);
+				assert.ok(results.every((result) => result.status === "Void"));
+				assert.equal((await accounts.wallet(user)).balanceMillimes, 100000);
+				assert.equal(
+					await db
+						.collection<{ _id: string }>("walletTransfer")
+						.countDocuments({ _id: `bet:payout:${bet.id}` }),
+					1,
+				);
+				assert.equal(
+					await db
+						.collection("managementAudit")
+						.countDocuments({ targetId: bet.id, action: "bet.manual-settle" }),
+					1,
+				);
+				await assert.rejects(
+					bets.resolveReview(admin, {
+						...decision,
+						requestId: randomUUID(),
+						outcomes: ["won"],
+					}),
+					/already been settled/,
+				);
+				const combo = input("10");
+				const firstCombo = combo.picks[0];
+				assert.ok(firstCombo);
+				combo.picks.push({
+					...firstCombo,
+					matchId: "match002",
+					expectedOdd: "3.00",
+				});
+				const multiple = await bets.place(user, combo);
+				await db.collection("bet").updateOne(
+					{ _id: new ObjectId(multiple.id) },
+					{
+						$set: {
+							pickResults: [
+								{
+									matchId: "match002",
+									status: "CANCELLED",
+									score: null,
+									outcome: "review",
+								},
+							],
+						},
+					},
+				);
+				const paid = await bets.resolveReview(admin, {
+					betId: multiple.id,
+					requestId: randomUUID(),
+					reason: "Official final score verified; second fixture cancelled.",
+					outcomes: ["won", "void"],
+				});
+				assert.equal(paid.payoutMillimes, 20000);
+				assert.equal((await accounts.wallet(user)).balanceMillimes, 110000);
+				const rollbackUser = user;
+				const beforeRollback = (await accounts.wallet(rollbackUser))
+					.balanceMillimes;
+				const rollbackBet = await bets.place(rollbackUser, input("10"));
+				await db.collection("bet").updateOne(
+					{ _id: new ObjectId(rollbackBet.id) },
+					{
+						$set: {
+							pickResults: [
+								{
+									matchId: "match001",
+									status: "CANCELLED",
+									score: null,
+									outcome: "review",
+								},
+							],
+						},
+					},
+				);
+				const wallets = db.collection<{
+					_id: string;
+					balanceMillimes: number;
+					updatedAt: Date;
+				}>("wallet");
+				const previousWallet = await wallets.findOne({ _id: rollbackUser });
+				assert.ok(previousWallet);
+				await wallets.deleteOne({ _id: rollbackUser });
+				const rollbackDecision = {
+					betId: rollbackBet.id,
+					requestId: randomUUID(),
+					reason: "Verified cancelled fixture; refund all play credits.",
+					outcomes: ["void" as const],
+				};
+				await assert.rejects(
+					bets.resolveReview(admin, rollbackDecision),
+					/wallet missing/,
+				);
+				assert.equal(
+					(
+						await db
+							.collection("bet")
+							.findOne({ _id: new ObjectId(rollbackBet.id) })
+					)?.status,
+					"Pending",
+				);
+				assert.equal(
+					await db.collection("managementAudit").countDocuments({
+						targetId: rollbackBet.id,
+						action: "bet.manual-settle",
+					}),
+					0,
+				);
+				await wallets.insertOne(previousWallet);
+				assert.equal(
+					(await bets.resolveReview(admin, rollbackDecision)).status,
+					"Void",
+				);
+				assert.equal(
+					(await accounts.wallet(rollbackUser)).balanceMillimes,
+					beforeRollback,
+				);
 			},
 		);
 	} finally {

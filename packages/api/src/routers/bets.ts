@@ -16,6 +16,34 @@ const procedure = protectedProcedure.use(async ({ next }) => {
 });
 
 export const betsRouter = {
+	reviewQueue: procedure
+		.route({ method: "GET" })
+		.input(
+			z
+				.object({ page: z.number().int().min(1).max(10000).default(1) })
+				.strict(),
+		)
+		.handler(({ context, input }) =>
+			context.bets.reviewQueue(context.session.user.id, input.page),
+		),
+	resolveReview: procedure
+		.route({ method: "POST" })
+		.input(
+			z
+				.object({
+					betId: z.string().regex(/^[a-f0-9]{24}$/i),
+					requestId: z.uuid(),
+					reason: z.string().trim().min(10).max(500),
+					outcomes: z
+						.array(z.enum(["won", "lost", "void"]))
+						.min(1)
+						.max(10),
+				})
+				.strict(),
+		)
+		.handler(({ context, input }) =>
+			context.bets.resolveReview(context.session.user.id, input),
+		),
 	refresh: procedure
 		.route({ method: "POST" })
 		.input(z.object({}).strict())

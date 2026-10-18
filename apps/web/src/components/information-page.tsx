@@ -1,6 +1,7 @@
 import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import Link from "next/link";
 import { Brand } from "./brand";
+import { LanguageSwitcher } from "./language-switcher";
 export function InformationPage({
 	title,
 	introduction,
@@ -13,7 +14,10 @@ export function InformationPage({
 	return (
 		<main className="min-h-screen bg-[#080b0a] px-5 py-8 text-white">
 			<div className="mx-auto max-w-3xl">
-				<Brand />
+				<div className="flex flex-wrap items-center justify-between gap-4">
+					<Brand />
+					<LanguageSwitcher />
+				</div>
 				<p className="mt-12 font-semibold text-[#e9bd62] text-xs uppercase tracking-widest">
 					<LocalizedText text="GoldBet365 guide" />
 				</p>
@@ -51,6 +55,12 @@ export function InformationPage({
 					</Link>
 					<Link href="/responsible-play">
 						<LocalizedText text="Responsible play" />
+					</Link>
+					<Link href="/support">
+						<LocalizedText text="Support" />
+					</Link>
+					<Link href="/privacy">
+						<LocalizedText text="Privacy information" />
 					</Link>
 				</nav>
 			</div>

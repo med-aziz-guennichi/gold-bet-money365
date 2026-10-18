@@ -33,3 +33,53 @@ test("selectable odds match the server's sport, status and live-market restricti
 	);
 	assert.match(marketRestriction("Tennis", "RESULTED", winner) ?? "", /closed/);
 });
+
+test("football offers only accept markets and lines implemented by settlement", () => {
+	const base = { scope: "FULL_TIME", hasLiveBetting: true };
+	for (const betType of [
+		"ASIAN_HANDICAP",
+		"HALF_FULL_TIME",
+		"DRAW_NO_BET",
+		"ODD_OR_EVEN",
+	])
+		assert.match(
+			marketRestriction("Football", "TRADING", { ...base, betType }) ?? "",
+			/View only/,
+		);
+	assert.match(
+		marketRestriction("Football", "TRADING", {
+			...base,
+			betType: "HOME_DRAW_AWAY",
+			scope: "FIRST_HALF",
+		}) ?? "",
+		/View only/,
+	);
+	for (const line of ["2.25", "2.75", "invalid"])
+		assert.match(
+			marketRestriction("Football", "TRADING", {
+				...base,
+				betType: "OVER_UNDER",
+				selection: "over",
+				handicap: line,
+			}) ?? "",
+			/View only/,
+		);
+	for (const line of ["2", "2.5", "3.0"])
+		assert.equal(
+			marketRestriction("Football", "TRADING", {
+				...base,
+				betType: "OVER_UNDER",
+				selection: "over",
+				handicap: line,
+			}),
+			null,
+		);
+	assert.match(
+		marketRestriction("Football", "TRADING", {
+			...base,
+			betType: "BOTH_TEAMS_TO_SCORE",
+			selection: "Unknown",
+		}) ?? "",
+		/View only/,
+	);
+});

@@ -15,6 +15,7 @@ const schema = z.object({
 	FLASHSCORE_API_URL: optional(z.url()),
 	FLASHSCORE_API_KEY: optional(z.string()),
 	SETTLEMENT_WORKER_SECRET: optional(z.string().min(32)),
+	CRON_SECRET: optional(z.string().min(32)),
 });
 
 export function deploymentEnv(env: NodeJS.ProcessEnv) {

@@ -18,6 +18,7 @@ import { authorizedWorker, clientAddress, serverPort } from "./deployment";
 import { ENV } from "./env.server";
 import { auth, bets, db } from "./services";
 import { notificationRealtime } from "./services/notification-realtime";
+import { runDailySettlement } from "./services/settlement-job";
 
 const app = new Hono();
 const onVercel = process.env.VERCEL === "1";
@@ -173,6 +174,12 @@ app.post("/internal/settle", async (c) => {
 		return c.json({ message: "Unauthorized" }, 401);
 	await bets.settlePending(5);
 	return c.json({ ok: true });
+});
+app.get("/internal/settlement/daily", async (c) => {
+	c.header("Cache-Control", "no-store");
+	if (!authorizedWorker(c.req.raw.headers, ENV.CRON_SECRET))
+		return c.json({ message: "Unauthorized" }, 401);
+	return c.json(await runDailySettlement(db, bets));
 });
 app.get("/health/ready", async (c) => {
 	c.header("Cache-Control", "no-store");
