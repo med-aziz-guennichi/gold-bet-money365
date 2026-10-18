@@ -19,7 +19,10 @@
 		"env:generate": "varlock codegen --path ./apps/web/ && varlock codegen --path ./apps/server/ && varlock codegen --path ./packages/db/",
 		"postinstall": "varlock codegen --path ./apps/web/ && varlock codegen --path ./apps/server/ && varlock codegen --path ./packages/db/",
 		"check": "biome check --write .",
-		"prepare": "husky"
+		"prepare": "husky",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"test:sports": "pnpm --filter server exec node --import tsx --test src/services/flashscore.test.ts ../../packages/api/src/event-status.test.ts ../../packages/api/src/market-availability.test.ts ../../packages/i18n/tests/messages.test.ts"
 	},
 	"dependencies": {
 		"zod": "catalog:"
@@ -36,7 +39,7 @@
 	},
 	"lint-staged": {
 		"*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-			"biome check --write ."
+			"biome check --write"
 		]
 	},
 	"packageManager": "pnpm@12.11.2",
