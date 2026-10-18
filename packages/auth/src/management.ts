@@ -7,6 +7,7 @@ import {
 	type Role,
 } from "./access";
 import type { Auth } from "./index";
+import { type Currency, currencyOf } from "./money";
 import { createRateLimiter } from "./rate-limit";
 import {
 	type AccountDocument,
@@ -40,6 +41,7 @@ export type CreateAccountInput = {
 	role: Exclude<Role, "admin">;
 	parentId: string;
 	initialAmount?: string;
+	currency?: Currency;
 	requestId?: string;
 };
 
@@ -108,6 +110,7 @@ export class AccountManagement {
 				.find(filter, {
 					projection: {
 						name: 1,
+						currency: 1,
 						phoneNumber: 1,
 						role: 1,
 						parentId: 1,
@@ -128,6 +131,7 @@ export class AccountManagement {
 		);
 		const items: AccountSummary[] = documents.map((user) => ({
 			id: user._id.toHexString(),
+			currency: currencyOf(user.currency),
 			name: user.name,
 			phoneNumber: user.phoneNumber ?? "",
 			role: user.role as Role,

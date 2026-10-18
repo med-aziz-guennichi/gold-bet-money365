@@ -1,6 +1,10 @@
 import { createHash, randomInt } from "node:crypto";
 import { ManagementError } from "@gold-bet-clean-money365/auth/errors";
-import { formatTnd, parseTnd } from "@gold-bet-clean-money365/auth/money";
+import {
+	type Currency,
+	formatAmount,
+	parseAmount,
+} from "@gold-bet-clean-money365/auth/money";
 import { NotificationService } from "@gold-bet-clean-money365/auth/notifications";
 import { createRateLimiter } from "@gold-bet-clean-money365/auth/rate-limit";
 import {
@@ -45,6 +49,7 @@ const engines: Record<SessionGame, SessionEngine> = {
 	"video-poker": poker,
 };
 type SessionDoc = {
+	currency?: Currency;
 	_id: string;
 	userId: string;
 	game: SessionGame;
@@ -59,6 +64,7 @@ type SessionDoc = {
 	payoutMillimes?: number;
 };
 export type GameSession = {
+	currency?: Currency;
 	id: string;
 	game: SessionGame;
 	status: "active" | "settled";
@@ -75,6 +81,7 @@ const fingerprint = (value: unknown) =>
 function publicSession(doc: SessionDoc, now = Date.now()): GameSession {
 	return {
 		id: doc._id,
+		currency: doc.currency ?? "TND",
 		game: doc.game,
 		status: doc.status,
 		stakeMillimes: doc.stakeMillimes,
@@ -139,6 +146,7 @@ export class CasinoSessions {
 		const user = await activeAccount(this.db, doc.userId, session);
 		const round: CasinoRound = {
 			id: doc._id,
+			currency: doc.currency ?? "TND",
 			game: doc.game,
 			version: doc.version,
 			choice: "play",
@@ -159,6 +167,7 @@ export class CasinoSessions {
 			{
 				...round,
 				_id: doc._id,
+				currency: doc.currency ?? "TND",
 				userId: doc.userId,
 				fingerprint: doc.fingerprint,
 				fournisseurId: user?.fournisseurId ?? null,
@@ -174,7 +183,7 @@ export class CasinoSessions {
 				userId: doc.userId,
 				kind: "casino.settled",
 				title: `${name} · ${round.status}`,
-				message: `Stake ${formatTnd(doc.stakeMillimes)} · return ${formatTnd(payout)}.`,
+				message: `Stake ${formatAmount(doc.stakeMillimes, doc.currency)} · return ${formatAmount(payout, doc.currency)}.`,
 				href: "/casino",
 			},
 			session,
@@ -189,7 +198,7 @@ export class CasinoSessions {
 			stake: string;
 		},
 	) {
-		await this.authorize(userId);
+		const user = await this.authorize(userId);
 		if (input.version !== CASINO_VERSION)
 			throw new ManagementError(
 				"CONFLICT",
@@ -197,14 +206,14 @@ export class CasinoSessions {
 			);
 		let stake: number;
 		try {
-			stake = parseTnd(input.stake);
+			stake = parseAmount(input.stake);
 		} catch {
 			throw new ManagementError("BAD_REQUEST", "Invalid stake.");
 		}
 		if (stake < 100 || stake > 100000)
 			throw new ManagementError(
 				"BAD_REQUEST",
-				"Stake must be between 0.100 and 100.000 TND.",
+				"Stake must be between 0.100 and 100.000 credits.",
 			);
 		const id = `${userId}:${input.requestId}`;
 		const hash = fingerprint({
@@ -245,6 +254,7 @@ export class CasinoSessions {
 				);
 			const balance = await move(id, stake, 0);
 			const doc: SessionDoc = {
+				currency: user.currency ?? "TND",
 				_id: id,
 				userId,
 				game: input.game,

@@ -1,4 +1,4 @@
-import { parseTnd } from "@gold-bet-clean-money365/auth/money";
+import { parseAmount } from "@gold-bet-clean-money365/auth/money";
 import { z } from "zod";
 
 const amount = z
@@ -6,12 +6,12 @@ const amount = z
 	.max(20)
 	.refine((value) => {
 		try {
-			parseTnd(value);
+			parseAmount(value);
 			return true;
 		} catch {
 			return false;
 		}
-	}, "Enter a valid TND amount with at most 3 decimal places.");
+	}, "Enter a valid amount with at most 3 decimal places.");
 
 export const betHistoryInput = z
 	.object({
@@ -42,7 +42,7 @@ export const betHistoryInput = z
 			if (value.minStake === undefined || value.maxStake === undefined)
 				return true;
 			try {
-				return parseTnd(value.minStake) <= parseTnd(value.maxStake);
+				return parseAmount(value.minStake) <= parseAmount(value.maxStake);
 			} catch {
 				return false;
 			}

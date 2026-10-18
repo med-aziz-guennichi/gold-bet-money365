@@ -2,7 +2,7 @@ import type { Database } from "@gold-bet-clean-money365/db";
 import type { ClientSession } from "mongodb";
 import type { AccountIdentity } from "./access";
 import { ManagementError } from "./errors";
-import { formatTnd } from "./money";
+import { formatAmount } from "./money";
 import { activeAccount, findAccount, userCollection } from "./storage";
 
 export type NotificationDocument = {
@@ -69,7 +69,7 @@ export class NotificationService {
 						userId: admin._id.toHexString(),
 						kind: "client.created",
 						title: "Client created",
-						message: `${supplier?.name ?? "Fournisseur"} created client ${target.name} with ${formatTnd(amount)} initial credit.`,
+						message: `${supplier?.name ?? "Fournisseur"} created client ${target.name} with ${formatAmount(amount, target.currency)} initial credit.`,
 						href: "/dashboard",
 					},
 					session,
@@ -86,7 +86,7 @@ export class NotificationService {
 					userId: target.id,
 					kind: "user.credit",
 					title: "Wallet credited",
-					message: `${parent?.name ?? "Your client"} added ${formatTnd(amount)} to your wallet.`,
+					message: `${parent?.name ?? "Your client"} added ${formatAmount(amount, target.currency)} to your wallet.`,
 					href: "/bets",
 				},
 				session,
@@ -149,7 +149,7 @@ export class NotificationService {
 					userId: client.fournisseurId,
 					kind: "client.low-credit",
 					title: "Call your client",
-					message: `${client.name} has transferred more than 80% of received credits to users (${formatTnd(transferred)} of ${formatTnd(received)}). Call them to arrange a top-up.`,
+					message: `${client.name} has transferred more than 80% of received credits to users (${formatAmount(transferred, client.currency)} of ${formatAmount(received, client.currency)}). Call them to arrange a top-up.`,
 					href: "/dashboard",
 				},
 				session,

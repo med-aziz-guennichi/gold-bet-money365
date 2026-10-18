@@ -1,3 +1,4 @@
+import type { Currency } from "@gold-bet-clean-money365/api/access";
 import type {
 	CasinoOutcome,
 	TableProps,
@@ -12,12 +13,14 @@ import { roundSummary } from "@/lib/round-summary";
 export function RoundFeedback({
 	outcome,
 	stakeMillimes,
+	currency,
 	busy,
 	phase,
 	error,
 }: {
 	outcome: CasinoOutcome | null;
 	stakeMillimes: number;
+	currency?: Currency;
 	busy: boolean;
 	phase: TableProps["phase"];
 	error?: string;
@@ -67,17 +70,17 @@ export function RoundFeedback({
 					<div className="round-feedback-totals">
 						<span>
 							<LocalizedText text="Credits played" />
-							<b>{formatPlayCredits(stakeMillimes)}</b>
+							<b>{formatPlayCredits(stakeMillimes, currency)}</b>
 						</span>
 						<span>
 							<LocalizedText text="Credits returned" />
-							<b>{formatPlayCredits(summary.returned)}</b>
+							<b>{formatPlayCredits(summary.returned, currency)}</b>
 						</span>
 						<span>
 							<LocalizedText text="Net change" />
 							<b>
 								{summary.net > 0 ? "+" : ""}
-								{formatPlayCredits(summary.net)}
+								{formatPlayCredits(summary.net, currency)}
 							</b>
 						</span>
 					</div>

@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { ManagementError } from "@gold-bet-clean-money365/auth/errors";
-import { formatTnd, parseTnd } from "@gold-bet-clean-money365/auth/money";
+import { formatAmount, parseAmount } from "@gold-bet-clean-money365/auth/money";
 import { NotificationService } from "@gold-bet-clean-money365/auth/notifications";
 import { createRateLimiter } from "@gold-bet-clean-money365/auth/rate-limit";
 import {
@@ -54,6 +54,7 @@ function resultLabel(value: string) {
 function serialize(bet: BetDocument): SavedBet {
 	return {
 		id: bet._id.toHexString(),
+		currency: bet.currency ?? "TND",
 		picks: bet.picks,
 		stakeMillimes: bet.stakeMillimes,
 		potentialReturnMillimes: bet.potentialReturnMillimes,
@@ -125,7 +126,7 @@ export class BettingService {
 			);
 		let stakeMillimes: number;
 		try {
-			stakeMillimes = parseTnd(input.stake);
+			stakeMillimes = parseAmount(input.stake);
 		} catch {
 			throw new ManagementError(
 				"BAD_REQUEST",
@@ -282,6 +283,7 @@ export class BettingService {
 		}
 		const quotedAt = new Date(validationStartedAt);
 		const bet: BetDocument = {
+			currency: user.currency ?? "TND",
 			_id: new ObjectId(),
 			userId,
 			requestId: input.requestId,
@@ -386,6 +388,7 @@ export class BettingService {
 			try {
 				await this.wallets.payBet({
 					betId: bet._id.toHexString(),
+					currency: bet.currency,
 					userId: bet.userId,
 					payoutMillimes: settlement.payoutMillimes,
 					claim: async (session) => {
@@ -412,7 +415,7 @@ export class BettingService {
 									userId: bet.userId,
 									kind: "bet.settled",
 									title: `Bet ${settlement.status.toLowerCase()}`,
-									message: `Your bet is ${settlement.status.toLowerCase()}. ${formatTnd(settlement.payoutMillimes)} returned to your wallet.`,
+									message: `Your bet is ${settlement.status.toLowerCase()}. ${formatAmount(settlement.payoutMillimes, bet.currency)} returned to your wallet.`,
 									href: "/bets",
 								},
 								session,
@@ -579,6 +582,7 @@ export class BettingService {
 		const resolvedAt = new Date();
 		await this.wallets.payBet({
 			betId: input.betId,
+			currency: bet.currency,
 			userId: bet.userId,
 			payoutMillimes: settlement.payoutMillimes,
 			claim: async (session) => {
@@ -633,7 +637,7 @@ export class BettingService {
 						userId: bet.userId,
 						kind: "bet.settled",
 						title: `Bet ${settlement.status.toLowerCase()}`,
-						message: `Your bet is ${settlement.status.toLowerCase()}. ${formatTnd(settlement.payoutMillimes)} returned to your wallet.`,
+						message: `Your bet is ${settlement.status.toLowerCase()}. ${formatAmount(settlement.payoutMillimes, bet.currency)} returned to your wallet.`,
 						href: "/bets",
 					},
 					session,
@@ -667,7 +671,7 @@ export class BettingService {
 	}
 
 	async list(userId: string, input: BetHistoryInput) {
-		await this.user(userId);
+		const user = await this.user(userId);
 		const rate = await this.consume(`bet-read:${userId}`, {
 			window: 60,
 			max: 120,
@@ -698,10 +702,10 @@ export class BettingService {
 			constraints.push({
 				stakeMillimes: {
 					...(filters.minStake !== undefined
-						? { $gte: parseTnd(filters.minStake) }
+						? { $gte: parseAmount(filters.minStake) }
 						: {}),
 					...(filters.maxStake !== undefined
-						? { $lte: parseTnd(filters.maxStake) }
+						? { $lte: parseAmount(filters.maxStake) }
 						: {}),
 				},
 			});
@@ -780,6 +784,7 @@ export class BettingService {
 			total: summary.total,
 			summary,
 			page: filters.page,
+			currency: user.currency ?? "TND",
 		};
 	}
 }

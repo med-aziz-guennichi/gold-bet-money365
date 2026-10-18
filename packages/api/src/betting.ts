@@ -1,3 +1,4 @@
+import type { Currency } from "@gold-bet-clean-money365/auth/money";
 export type BetPickInput = {
 	matchId: string;
 	expectedOdd: string;
@@ -27,6 +28,7 @@ export type AcceptedBetPick = {
 	market: BetPickInput["market"] & { bookmaker: string };
 };
 export type SavedBet = {
+	currency?: Currency;
 	id: string;
 	stakeMillimes: number;
 	potentialReturnMillimes: number;

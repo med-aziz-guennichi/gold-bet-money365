@@ -11,6 +11,7 @@ import {
 	ObjectId,
 	userCollection,
 } from "@gold-bet-clean-money365/auth/storage";
+import { WalletService } from "@gold-bet-clean-money365/auth/wallets";
 import { createDb } from "@gold-bet-clean-money365/db";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
@@ -206,6 +207,127 @@ test("server betting debits persisted wallets and saves isolated bets", {
 		});
 		const forbidden = (error: unknown) =>
 			error instanceof Error && "code" in error && error.code === "FORBIDDEN";
+
+		await t.test(
+			"currency inheritance, protected transfers and sports/casino receipts",
+			async () => {
+				const wallets = new WalletService(db, env.BETTER_AUTH_SECRET);
+				const originalSupplier = supplier;
+				let phone = 25000000;
+				for (const currency of ["TND", "USD", "EUR"] as const) {
+					const create = (
+						actor: string,
+						parentId: string,
+						role: "fournisseur" | "client" | "user",
+						extra = {},
+					) =>
+						wallets.create(
+							actor,
+							{
+								name: `${currency} ${role}`,
+								phoneNumber: `+216${phone++}`,
+								password,
+								role,
+								parentId,
+								initialAmount:
+									role === "fournisseur"
+										? "1000"
+										: role === "client"
+											? "200"
+											: "100",
+								requestId: randomUUID(),
+								...extra,
+							},
+							"test-only-unused-hash",
+						);
+					const supplier = (
+						await create(admin, admin, "fournisseur", { currency })
+					).id;
+					const client = (await create(supplier, supplier, "client")).id;
+					const user = (await create(client, client, "user")).id;
+					for (const id of [supplier, client, user])
+						assert.equal((await wallets.balance(id)).currency, currency);
+					const before = (await wallets.balance(client)).balanceMillimes;
+					await assert.rejects(
+						() =>
+							create(client, client, "user", {
+								currency: currency === "USD" ? "EUR" : "USD",
+							}),
+						/inherited/,
+					);
+					assert.equal((await wallets.balance(client)).balanceMillimes, before);
+					const request = input("10.125");
+					const bet = await bets.place(user, request);
+					assert.equal(bet.currency, currency);
+					assert.equal((await bets.place(user, request)).id, bet.id);
+					currentStatus = "RESULTED";
+					currentScore = { home: 2, away: 0 };
+					await bets.settlePending(5, user);
+					const history = await bets.list(user, { page: 1, limit: 10 });
+					assert.equal(history.currency, currency);
+					assert.equal(history.items[0]?.payoutMillimes, 20250);
+					assert.equal(history.items[0]?.currency, currency);
+					const round = await new CasinoService(
+						db,
+						env.BETTER_AUTH_SECRET,
+					).play(user, {
+						requestId: randomUUID(),
+						game: "coin",
+						version: CASINO_VERSION,
+						stake: "1.005",
+						choice: "heads",
+						numbers: [],
+					});
+					assert.equal(round.currency, currency);
+					const sessions = new CasinoSessions(db, env.BETTER_AUTH_SECRET);
+					const game = await sessions.start(user, {
+						requestId: randomUUID(),
+						game: "video-poker",
+						version: CASINO_VERSION,
+						stake: "1.005",
+					});
+					assert.equal(game.currency, currency);
+					if (currency === "TND")
+						await db
+							.collection<{ _id: string }>("casinoSession")
+							.updateOne({ _id: game.id }, { $unset: { currency: "" } });
+					const ended = await sessions.action(user, {
+						id: game.id,
+						requestId: randomUUID(),
+						action: { type: "draw", holds: [] },
+					});
+					assert.equal(ended.currency, currency);
+					const recovered = await sessions.recover(user, game.id);
+					assert.equal(recovered?.status, "settled");
+					const notes = await db
+						.collection("notification")
+						.find({ userId: user })
+						.toArray();
+					assert.ok(notes.some((note) => note.message.includes(currency)));
+					const ledger = await wallets.history(admin, {
+						accountId: user,
+						page: 1,
+						limit: 100,
+					});
+					assert.ok(ledger.items.length > 4);
+					assert.ok(ledger.items.every((item) => item.currency === currency));
+					if (currency !== "TND") {
+						await assert.rejects(
+							() =>
+								wallets.topUp(originalSupplier, {
+									id: user,
+									amount: "1",
+									requestId: randomUUID(),
+								}),
+							/fund|manage/,
+						);
+					}
+					currentStatus = "TRADING";
+					currentScore = null;
+				}
+				assert.equal((await wallets.balance(supplier)).currency, "TND");
+			},
+		);
 
 		await t.test(
 			"two-way sport bets persist their sport, reject unsupported markets and pay once",

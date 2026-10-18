@@ -9,12 +9,24 @@ import {
 } from "./access";
 import { ManagementError } from "./errors";
 import type { CreateAccountInput } from "./management";
-import { MAX_WALLET_MILLIMES, parseTnd } from "./money";
+import {
+	type Currency,
+	currencies,
+	currencyOf,
+	MAX_WALLET_MILLIMES,
+	parseAmount,
+} from "./money";
 import { NotificationService } from "./notifications";
 import { activeAccount, findAccount, userCollection } from "./storage";
 
-type WalletDocument = { _id: string; balanceMillimes: number; updatedAt: Date };
+type WalletDocument = {
+	currency?: Currency;
+	_id: string;
+	balanceMillimes: number;
+	updatedAt: Date;
+};
 type TransferDocument = {
+	currency?: Currency;
 	_id: string;
 	fingerprint: string;
 	kind:
@@ -49,7 +61,7 @@ export class WalletService {
 
 	private amount(value: string, allowZero = false) {
 		try {
-			const amount = parseTnd(value);
+			const amount = parseAmount(value);
 			if (!allowZero && amount === 0)
 				throw new Error("Enter an amount greater than zero.");
 			return amount;
@@ -166,6 +178,11 @@ export class WalletService {
 			if (!target.parentId)
 				throw new ManagementError("FORBIDDEN", "Funding parent is missing.");
 			const parent = await this.active(target.parentId, session);
+			if (currencyOf(parent.currency) !== currencyOf(target.currency))
+				throw new ManagementError(
+					"BAD_REQUEST",
+					"Wallet currencies must match.",
+				);
 			if (parent.role !== (target.role === "client" ? "fournisseur" : "client"))
 				throw new ManagementError("FORBIDDEN", "Invalid funding hierarchy.");
 			const document = await findAccount(this.db, parent.id, session);
@@ -194,7 +211,13 @@ export class WalletService {
 		}
 		await this.wallets().updateOne(
 			{ _id: target.id },
-			{ $setOnInsert: { balanceMillimes: 0, updatedAt: new Date() } },
+			{
+				$setOnInsert: {
+					balanceMillimes: 0,
+					currency: currencyOf(target.currency),
+					updatedAt: new Date(),
+				},
+			},
 			{ session, upsert: true },
 		);
 		const credited = await this.wallets().findOneAndUpdate(
@@ -226,6 +249,8 @@ export class WalletService {
 		const amountMillimes = this.amount(input.initialAmount ?? "0", true);
 		const phoneNumber = normalizePhone(input.phoneNumber);
 		const requestId = input.requestId ?? randomUUID();
+		if (input.currency !== undefined && !currencies.includes(input.currency))
+			throw new ManagementError("BAD_REQUEST", "Unsupported currency.");
 		const fingerprint = this.fingerprint({
 			kind: "account.create",
 			name: input.name,
@@ -233,12 +258,26 @@ export class WalletService {
 			password: input.password,
 			role: input.role,
 			parentId: input.parentId,
+			...(input.currency ? { currency: input.currency } : {}),
 			amountMillimes,
 		});
 		const id = new ObjectId();
 		return this.transaction(async (session) => {
 			const actor = await this.active(actorId, session);
 			const parent = await this.active(input.parentId, session);
+			const currency =
+				input.role === "fournisseur"
+					? currencyOf(input.currency)
+					: currencyOf(parent.currency);
+			if (
+				input.role !== "fournisseur" &&
+				input.currency !== undefined &&
+				input.currency !== currency
+			)
+				throw new ManagementError(
+					"BAD_REQUEST",
+					"Currency is inherited from the parent account.",
+				);
 			let ownership: ReturnType<typeof childOwnership>;
 			try {
 				ownership = childOwnership(actor, parent, input.role);
@@ -260,6 +299,7 @@ export class WalletService {
 			const target = {
 				id: id.toHexString(),
 				role: input.role,
+				currency,
 				name: input.name,
 				...ownership,
 			};
@@ -271,6 +311,7 @@ export class WalletService {
 					emailVerified: false,
 					phoneNumber,
 					phoneNumberVerified: false,
+					currency,
 					role: input.role,
 					...ownership,
 					banned: false,
@@ -298,6 +339,7 @@ export class WalletService {
 					_id: `${actorId}:${requestId}`,
 					fingerprint,
 					kind: "account.create",
+					currency,
 					actorId,
 					targetId: target.id,
 					targetName: input.name,
@@ -361,6 +403,7 @@ export class WalletService {
 					_id: `${actorId}:${input.requestId}`,
 					fingerprint,
 					kind: "wallet.transfer",
+					currency: currencyOf(target.currency),
 					actorId,
 					targetId: target.id,
 					targetName: target.name,
@@ -399,7 +442,7 @@ export class WalletService {
 			transfersEnabled: Boolean(hello.setName || hello.msg === "isdbgrid"),
 			balanceMillimes:
 				(await this.wallets().findOne({ _id: actorId }))?.balanceMillimes ?? 0,
-			currency: "TND" as const,
+			currency: currencyOf(actor.currency),
 			canAllocate: actor.role === "admin",
 		};
 	}
@@ -453,6 +496,7 @@ export class WalletService {
 						stake: input.stakeMillimes,
 					}),
 					kind: "bet.stake",
+					currency: currencyOf(actor.currency),
 					actorId,
 					sourceId: actorId,
 					targetId: `bet:${bet.id}`,
@@ -483,6 +527,7 @@ export class WalletService {
 	/** The conditional bet update and wallet credit commit together, even across workers. */
 	async payBet(input: {
 		betId: string;
+		currency?: Currency;
 		userId: string;
 		payoutMillimes: number;
 		claim: (session: ClientSession) => Promise<boolean>;
@@ -494,6 +539,9 @@ export class WalletService {
 		)
 			throw new Error("Invalid payout.");
 		return this.transaction(async (session) => {
+			const owner = await findAccount(this.db, input.userId, session);
+			if (!owner || currencyOf(owner.currency) !== currencyOf(input.currency))
+				throw new Error("Payout currency does not match the account.");
 			if (!(await input.claim(session))) return false;
 			// Earned returns remain payable even when an account has been suspended.
 			const wallet = await this.wallets().findOneAndUpdate(
@@ -516,6 +564,7 @@ export class WalletService {
 				{
 					_id: `bet:payout:${input.betId}`,
 					kind: "bet.payout",
+					currency: currencyOf(input.currency),
 					fingerprint: this.fingerprint(input.betId),
 					actorId: "system",
 					sourceId: `bet:${input.betId}`,
@@ -596,6 +645,7 @@ export class WalletService {
 						_id: `casino:stake:${input.id}`,
 						fingerprint: this.fingerprint(input.id),
 						kind: "casino.stake",
+						currency: currencyOf(actor.currency),
 						actorId,
 						sourceId: actorId,
 						targetId: `casino:${input.id}`,
@@ -610,6 +660,7 @@ export class WalletService {
 						_id: `casino:payout:${input.id}`,
 						fingerprint: this.fingerprint(input.id),
 						kind: "casino.payout",
+						currency: currencyOf(actor.currency),
 						actorId: "system",
 						sourceId: `casino:${input.id}`,
 						targetId: actorId,
@@ -686,6 +737,7 @@ export class WalletService {
 						_id: `casino:stake:${id}`,
 						fingerprint: this.fingerprint(id),
 						kind: "casino.stake",
+						currency: currencyOf(actor.currency),
 						actorId,
 						sourceId: actorId,
 						targetId: `casino:${id}`,
@@ -701,6 +753,7 @@ export class WalletService {
 						_id: `casino:payout:${id}`,
 						fingerprint: this.fingerprint(id),
 						kind: "casino.payout",
+						currency: currencyOf(actor.currency),
 						actorId: "system",
 						sourceId: `casino:${id}`,
 						targetId: actorId,
@@ -713,19 +766,17 @@ export class WalletService {
 					});
 				if (entries.length)
 					await this.transfers().insertMany(entries, { session });
-				await this.db
-					.collection("managementAudit")
-					.insertOne(
-						{
-							actorId,
-							action: stake > 0 ? "casino.start" : "casino.settle",
-							targetId: id,
-							stakeMillimes: stake,
-							payoutMillimes: payout,
-							createdAt: now,
-						},
-						{ session },
-					);
+				await this.db.collection("managementAudit").insertOne(
+					{
+						actorId,
+						action: stake > 0 ? "casino.start" : "casino.settle",
+						targetId: id,
+						stakeMillimes: stake,
+						payoutMillimes: payout,
+						createdAt: now,
+					},
+					{ session },
+				);
 				return wallet.balanceMillimes;
 			});
 		});
@@ -768,6 +819,7 @@ export class WalletService {
 			items: records.map(
 				({
 					_id,
+					currency,
 					sourceId,
 					targetId,
 					sourceName,
@@ -778,6 +830,7 @@ export class WalletService {
 					createdAt,
 				}) => ({
 					id: _id,
+					currency: currencyOf(currency),
 					sourceId,
 					targetId,
 					sourceName,

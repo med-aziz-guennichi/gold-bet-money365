@@ -1,6 +1,6 @@
 import { normalizePhone, roles } from "@gold-bet-clean-money365/auth/access";
 import { ManagementError } from "@gold-bet-clean-money365/auth/management";
-import { parseTnd } from "@gold-bet-clean-money365/auth/money";
+import { currencies, parseAmount } from "@gold-bet-clean-money365/auth/money";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
@@ -13,11 +13,11 @@ const amount = z
 	.max(20)
 	.superRefine((value, context) => {
 		try {
-			parseTnd(value);
+			parseAmount(value);
 		} catch (error) {
 			context.addIssue({
 				code: "custom",
-				message: error instanceof Error ? error.message : "Invalid TND amount.",
+				message: error instanceof Error ? error.message : "Invalid amount.",
 			});
 		}
 	});
@@ -102,6 +102,7 @@ export const accountsRouter = {
 					role: z.enum(["fournisseur", "client", "user"]),
 					parentId: id,
 					initialAmount: amount.default("0"),
+					currency: z.enum(currencies).optional(),
 					requestId: z.uuid(),
 				})
 				.strict(),

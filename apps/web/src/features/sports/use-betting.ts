@@ -1,4 +1,4 @@
-import { parseTnd } from "@gold-bet-clean-money365/api/access";
+import { parseAmount } from "@gold-bet-clean-money365/api/access";
 import type { PlaceBetInput } from "@gold-bet-clean-money365/api/betting";
 import { calculateBetReturn } from "@gold-bet-clean-money365/api/betting-money";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -153,7 +153,7 @@ export function useBetting() {
 	let totalOdds = 1;
 	let stakeError = "";
 	try {
-		stakeMillimes = parseTnd(stake);
+		stakeMillimes = parseAmount(stake);
 		if (stakeMillimes <= 0) throw new Error("Enter a stake greater than zero.");
 		const preview = selected.length
 			? calculateBetReturn(
@@ -197,6 +197,7 @@ export function useBetting() {
 		place.mutate({ ownerId: userId, input: request.current.input });
 	}
 	const slipProps = {
+		currency: wallet.data?.currency ?? "TND",
 		selected,
 		stake,
 		balanceMillimes,

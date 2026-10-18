@@ -39,6 +39,12 @@ export function createAuth(
 		},
 		user: {
 			additionalFields: {
+				currency: {
+					type: "string",
+					required: false,
+					defaultValue: "TND",
+					input: false,
+				},
 				parentId: { type: "string", required: false, input: false },
 				fournisseurId: { type: "string", required: false, input: false },
 				clientId: { type: "string", required: false, input: false },

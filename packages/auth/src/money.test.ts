@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { formatTnd, parseTnd } from "./money";
+import {
+	currencies,
+	currencyOf,
+	formatAmount,
+	formatTnd,
+	parseTnd,
+} from "./money";
 
 test("TND amounts use exact integer millimes", () => {
 	assert.equal(parseTnd("100000"), 100_000_000);
@@ -23,4 +29,15 @@ test("TND amounts use exact integer millimes", () => {
 		"01",
 	])
 		assert.throws(() => parseTnd(value), value);
+});
+
+test("denominations preserve integer credit precision and default to TND", () => {
+	assert.equal(currencyOf(), "TND");
+	for (const currency of currencies) {
+		assert.equal(
+			formatAmount(parseTnd("1234.005"), currency),
+			`1,234.005 ${currency}`,
+		);
+		assert.equal(formatAmount(-1, currency), `−0.001 ${currency}`);
+	}
 });

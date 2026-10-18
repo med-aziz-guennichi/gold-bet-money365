@@ -1,5 +1,5 @@
 "use client";
-import { formatTnd } from "@gold-bet-clean-money365/api/access";
+import { formatAmount } from "@gold-bet-clean-money365/api/access";
 import { settleReturns } from "@gold-bet-clean-money365/api/bet-settlement";
 import type { SavedBet } from "@gold-bet-clean-money365/api/betting";
 import { LocalizedText, useI18n } from "@gold-bet-clean-money365/i18n";
@@ -133,7 +133,7 @@ function ReviewReceipt({ bet }: { bet: SavedBet & { ownerName: string } }) {
 				{t("Account")}: {t(bet.ownerName)}
 			</p>
 			<p className="mt-2 text-sm">
-				{t("Stake")}: {formatTnd(bet.stakeMillimes)} ·{" "}
+				{t("Stake")}: {formatAmount(bet.stakeMillimes, bet.currency)} ·{" "}
 				{new Date(bet.placedAt).toLocaleString(locale)}
 			</p>
 			<p className="mt-2 text-amber-200 text-sm">
@@ -196,7 +196,7 @@ function ReviewReceipt({ bet }: { bet: SavedBet & { ownerName: string } }) {
 				{preview && (
 					<p role="status" className="rounded-xl bg-white/5 p-3 font-semibold">
 						{t(preview.status)} · {t("Credits returned")}:{" "}
-						{formatTnd(preview.payoutMillimes)}
+						{formatAmount(preview.payoutMillimes, bet.currency)}
 					</p>
 				)}
 				<label className="flex items-start gap-3 text-sm">

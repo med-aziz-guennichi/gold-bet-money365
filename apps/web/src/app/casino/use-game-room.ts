@@ -1,5 +1,5 @@
 "use client";
-import { parseTnd } from "@gold-bet-clean-money365/api/access";
+import { parseAmount } from "@gold-bet-clean-money365/api/access";
 import {
 	CASINO_VERSION,
 	type CasinoInput,
@@ -336,10 +336,10 @@ export function useGameRoom(gameId: GameId, preferWallet = false) {
 		setError("");
 		let amount: number;
 		try {
-			amount = parseTnd(stake);
+			amount = parseAmount(stake);
 			if (amount < 100 || amount > 100000) throw new Error();
 		} catch {
-			setError("Stake must be 0.100–100.000 TND.");
+			setError("Stake must be between 0.100 and 100.000 credits.");
 			return;
 		}
 		if (gameId === "keno" && numbers.length !== 3) {

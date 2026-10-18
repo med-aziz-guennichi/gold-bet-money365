@@ -1,3 +1,4 @@
+import type { Currency } from "@gold-bet-clean-money365/auth/money";
 import { game as baccarat } from "@gold-bet-clean-money365/casino-baccarat";
 import { game as blackjack } from "@gold-bet-clean-money365/casino-blackjack";
 import { game as coin } from "@gold-bet-clean-money365/casino-coin";
@@ -48,6 +49,7 @@ export type CasinoOutcome = {
 	path?: number[];
 };
 export type CasinoRound = {
+	currency?: Currency;
 	id: string;
 	game: CasinoGameId;
 	version: string;

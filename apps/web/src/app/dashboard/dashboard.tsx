@@ -2,8 +2,10 @@
 
 import {
 	type AccountSummary,
+	type Currency,
 	canUseDashboard,
-	formatTnd,
+	currencies,
+	formatAmount,
 	type Role,
 } from "@gold-bet-clean-money365/api/access";
 import { LocalizedText, useI18n } from "@gold-bet-clean-money365/i18n";
@@ -349,7 +351,7 @@ export default function Dashboard({
 									>
 										{account.role === "admin"
 											? "Admin allocation"
-											: formatTnd(account.balanceMillimes)}
+											: formatAmount(account.balanceMillimes, account.currency)}
 									</td>
 									<td className="px-5 py-4">
 										<span
@@ -498,7 +500,11 @@ export default function Dashboard({
 									<p className="text-sm text-white/60">
 										{" "}
 										<LocalizedText text="Current balance:" />{" "}
-										{formatTnd(action.account.balanceMillimes)}.
+										{formatAmount(
+											action.account.balanceMillimes,
+											action.account.currency,
+										)}
+										.
 									</p>
 									<p className="text-sm text-white/50">
 										{action.account.role === "fournisseur"
@@ -507,7 +513,8 @@ export default function Dashboard({
 									</p>
 									<label className="block text-sm">
 										{" "}
-										<LocalizedText text="Amount to add (TND)" />{" "}
+										<LocalizedText text="Amount to add" /> (
+										{action.account.currency ?? "TND"}){" "}
 										<input
 											className={`${field} mt-2`}
 											name="amount"
@@ -645,6 +652,13 @@ function CreateAccount({
 	onCreated: () => Promise<void>;
 }) {
 	const { t } = useI18n();
+	const [chosenCurrency, setChosenCurrency] = useState<Currency>("TND");
+	const wallet = useQuery(
+		orpc.accounts.wallet.queryOptions({
+			queryKey: ["management", actorId, "wallet"],
+			retry: false,
+		}),
+	);
 	const [role, setRole] = useState(
 		availableRoles[0] as "fournisseur" | "client" | "user",
 	);
@@ -677,6 +691,12 @@ function CreateAccount({
 			retry: false,
 		}),
 	);
+	const currency =
+		role === "fournisseur"
+			? chosenCurrency
+			: ownParent
+				? wallet.data?.currency
+				: parents.data?.items.find((item) => item.id === parentId)?.currency;
 	const create = useMutation({
 		gcTime: 0,
 		mutationFn: (input: Parameters<typeof orpc.accounts.create.call>[0]) =>
@@ -692,6 +712,7 @@ function CreateAccount({
 			phoneNumber: String(form.get("phoneNumber") ?? ""),
 			password: String(form.get("password") ?? ""),
 			role,
+			...(role === "fournisseur" ? { currency: chosenCurrency } : {}),
 			parentId: ownParent ? actorId : parentId,
 			initialAmount: String(form.get("initialAmount") ?? "0"),
 			requestId,
@@ -743,7 +764,7 @@ function CreateAccount({
 							/>
 						</label>
 						<select
-							aria-label={"Parent $<LocalizedText text={parentRole} />"}
+							aria-label={`${t("Parent")} ${t(parentRole)}`}
 							className={field}
 							value={parentId}
 							onChange={(e) => setParentId(e.target.value)}
@@ -772,6 +793,34 @@ function CreateAccount({
 						</p>
 					</div>
 				)}
+				<label className="block text-sm">
+					{t("Currency")}
+					<select
+						aria-label={t("Currency")}
+						className={`${field} mt-2`}
+						value={currency ?? ""}
+						disabled={role !== "fournisseur" || create.isPending}
+						onChange={(event) => {
+							const value = event.target.value;
+							if (currencies.some((item) => item === value))
+								setChosenCurrency(value as Currency);
+						}}
+					>
+						{!currency && (
+							<option value="">{t("Select a parent account")}</option>
+						)}
+						{currencies.map((item) => (
+							<option key={item} value={item}>
+								{item}
+							</option>
+						))}
+					</select>
+					<span className="mt-2 block text-white/45 text-xs">
+						{t(
+							"Clients and users inherit their fournisseur’s currency. Currency cannot be changed after creation.",
+						)}
+					</span>
+				</label>
 				<label className="block text-sm">
 					{" "}
 					<LocalizedText text="Display name" />{" "}
@@ -816,7 +865,7 @@ function CreateAccount({
 				</label>
 				<label className="block text-sm">
 					{" "}
-					<LocalizedText text="Initial wallet amount (TND)" />{" "}
+					<LocalizedText text="Initial wallet amount" /> ({currency ?? "—"}){" "}
 					<input
 						className={`${field} mt-2`}
 						name="initialAmount"
@@ -828,9 +877,11 @@ function CreateAccount({
 						required
 					/>
 					<span className="mt-2 block text-white/45 text-xs">
-						{role === "fournisseur"
-							? "Admin allocates this amount to the new fournisseur."
-							: `Deducted from the selected $<LocalizedText text={parentRole} />'s wallet. The account and transfer are created together.`}
+						{t(
+							role === "fournisseur"
+								? "Admin allocates this amount to the new fournisseur."
+								: "Deducted from the selected parent wallet. The account and transfer are created together.",
+						)}
 					</span>
 				</label>
 

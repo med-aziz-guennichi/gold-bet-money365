@@ -1,7 +1,9 @@
+import type { Currency } from "./money";
 export const roles = ["admin", "fournisseur", "client", "user"] as const;
 export type Role = (typeof roles)[number];
 
 export type AccountIdentity = {
+	currency?: Currency;
 	id: string;
 	role: Role;
 	parentId?: string | null;

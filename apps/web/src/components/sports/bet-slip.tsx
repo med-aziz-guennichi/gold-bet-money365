@@ -1,6 +1,9 @@
 "use client";
 
-import { formatTnd } from "@gold-bet-clean-money365/api/access";
+import {
+	type Currency,
+	formatAmount,
+} from "@gold-bet-clean-money365/api/access";
 import type { SavedBet } from "@gold-bet-clean-money365/api/betting";
 import { ArrowRight, Plus, ShieldCheck, Ticket, X } from "lucide-react";
 import Link from "next/link";
@@ -15,6 +18,7 @@ import { useI18n } from "@/features/i18n/locale-provider";
 import type { Selection } from "@/features/sports/types";
 
 export type BetSlipProps = {
+	currency: Currency;
 	selected: Selection[];
 	balanceMillimes: number;
 	bets: SavedBet[];
@@ -34,6 +38,7 @@ export type BetSlipProps = {
 
 /** Displays server wallet credits and persisted bets; never credits or settles money. */
 function BetSlipContent({
+	currency,
 	selected,
 	balanceMillimes,
 	bets,
@@ -66,7 +71,9 @@ function BetSlipContent({
 						<p className="mt-1 text-[11px] text-white/40">
 							{t("Wallet credits")}:{" "}
 							<span className="font-bold text-[#c6f36b]">
-								{walletLoading ? t("Loading…") : formatTnd(balanceMillimes)}
+								{walletLoading
+									? t("Loading…")
+									: formatAmount(balanceMillimes, currency)}
 							</span>
 						</p>
 					)}
@@ -122,7 +129,7 @@ function BetSlipContent({
 							htmlFor={stakeId}
 							className="font-bold text-[10px] text-white/40 uppercase tracking-[.13em]"
 						>
-							{t("Stake (TND credits)")}
+							{`${t("Stake")} (${currency})`}
 						</label>
 						<div className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 bg-[#090d0a] px-3">
 							<input
@@ -137,7 +144,9 @@ function BetSlipContent({
 								onChange={(event) => onStakeChange(event.target.value)}
 								className="w-full bg-transparent py-3 font-bold text-sm outline-none"
 							/>
-							<span className="font-bold text-white/35 text-xs">TND</span>
+							<span className="font-bold text-white/35 text-xs">
+								{currency}
+							</span>
 						</div>
 						<div className="mt-2 flex gap-2">
 							{[5, 10, 25].map((amount) => (
@@ -163,7 +172,7 @@ function BetSlipContent({
 						<div className="flex justify-between text-white/45">
 							<span>{t("Potential return")}</span>
 							<span className="font-extrabold text-[#c6f36b]">
-								{formatTnd(potentialReturnMillimes)}
+								{formatAmount(potentialReturnMillimes, currency)}
 							</span>
 						</div>
 					</div>
@@ -230,7 +239,7 @@ function BetSlipContent({
 									<span className="font-bold text-white/75">
 										{bet.picks.length}{" "}
 										{t(bet.picks.length === 1 ? "pick" : "picks")} ·{" "}
-										{formatTnd(bet.stakeMillimes)}
+										{formatAmount(bet.stakeMillimes, bet.currency)}
 									</span>
 									<span className="font-bold text-white/45">
 										{t(bet.status)}
@@ -272,7 +281,7 @@ function BetSlipContent({
 								</p>
 								<p className="mt-1 text-[#c6f36b] text-[10px]">
 									{t("Potential return")}:{" "}
-									{formatTnd(bet.potentialReturnMillimes)}
+									{formatAmount(bet.potentialReturnMillimes, bet.currency)}
 								</p>
 								<p className="mt-2 text-[10px] text-white/65">
 									{bet.status === "Pending"
@@ -282,7 +291,7 @@ function BetSlipContent({
 											)
 										: bet.status === "Lost"
 											? t("Final result: no payout.")
-											: `${t("Paid to wallet")}: ${formatTnd(bet.payoutMillimes ?? 0)}`}
+											: `${t("Paid to wallet")}: ${formatAmount(bet.payoutMillimes ?? 0, bet.currency)}`}
 									{bet.settledAt && (
 										<span className="mt-1 block text-white/40">
 											{new Date(bet.settledAt).toLocaleString(locale)}

@@ -8,7 +8,7 @@ import { useState } from "react";
 import { ContentLoading } from "@/components/loading-screen";
 import { SiteHeader } from "@/components/sports/page-chrome";
 import { authClient } from "@/lib/auth-client";
-import { formatPlayCredits as formatTnd } from "@/lib/play-credits";
+import { formatPlayCredits as formatCredits } from "@/lib/play-credits";
 import { orpc } from "@/utils/orpc";
 import "../studio.css";
 export default function CasinoHistory() {
@@ -84,11 +84,11 @@ export default function CasinoHistory() {
 										</span>
 										<span>
 											<LocalizedText text="Stake" />{" "}
-											{formatTnd(r.stakeMillimes)}
+											{formatCredits(r.stakeMillimes, r.currency ?? "TND")}
 										</span>
 										<strong>
 											<LocalizedText text="Return" />{" "}
-											{formatTnd(r.payoutMillimes)}
+											{formatCredits(r.payoutMillimes, r.currency ?? "TND")}
 										</strong>
 										<small>{r.status}</small>
 									</summary>

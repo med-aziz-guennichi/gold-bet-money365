@@ -1,6 +1,6 @@
 "use client";
 
-import { formatTnd } from "@gold-bet-clean-money365/api/access";
+import { formatAmount } from "@gold-bet-clean-money365/api/access";
 import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -46,11 +46,15 @@ export function WalletPanel({
 						/>
 					</p>
 					<p className="mt-2 font-bold text-[#c6f36b] text-xl">
-						{wallet.data
-							? wallet.data.canAllocate
-								? "Allocate TND to fournisseurs"
-								: formatTnd(wallet.data.balanceMillimes)
-							: "Loading wallet…"}
+						{wallet.data ? (
+							wallet.data.canAllocate ? (
+								<LocalizedText text="Allocate credits to fournisseurs" />
+							) : (
+								formatAmount(wallet.data.balanceMillimes, wallet.data.currency)
+							)
+						) : (
+							"Loading wallet…"
+						)}
 					</p>
 				</div>
 				<button
@@ -108,7 +112,7 @@ export function WalletPanel({
 									<td className="py-3 pe-4">{item.sourceName}</td>
 									<td className="py-3 pe-4">{item.targetName}</td>
 									<td className="whitespace-nowrap py-3 text-[#c6f36b]">
-										{formatTnd(item.amountMillimes)}
+										{formatAmount(item.amountMillimes, item.currency)}
 									</td>
 								</tr>
 							))}

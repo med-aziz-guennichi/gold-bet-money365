@@ -1,6 +1,6 @@
 "use client";
 
-import { formatTnd, parseTnd } from "@gold-bet-clean-money365/api/access";
+import { formatAmount, parseAmount } from "@gold-bet-clean-money365/api/access";
 import type { BetHistoryInput } from "@gold-bet-clean-money365/api/bet-history";
 import type { SavedBet } from "@gold-bet-clean-money365/api/betting";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -66,6 +66,7 @@ export default function BetHistory({ userId }: { userId: string }) {
 		}),
 	);
 	const total = history.data?.total ?? 0;
+	const currency = history.data?.currency ?? "TND";
 	const refresh = useMutation({
 		mutationFn: () => orpc.bets.refresh.call({}),
 		onSuccess: async () => {
@@ -96,11 +97,11 @@ export default function BetHistory({ userId }: { userId: string }) {
 			if (
 				next.minStake &&
 				next.maxStake &&
-				parseTnd(next.minStake) > parseTnd(next.maxStake)
+				parseAmount(next.minStake) > parseAmount(next.maxStake)
 			)
 				throw new Error("Minimum stake must not exceed maximum stake.");
 			for (const value of [next.minStake, next.maxStake])
-				if (value) parseTnd(value);
+				if (value) parseAmount(value);
 			setInput({
 				page: 1,
 				limit: Number(next.limit),
@@ -254,10 +255,9 @@ export default function BetHistory({ userId }: { userId: string }) {
 								<label key={field} className="space-y-2 text-white/55 text-xs">
 									<span>
 										{t(
-											field === "minStake"
-												? "Minimum stake (TND)"
-												: "Maximum stake (TND)",
-										)}
+											field === "minStake" ? "Minimum stake" : "Maximum stake",
+										)}{" "}
+										({currency})
 									</span>
 									<input
 										type="number"
@@ -339,13 +339,20 @@ export default function BetHistory({ userId }: { userId: string }) {
 								? `${summary.total} · ${summary.pending} ${t("Pending")}`
 								: "—",
 						],
-						["Total staked", summary ? formatTnd(summary.stakeMillimes) : "—"],
-						["Total paid", summary ? formatTnd(summary.payoutMillimes) : "—"],
+						[
+							"Total staked",
+							summary ? formatAmount(summary.stakeMillimes, currency) : "—",
+						],
+						[
+							"Total paid",
+							summary ? formatAmount(summary.payoutMillimes, currency) : "—",
+						],
 						[
 							"Settled net return",
 							summary
-								? formatTnd(
+								? formatAmount(
 										summary.payoutMillimes - summary.settledStakeMillimes,
+										currency,
 									)
 								: "—",
 						],
@@ -547,16 +554,17 @@ function BetCard({ bet }: { bet: SavedBet }) {
 				<div className="rounded-xl bg-black/20 p-4 text-sm">
 					<dl className="space-y-3">
 						{[
-							["Stake", formatTnd(bet.stakeMillimes)],
+							["Stake", formatAmount(bet.stakeMillimes, bet.currency)],
 							["Total odds", bet.totalOdds.toFixed(2)],
 							[
 								bet.status === "Pending"
 									? "Potential return"
 									: "Paid to wallet",
-								formatTnd(
+								formatAmount(
 									bet.status === "Pending"
 										? bet.potentialReturnMillimes
 										: (bet.payoutMillimes ?? 0),
+									bet.currency,
 								),
 							],
 						].map(([label, value]) => (

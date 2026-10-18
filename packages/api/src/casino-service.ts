@@ -1,6 +1,6 @@
 import { createHash, randomInt } from "node:crypto";
 import { ManagementError } from "@gold-bet-clean-money365/auth/errors";
-import { formatTnd, parseTnd } from "@gold-bet-clean-money365/auth/money";
+import { formatAmount, parseAmount } from "@gold-bet-clean-money365/auth/money";
 import { NotificationService } from "@gold-bet-clean-money365/auth/notifications";
 import { createRateLimiter } from "@gold-bet-clean-money365/auth/rate-limit";
 import {
@@ -34,7 +34,7 @@ function publicRound({
 	savedAt,
 	...round
 }: RoundDocument): CasinoRound {
-	return round;
+	return { ...round, currency: round.currency ?? "TND" };
 }
 
 export class CasinoService {
@@ -90,14 +90,14 @@ export class CasinoService {
 			throw new ManagementError("BAD_REQUEST", "Invalid game numbers.");
 		let stake: number;
 		try {
-			stake = parseTnd(input.stake);
+			stake = parseAmount(input.stake);
 		} catch {
 			throw new ManagementError("BAD_REQUEST", "Invalid stake.");
 		}
 		if (stake < 100 || stake > 100_000)
 			throw new ManagementError(
 				"BAD_REQUEST",
-				"Stake must be between 0.100 and 100.000 TND.",
+				"Stake must be between 0.100 and 100.000 credits.",
 			);
 		const fingerprint = createHash("sha256")
 			.update(
@@ -154,6 +154,7 @@ export class CasinoService {
 			existing: previous,
 			save: async (session, balance) => {
 				const round: CasinoRound = {
+					currency: user.currency ?? "TND",
 					id,
 					game: input.game,
 					version: input.version,
@@ -184,7 +185,7 @@ export class CasinoService {
 						userId,
 						kind: "casino.settled",
 						title: `${game.name} · ${round.status}`,
-						message: `Stake ${formatTnd(stake)} · return ${formatTnd(payout)}.`,
+						message: `Stake ${formatAmount(stake, user.currency)} · return ${formatAmount(payout, user.currency)}.`,
 						href: "/casino",
 					},
 					session,

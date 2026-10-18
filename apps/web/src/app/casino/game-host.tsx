@@ -6,7 +6,7 @@ import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import Link from "next/link";
 import { RoundFeedback } from "@/components/casino/round-feedback";
 import { SiteHeader } from "@/components/sports/page-chrome";
-import { formatPlayCredits as formatTnd } from "@/lib/play-credits";
+import { formatPlayCredits as formatCredits } from "@/lib/play-credits";
 import { tables } from "./tables";
 import { useGameRoom } from "./use-game-room";
 import "./studio.css";
@@ -41,6 +41,8 @@ export default function GameHost({
 		setDemoBalance,
 	} = useGameRoom(gameId, true);
 	const Table = tables[gameId];
+	const currency =
+		mode === "wallet" ? (wallet.data?.currency ?? "TND") : undefined;
 
 	return (
 		<div className={`studio-page theme-${gameId}`}>
@@ -106,6 +108,7 @@ export default function GameHost({
 						<RoundFeedback
 							outcome={outcome}
 							stakeMillimes={roundStake}
+							currency={currency}
 							busy={busy || !!pending}
 							phase={phase}
 							error={error}
@@ -121,9 +124,9 @@ export default function GameHost({
 						</span>
 						<strong className="studio-balance">
 							{mode === "practice"
-								? formatTnd(demoBalance)
+								? formatCredits(demoBalance)
 								: wallet.data
-									? formatTnd(wallet.data.balanceMillimes)
+									? formatCredits(wallet.data.balanceMillimes, currency)
 									: "Loading…"}
 						</strong>
 						<label htmlFor="studio-stake">
@@ -251,12 +254,13 @@ export default function GameHost({
 									<time>{new Date(r.createdAt).toLocaleString()}</time>
 									<span>{r.outcome.detail}</span>
 									<span>
-										<LocalizedText text="Stake" /> {formatTnd(r.stakeMillimes)}
+										<LocalizedText text="Stake" />{" "}
+										{formatCredits(r.stakeMillimes, r.currency ?? "TND")}
 									</span>
 									<strong className={r.status === "won" ? "positive" : ""}>
 										{" "}
 										<LocalizedText text="Return" />{" "}
-										{formatTnd(r.payoutMillimes)}
+										{formatCredits(r.payoutMillimes, r.currency ?? "TND")}
 									</strong>
 								</article>
 							))}

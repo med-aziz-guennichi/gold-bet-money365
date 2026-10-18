@@ -29,7 +29,7 @@ export default function Page() {
 				},
 				{
 					heading: "Play credits only",
-					text: "GoldBet365 does not provide purchases, withdrawals or redeemable prizes. Credit amounts displayed with TND are game units and are not money held for you.",
+					text: "GoldBet365 does not provide purchases, withdrawals or redeemable prizes. Credit amounts displayed with TND, USD or EUR are game units and are not money held for you.",
 				},
 			]}
 		/>

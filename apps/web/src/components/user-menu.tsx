@@ -1,6 +1,6 @@
 import {
 	canUseDashboard,
-	formatTnd,
+	formatAmount,
 } from "@gold-bet-clean-money365/api/access";
 import { LocalizedText } from "@gold-bet-clean-money365/i18n";
 import { Button } from "@gold-bet-clean-money365/ui/components/button";
@@ -73,7 +73,7 @@ function UserMenuContent() {
 					</span>
 					<strong className="text-[#c6f36b] tabular-nums">
 						{wallet.data
-							? formatTnd(wallet.data.balanceMillimes)
+							? formatAmount(wallet.data.balanceMillimes, wallet.data.currency)
 							: wallet.isError
 								? t("Unavailable")
 								: t("Loading…")}
@@ -104,7 +104,10 @@ function UserMenuContent() {
 							<DropdownMenuItem>
 								{" "}
 								<LocalizedText text="Wallet:" />{" "}
-								{formatTnd(wallet.data.balanceMillimes)}
+								{formatAmount(
+									wallet.data.balanceMillimes,
+									wallet.data.currency,
+								)}
 							</DropdownMenuItem>
 						)}
 						{canUseDashboard(session.user.role) && (

@@ -1,10 +1,12 @@
 import type { Database } from "@gold-bet-clean-money365/db";
 import { type ClientSession, ObjectId } from "mongodb";
 import { type AccountIdentity, isRole } from "./access";
+import { type Currency, currencyOf } from "./money";
 
 export { type ClientSession, ObjectId } from "mongodb";
 
 export type AccountDocument = {
+	currency?: Currency;
 	_id: ObjectId;
 	email?: string;
 	emailVerified?: boolean;
@@ -36,7 +38,12 @@ export async function findAccount(
 		{ session },
 	);
 	if (!user || !isRole(user.role)) return null;
-	return { ...user, id: user._id.toHexString(), role: user.role };
+	return {
+		...user,
+		currency: currencyOf(user.currency),
+		id: user._id.toHexString(),
+		role: user.role,
+	};
 }
 
 /** Check every ancestor on each authenticated request, without a claims cache. */
@@ -57,6 +64,11 @@ export async function activeAccount(
 		const parent = await findAccount(db, current.parentId, session);
 		if (!parent) return null;
 		if (
+			current.role !== "fournisseur" &&
+			currencyOf(current.currency) !== currencyOf(parent.currency)
+		)
+			return null;
+		if (
 			current.role === "user" &&
 			(parent.role !== "client" ||
 				current.clientId !== parent.id ||
@@ -76,7 +88,9 @@ export async function activeAccount(
 
 export async function ensureAuthIndexes(db: Database) {
 	await Promise.all([
-		db.collection("casinoSession").createIndex({userId:1,game:1,status:1}),
+		db
+			.collection("casinoSession")
+			.createIndex({ userId: 1, game: 1, status: 1 }),
 		db
 			.collection("casinoRound")
 			.createIndex({ userId: 1, createdAt: -1, _id: -1 }),
