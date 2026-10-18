@@ -320,7 +320,12 @@
 		"Checking your round…": "Vérification de votre manche…",
 		"Please wait for confirmation. Your credits are protected from duplicate requests.": "Patientez pendant la confirmation. Les demandes répétées ne débitent pas deux fois vos crédits.",
 		"Choose your next move or collect when available.": "Choisissez votre prochain coup ou récupérez le retour disponible.",
-		"Choose your options, then start a round. Results stay here until your next round.": "Choisissez vos options et lancez une manche. Le résultat reste visible jusqu’à la suivante."
+		"Choose your options, then start a round. Results stay here until your next round.": "Choisissez vos options et lancez une manche. Le résultat reste visible jusqu’à la suivante.",
+		"Search all fixtures": "Rechercher dans tous les matchs",
+		"Team or competition": "Équipe ou compétition",
+		"All available bookmaker prices are shown. View-only markets cannot be added to a bet.": "Toutes les cotes disponibles sont affichées. Les marchés en consultation ne peuvent pas être ajoutés à un pari.",
+		"Bookmakers": "Bookmakers",
+		"All bookmakers": "Tous les bookmakers"
 	},
 	"ar": {
 		"Welcome back": "مرحباً بعودتك",
@@ -643,6 +648,11 @@
 		"Checking your round…": "جارٍ التحقق من جولتك…",
 		"Please wait for confirmation. Your credits are protected from duplicate requests.": "يرجى انتظار التأكيد. رصيدك محمي من خصم الطلبات المتكررة.",
 		"Choose your next move or collect when available.": "اختر خطوتك التالية أو استرجع العائد عندما يكون متاحًا.",
-		"Choose your options, then start a round. Results stay here until your next round.": "اختر خياراتك ثم ابدأ الجولة. تبقى النتائج ظاهرة حتى الجولة التالية."
+		"Choose your options, then start a round. Results stay here until your next round.": "اختر خياراتك ثم ابدأ الجولة. تبقى النتائج ظاهرة حتى الجولة التالية.",
+		"Search all fixtures": "البحث في جميع المباريات",
+		"Team or competition": "الفريق أو البطولة",
+		"All available bookmaker prices are shown. View-only markets cannot be added to a bet.": "تُعرض جميع الأسعار المتاحة من مزودي الاحتمالات. لا يمكن إضافة الأسواق المخصصة للعرض فقط إلى قسيمة الرهان.",
+		"Bookmakers": "مزودو الاحتمالات",
+		"All bookmakers": "جميع مزودي الاحتمالات"
 	}
 }

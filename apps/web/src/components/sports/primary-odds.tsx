@@ -64,6 +64,8 @@ export function PrimaryOdds({
 				{market.scope === "FULL_TIME"
 					? t("Full match")
 					: market.scope.replaceAll("_", " ")}
+				{" · "}
+				{market.bookmaker}
 			</p>
 			{restriction && (
 				<p className="mb-2 text-amber-200 text-xs">{t(restriction)}</p>

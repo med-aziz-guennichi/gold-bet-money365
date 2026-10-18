@@ -113,6 +113,8 @@ export type FlashscoreService = {
 		sport: string;
 		cursor: number;
 		day?: number;
+		liveOnly?: boolean;
+		query?: string;
 	}): Promise<
 		FootballMatchesResponse & { nextCursor: number | null; checked: number }
 	>;

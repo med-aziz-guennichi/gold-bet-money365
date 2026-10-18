@@ -6,15 +6,26 @@ import { useEffect, useMemo } from "react";
 import { orpc } from "@/utils/orpc";
 import { useEventClock } from "./use-event-clock";
 
-export function usePricedEvents(sport: string, day = 0) {
+export function usePricedEvents(
+	sport: string,
+	day = 0,
+	liveOnly = false,
+	query = "",
+) {
 	const now = useEventClock();
 	const sports = useQuery(
 		orpc.flashscore.sports.queryOptions({ staleTime: 300_000, retry: false }),
 	);
 	const events = useInfiniteQuery({
-		queryKey: ["flashscore", "priced-events", sport, day],
+		queryKey: ["flashscore", "priced-events", sport, day, liveOnly, query],
 		queryFn: ({ pageParam }) =>
-			orpc.flashscore.browse.call({ sport, day, cursor: pageParam }),
+			orpc.flashscore.browse.call({
+				sport,
+				day,
+				liveOnly,
+				query,
+				cursor: pageParam,
+			}),
 		initialPageParam: 0,
 		getNextPageParam: (page) => page.nextCursor ?? undefined,
 		staleTime: 10_000,

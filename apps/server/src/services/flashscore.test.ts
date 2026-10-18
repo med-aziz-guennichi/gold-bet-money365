@@ -248,3 +248,163 @@ test("past scheduled events stay closed while recent results remain visible", as
 		"AWAITING_RESULTS",
 	);
 });
+
+test("live discovery and team search filter the entire schedule before pagination", async () => {
+	loadEnvFile(new URL("../../.env", import.meta.url));
+	process.env.VERCEL = "1";
+	const { FlashscoreClient } = await import("./flashscore");
+	const now = Date.now();
+	const live = {
+		id: "estlive1",
+		home: { name: "Espérance Tunis" },
+		away: { name: "Opponent" },
+		status: "live",
+		start_time: new Date(now - 3600_000).toISOString(),
+	};
+	const upcoming = Array.from({ length: 40 }, (_, i) => ({
+		id: `next${String(i).padStart(4, "0")}`,
+		home: { name: "Other" },
+		away: { name: "Team" },
+		status: "scheduled",
+		start_time: new Date(now + 3600_000).toISOString(),
+	}));
+	const client = new FlashscoreClient(async <T>(path: string): Promise<T> => {
+		const url = new URL(path, "http://test");
+		if (url.pathname === "/sports")
+			return { sports: [{ id: 1, slug: "football", name: "Football" }] } as T;
+		if (url.pathname === "/matches/status")
+			return {
+				...live,
+				stage: "Second Half",
+				home_score: 1,
+				away_score: 0,
+			} as T;
+		if (url.pathname === "/matches/odds")
+			return {
+				markets: [
+					{
+						bookmaker: { name: "Other Book" },
+						bet_type: "HOME_DRAW_AWAY",
+						bet_scope: "FULL_TIME",
+						selections: [{ selection: "home", value: 2 }],
+					},
+				],
+			} as T;
+		if (url.pathname === "/matches/live")
+			assert.equal(url.searchParams.get("timezone"), "1");
+		return {
+			sport: { name: "Football" },
+			competitions: [{ matches: [...upcoming, live, live] }],
+		} as T;
+	});
+	const all = await client.getPricedMatches({ sport: "football", cursor: 0 });
+	assert.equal(all.matches[0]?.id, live.id);
+	assert.equal(all.matches.filter((match) => match.id === live.id).length, 1);
+	const filtered = await client.getPricedMatches({
+		sport: "football",
+		cursor: 0,
+		liveOnly: true,
+	});
+	assert.deepEqual(
+		filtered.matches.map((match) => match.id),
+		[live.id],
+	);
+	assert.equal(filtered.nextCursor, null);
+	const search = await client.getPricedMatches({
+		sport: "football",
+		cursor: 0,
+		query: "esperance tunis",
+	});
+	assert.deepEqual(
+		search.matches.map((match) => match.id),
+		[live.id],
+	);
+	assert.equal(search.nextCursor, null);
+});
+
+test("regional odds union retains every bookmaker and line without duplicate or resurrected offers", async () => {
+	loadEnvFile(new URL("../../.env", import.meta.url));
+	process.env.VERCEL = "1";
+	const { FlashscoreClient } = await import("./flashscore");
+	const geos: string[] = [];
+	const client = new FlashscoreClient(async <T>(path: string): Promise<T> => {
+		const geo = new URL(path, "http://test").searchParams.get("geo");
+		geos.push(geo ?? "");
+		const home = {
+			selection: { value: "home" },
+			value: 2,
+			is_active: geo !== "TN",
+		};
+		const shared = {
+			bookmaker: { name: "1xBet" },
+			bet_type: "HOME_DRAW_AWAY",
+			bet_scope: "FULL_TIME",
+			selections: [
+				home,
+				home,
+				{ selection: "draw", value: 3 },
+				{ selection: "away", value: 4 },
+			],
+		};
+		return {
+			markets: [
+				shared,
+				shared,
+				...(geo === "GB"
+					? [{ ...shared, bookmaker: { name: "Another Book" } }]
+					: []),
+				{
+					bookmaker: { name: "1xBet" },
+					bet_type: "OVER_UNDER",
+					bet_scope: "FULL_TIME",
+					selections: [
+						{ selection: "over", handicap: 2.5, value: 1.9 },
+						{ selection: "over", handicap: 3.5, value: 2.5 },
+					],
+				},
+			],
+		} as T;
+	});
+	const snapshot = (await client.getOdds(["estlive1", "estlive1"])).odds
+		.estlive1;
+	assert.deepEqual(geos, ["TN", "GB"]);
+	assert.equal(snapshot?.markets.length, 3);
+	assert.equal(
+		snapshot?.markets.find(
+			(m) => m.bookmaker === "1xBet" && m.betType === "HOME_DRAW_AWAY",
+		)?.selections.length,
+		3,
+	);
+	assert.equal(snapshot?.markets[0]?.selections[0]?.active, false);
+	assert.equal(
+		snapshot?.markets.find((m) => m.betType === "OVER_UNDER")?.selections
+			.length,
+		2,
+	);
+	assert.ok(snapshot?.markets.some((m) => m.bookmaker === "Another Book"));
+	await client.getOdds(["estlive1"]);
+	assert.equal(geos.length, 2);
+});
+
+test("an unavailable regional catalogue does not hide odds from a healthy catalogue", async () => {
+	loadEnvFile(new URL("../../.env", import.meta.url));
+	process.env.VERCEL = "1";
+	const { FlashscoreClient } = await import("./flashscore");
+	const client = new FlashscoreClient(async <T>(path: string): Promise<T> => {
+		if (path.includes("geo=TN")) throw new Error("Unavailable");
+		return {
+			markets: [
+				{
+					bookmaker: { name: "Alternative" },
+					bet_type: "HOME_AWAY",
+					bet_scope: "FULL_TIME",
+					selections: [{ selection: "home", value: 2 }],
+				},
+			],
+		} as T;
+	});
+	assert.equal(
+		(await client.getOdds(["estlive1"])).odds.estlive1?.markets[0]?.bookmaker,
+		"Alternative",
+	);
+});

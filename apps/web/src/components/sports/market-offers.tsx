@@ -25,7 +25,13 @@ export function MarketOffers({
 	) => void;
 }) {
 	const { t } = useI18n();
-	const [showViewOnly, setShowViewOnly] = useState(false);
+	const [showViewOnly, setShowViewOnly] = useState(true);
+	const [bookmaker, setBookmaker] = useState("");
+	const bookmakerFilterId = useId();
+	const bookmakers = [
+		...new Set(match.odds.markets.map((market) => market.bookmaker)),
+	].sort();
+	const activeBookmaker = bookmakers.includes(bookmaker) ? bookmaker : "";
 	const hasViewOnly = match.odds.markets.some(
 		(market) => marketRestriction(match.sport, "TRADING", market) !== null,
 	);
@@ -44,6 +50,7 @@ export function MarketOffers({
 	// shown as sections inside it, instead of repeating the same accordion.
 	const groups = new Map<string, Map<string, FootballOddsMarket[]>>();
 	for (const market of availableMarkets) {
+		if (activeBookmaker && market.bookmaker !== activeBookmaker) continue;
 		if (!showViewOnly && marketRestriction(match.sport, "TRADING", market))
 			continue;
 		const periods = groups.get(market.betType) ?? new Map();
@@ -53,11 +60,29 @@ export function MarketOffers({
 
 	return (
 		<div className="space-y-3">
+			<div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-[#111713] p-4">
+				<label htmlFor={bookmakerFilterId} className="font-semibold text-sm">
+					{t("Bookmakers")} ({bookmakers.length})
+				</label>
+				<select
+					id={bookmakerFilterId}
+					value={activeBookmaker}
+					onChange={(event) => setBookmaker(event.target.value)}
+					className="min-w-0 flex-1 rounded-lg border border-white/15 bg-[#111713] px-3 py-2 text-sm"
+				>
+					<option value="">{t("All bookmakers")}</option>
+					{bookmakers.map((name) => (
+						<option key={name} value={name}>
+							{name}
+						</option>
+					))}
+				</select>
+			</div>
 			{hasViewOnly && (
 				<div className="rounded-xl border border-white/10 bg-[#111713] p-4 text-sm">
 					<p className="mb-3 text-white/60">
 						{t(
-							"Only markets supported for betting are shown by default. Other prices are available to view.",
+							"All available bookmaker prices are shown. View-only markets cannot be added to a bet.",
 						)}
 					</p>
 					<Button

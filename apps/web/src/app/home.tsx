@@ -11,7 +11,7 @@ import {
 	SelectValue,
 } from "@gold-bet-clean-money365/ui/components/select";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { MatchCenter } from "@/components/sports/match-center";
 import {
 	HeroSection,
@@ -55,7 +55,18 @@ function HomeContent() {
 
 	const requestedDay = Number(params.get("day") ?? 0);
 	const day = [-1, 0, 1, 2].includes(requestedDay) ? requestedDay : 0;
-	const eventsFeed = usePricedEvents(sport, day);
+	const [search, setSearch] = useState("");
+	const [query, setQuery] = useState("");
+	useEffect(() => {
+		const timer = setTimeout(() => setQuery(search.trim()), 350);
+		return () => clearTimeout(timer);
+	}, [search]);
+	const eventsFeed = usePricedEvents(
+		sport,
+		day,
+		params.get("view") === "live",
+		query,
+	);
 	const { t } = useI18n();
 	const betting = useBetting();
 
@@ -163,6 +174,23 @@ function HomeContent() {
 						)}
 					</p>
 				)}
+				<div className="mt-6">
+					<label
+						htmlFor="match-search"
+						className="mb-2 block font-semibold text-sm"
+					>
+						{t("Search all fixtures")}
+					</label>
+					<input
+						id="match-search"
+						type="search"
+						value={search}
+						maxLength={100}
+						onChange={(event) => setSearch(event.target.value)}
+						placeholder={t("Team or competition")}
+						className="w-full rounded-xl border border-white/15 bg-[#111713] px-4 py-3 text-sm outline-none focus:border-[#c6f36b]"
+					/>
+				</div>
 				<MatchCenter
 					key={`${sport}:${day}`}
 					liveOnly={params.get("view") === "live"}

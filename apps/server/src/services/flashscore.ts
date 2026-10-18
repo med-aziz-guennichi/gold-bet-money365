@@ -36,7 +36,7 @@ type MatchesPayload = {
 type OddsMarketPayload = {
 	bet_type?: string;
 	bet_scope?: string;
-	bookmaker?: { name?: string };
+	bookmaker?: { id?: string | number; name?: string };
 	has_live_betting?: boolean;
 	selections?: {
 		selection?: unknown;
@@ -48,6 +48,46 @@ type OddsMarketPayload = {
 	}[];
 };
 type OddsPayload = { markets?: OddsMarketPayload[] };
+/** Union catalogue coverage without duplicating bookmakers, markets or lines.
+ * The first catalogue wins conflicting prices, including suspended selections.
+ */
+function mergeOddsCatalogues(payloads: OddsPayload[]): OddsPayload {
+	const markets = new Map<string, OddsMarketPayload>();
+	for (const payload of payloads)
+		for (const market of payload.markets ?? []) {
+			const bookmaker =
+				market.bookmaker?.name?.trim() ||
+				String(market.bookmaker?.id ?? "Bookmaker");
+			const key = JSON.stringify([
+				bookmaker.toLowerCase(),
+				market.bet_type,
+				market.bet_scope,
+			]);
+			const existing = markets.get(key);
+			const selections = new Map<
+				string,
+				NonNullable<OddsMarketPayload["selections"]>[number]
+			>();
+			for (const selection of [
+				...(existing?.selections ?? []),
+				...(market.selections ?? []),
+			]) {
+				const identity = JSON.stringify([
+					normalizeOfferLabel(selection.selection)?.toLowerCase(),
+					normalizeOfferLabel(selection.handicap),
+					normalizeOfferLabel(selection.score),
+				]);
+				if (!selections.has(identity)) selections.set(identity, selection);
+			}
+			markets.set(key, {
+				...(existing ?? market),
+				bookmaker: { ...market.bookmaker, name: bookmaker },
+				selections: [...selections.values()],
+			});
+		}
+	return { markets: [...markets.values()] };
+}
+
 type MatchDetailsPayload = MatchPayload & {
 	sport?: { name?: string };
 	winner?: "home" | "away" | "draw" | null;
@@ -381,9 +421,17 @@ export class FlashscoreClient implements FlashscoreService {
 		sport: string;
 		cursor: number;
 		day?: number;
+		liveOnly?: boolean;
+		query?: string;
 	}) {
 		return this.browseCache.get(
-			`${input.sport}:${input.day ?? "all"}:${input.cursor}`,
+			JSON.stringify([
+				input.sport,
+				input.day,
+				input.cursor,
+				input.liveOnly,
+				input.query,
+			]),
 			async () => {
 				const fixtures = await this.getMatches({ sport: input.sport });
 				const dateKey = (time: number) =>
@@ -394,7 +442,24 @@ export class FlashscoreClient implements FlashscoreService {
 						day: "2-digit",
 					}).format(time);
 				const targetDate = dateKey(Date.now() + (input.day ?? 0) * 86400_000);
+				const search = (value: string) =>
+					value
+						.normalize("NFD")
+						.replace(/[\u0300-\u036f]/g, "")
+						.toLowerCase();
+				const terms = search(input.query ?? "")
+					.split(/\s+/)
+					.filter(Boolean);
 				const candidates = fixtures.matches.filter((match) => {
+					if (
+						input.liveOnly &&
+						!["TRADING_LIVE", "AWAITING_RESULTS"].includes(match.status)
+					)
+						return false;
+					const text = search(
+						`${match.home} ${match.away} ${match.categoryName} ${match.league}`,
+					);
+					if (!terms.every((term) => text.includes(term))) return false;
 					if (
 						match.status === "RESULTED" &&
 						Date.parse(match.finishedAt ?? match.time) <
@@ -410,12 +475,13 @@ export class FlashscoreClient implements FlashscoreService {
 							"RESULTED",
 						].includes(match.status) &&
 						(input.day === undefined ||
+							(input.day === 0 && match.status === "TRADING_LIVE") ||
 							dateKey(Date.parse(match.time)) === targetDate)
 					);
 				});
 				const ranks: Record<string, number> = {
-					TRADING: 0,
-					TRADING_LIVE: 1,
+					TRADING: 1,
+					TRADING_LIVE: 0,
 					AWAITING_RESULTS: 2,
 					RESULTED: 3,
 				};
@@ -461,6 +527,7 @@ export class FlashscoreClient implements FlashscoreService {
 				)
 					throw new Error("Prices are temporarily unavailable. Please retry.");
 				const matches = verifiedBatch.flatMap((match) => {
+					if (input.liveOnly && match.status !== "TRADING_LIVE") return [];
 					if (match.status === "RESULTED") return [match];
 					if (!["TRADING", "TRADING_LIVE"].includes(match.status)) return [];
 					const snapshot = prices.odds[match.id];
@@ -518,7 +585,7 @@ export class FlashscoreClient implements FlashscoreService {
 				`/matches?sport=${encodeURIComponent(sport)}&day=2&timezone=1`,
 			).catch((): MatchesPayload => ({ competitions: [] })),
 			this.request<MatchesPayload>(
-				`/matches/live?sport=${encodeURIComponent(sport)}`,
+				`/matches/live?sport=${encodeURIComponent(sport)}&timezone=1`,
 			).catch((): MatchesPayload => ({ competitions: [] })),
 		]);
 
@@ -640,13 +707,23 @@ export class FlashscoreClient implements FlashscoreService {
 							id,
 							async () => {
 								try {
-									const params = new URLSearchParams({
-										match: id,
-										geo: "TN",
-									});
-									const payload = await this.request<OddsPayload>(
-										`/matches/odds?${params.toString()}`,
-									);
+									// Both comparisons are public feed catalogues, not user geolocation.
+									// Sequential per event keeps upstream concurrency bounded at six.
+									const payloads: OddsPayload[] = [];
+									for (const geo of ["TN", "GB"]) {
+										try {
+											const params = new URLSearchParams({ match: id, geo });
+											payloads.push(
+												await this.request<OddsPayload>(
+													`/matches/odds?${params}`,
+												),
+											);
+										} catch {
+											/* One catalogue outage must not discard the other. */
+										}
+									}
+									if (!payloads.length) return null;
+									const payload = mergeOddsCatalogues(payloads);
 									const markets: FootballOddsMarket[] = (
 										payload.markets ?? []
 									).map((market) => ({
