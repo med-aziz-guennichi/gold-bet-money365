@@ -2,6 +2,7 @@
 
 import { useI18n } from "@gold-bet-clean-money365/i18n";
 import { Card, CardContent } from "@gold-bet-clean-money365/ui/components/card";
+import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
@@ -131,10 +132,14 @@ export function GoogleAnalytics() {
 				<Card
 					role="region"
 					aria-label={t("Analytics preferences")}
-					className="mx-auto mb-8 max-w-3xl rounded-2xl border border-white/15 bg-[#111713] text-white"
+					className="fixed inset-x-3 top-3 z-50 max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain rounded-2xl border border-white/15 bg-[#111713] py-0 text-white shadow-2xl sm:inset-x-auto sm:start-6 sm:top-auto sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:w-[440px] sm:max-w-[calc(100vw-3rem)]"
 				>
-					<CardContent className="space-y-4 p-5 sm:p-6">
-						<h2 className="font-bold text-lg">
+					<CardContent className="space-y-3 p-5">
+						<h2 className="flex items-center gap-2 font-bold text-base">
+							<ShieldCheck
+								aria-hidden="true"
+								className="size-5 shrink-0 text-[#e9bd62]"
+							/>
 							{t("Your privacy, your choice")}
 						</h2>
 						<p className="text-sm text-white/65 leading-6">
@@ -142,7 +147,7 @@ export function GoogleAnalytics() {
 								"Optional Google Analytics helps us understand visits to public pages. It stays off unless you accept. Your account, wallet, bets and login pages are not measured.",
 							)}
 						</p>
-						<div className="flex flex-wrap gap-3">
+						<div className="grid grid-cols-2 gap-2">
 							<button
 								type="button"
 								className={actionClass}
@@ -158,7 +163,7 @@ export function GoogleAnalytics() {
 								{t("Accept analytics")}
 							</button>
 							<Link
-								className={`${actionClass} inline-flex items-center`}
+								className="col-span-2 inline-flex min-h-11 items-center justify-center text-center text-sm text-white/65 underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-[#e9bd62]"
 								href="/privacy"
 							>
 								{t("Privacy information")}
