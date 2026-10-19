@@ -62,6 +62,12 @@
 	},
 	"rewrites": [
 		{
+			"source": "/api/casino/demo",
+			"destination": {
+				"service": "web"
+			}
+		},
+		{
 			"source": "/internal/settlement/daily",
 			"destination": {
 				"service": "server"
