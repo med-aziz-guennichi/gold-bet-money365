@@ -45,6 +45,7 @@ export function CasinoCollection() {
 				</div>
 				<div className="collection-hero-image">
 					<Image
+						unoptimized
 						src="/casino/roulette.webp"
 						alt=""
 						fill
@@ -95,6 +96,7 @@ export function CasinoCollection() {
 						>
 							<div className="collection-cover">
 								<Image
+									unoptimized
 									src={`/casino/${game.id}.webp`}
 									alt=""
 									fill
