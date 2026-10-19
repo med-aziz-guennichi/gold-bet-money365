@@ -408,7 +408,18 @@
 		"Accept analytics": "Accepter Analytics",
 		"Optional Google Analytics helps us understand visits to public pages. It stays off unless you accept. Your account, wallet, bets and login pages are not measured.": "Google Analytics nous aide à comprendre les visites des pages publiques. Il reste désactivé sans votre accord. Votre compte, portefeuille, paris et pages de connexion ne sont pas mesurés.",
 		"Optional analytics and advertising": "Mesure d’audience et publicité facultatives",
-		"When configured, Google Analytics measures visits to public pages only after you accept analytics. We do not send account names, phone numbers, balances, bet receipts or search queries. You can reject analytics or change your choice using Analytics preferences. AdSense advertisements, when enabled, use Google’s advertising services and its separate consent message. Advertising cookies and personalization are managed through that message. Ads may be unavailable or blocked without affecting the application.": "Une fois configuré, Google Analytics mesure les visites des pages publiques uniquement après votre accord. Nous ne transmettons ni noms de comptes, ni numéros de téléphone, ni soldes, ni reçus de paris, ni recherches. Vous pouvez refuser ou modifier votre choix dans les préférences de mesure d’audience. Les publicités AdSense, si elles sont activées, utilisent les services de Google et son message de consentement distinct, qui gère les cookies publicitaires et la personnalisation. L’absence ou le blocage des annonces n’affecte pas l’application."
+		"When configured, Google Analytics measures visits to public pages only after you accept analytics. We do not send account names, phone numbers, balances, bet receipts or search queries. You can reject analytics or change your choice using Analytics preferences. AdSense advertisements, when enabled, use Google’s advertising services and its separate consent message. Advertising cookies and personalization are managed through that message. Ads may be unavailable or blocked without affecting the application.": "Une fois configuré, Google Analytics mesure les visites des pages publiques uniquement après votre accord. Nous ne transmettons ni noms de comptes, ni numéros de téléphone, ni soldes, ni reçus de paris, ni recherches. Vous pouvez refuser ou modifier votre choix dans les préférences de mesure d’audience. Les publicités AdSense, si elles sont activées, utilisent les services de Google et son message de consentement distinct, qui gère les cookies publicitaires et la personnalisation. L’absence ou le blocage des annonces n’affecte pas l’application.",
+		"Game providers": "Fournisseurs de jeux",
+		"Provider demos": "Démos des fournisseurs",
+		"Demo": "Démo",
+		"Play demo": "Jouer à la démo",
+		"Loading game…": "Chargement du jeu…",
+		"Back to games": "Retour aux jeux",
+		"Open game in new tab": "Ouvrir dans un nouvel onglet",
+		"Provider website": "Site du fournisseur",
+		"Free-play provider demos use separate demo balances. They do not spend or add GoldBet365 credits. No purchases, prizes or withdrawals.": "Les démos gratuites utilisent des soldes distincts. Elles ne modifient pas votre solde GoldBet365. Aucun achat, prix ou retrait.",
+		"The provider could not launch this game. Please try again or use the provider website.": "Impossible de lancer ce jeu. Réessayez ou consultez le site du fournisseur.",
+		"Taking longer than expected? Open the game in a new tab. Provider availability may vary.": "Le chargement tarde ? Ouvrez le jeu dans un nouvel onglet. La disponibilité dépend du fournisseur."
 	},
 	"ar": {
 		"Welcome back": "مرحباً بعودتك",
@@ -590,7 +601,7 @@
 		"Cards": "أوراق",
 		"Table": "طاولة",
 		"Instant": "فوري",
-		"Originals": "ألعاب أصلية",
+		"Originals": "الألعاب الأصلية",
 		"Blackjack 21": "بلاك جاك 21",
 		"Mines": "الألغام",
 		"Crash": "كراش",
@@ -819,6 +830,17 @@
 		"Accept analytics": "قبول التحليلات",
 		"Optional Google Analytics helps us understand visits to public pages. It stays off unless you accept. Your account, wallet, bets and login pages are not measured.": "تساعدنا تحليلات Google الاختيارية على فهم زيارات الصفحات العامة. تبقى معطّلة ما لم توافق. لا نقيس صفحات حسابك أو محفظتك أو رهاناتك أو تسجيل الدخول.",
 		"Optional analytics and advertising": "التحليلات والإعلانات الاختيارية",
-		"When configured, Google Analytics measures visits to public pages only after you accept analytics. We do not send account names, phone numbers, balances, bet receipts or search queries. You can reject analytics or change your choice using Analytics preferences. AdSense advertisements, when enabled, use Google’s advertising services and its separate consent message. Advertising cookies and personalization are managed through that message. Ads may be unavailable or blocked without affecting the application.": "عند تهيئتها، تقيس تحليلات Google زيارات الصفحات العامة بعد موافقتك فقط. لا نرسل أسماء الحسابات أو أرقام الهواتف أو الأرصدة أو إيصالات الرهانات أو عبارات البحث. يمكنك الرفض أو تغيير اختيارك من تفضيلات التحليلات. تستخدم إعلانات AdSense عند تفعيلها خدمات Google ورسالة موافقة منفصلة لإدارة ملفات الارتباط الإعلانية والتخصيص. لا يؤثر غياب الإعلانات أو حظرها على التطبيق."
+		"When configured, Google Analytics measures visits to public pages only after you accept analytics. We do not send account names, phone numbers, balances, bet receipts or search queries. You can reject analytics or change your choice using Analytics preferences. AdSense advertisements, when enabled, use Google’s advertising services and its separate consent message. Advertising cookies and personalization are managed through that message. Ads may be unavailable or blocked without affecting the application.": "عند تهيئتها، تقيس تحليلات Google زيارات الصفحات العامة بعد موافقتك فقط. لا نرسل أسماء الحسابات أو أرقام الهواتف أو الأرصدة أو إيصالات الرهانات أو عبارات البحث. يمكنك الرفض أو تغيير اختيارك من تفضيلات التحليلات. تستخدم إعلانات AdSense عند تفعيلها خدمات Google ورسالة موافقة منفصلة لإدارة ملفات الارتباط الإعلانية والتخصيص. لا يؤثر غياب الإعلانات أو حظرها على التطبيق.",
+		"Game providers": "مزودو الألعاب",
+		"Provider demos": "ألعاب تجريبية من المزودين",
+		"Demo": "تجريبي",
+		"Play demo": "العب النسخة التجريبية",
+		"Loading game…": "جارٍ تحميل اللعبة…",
+		"Back to games": "العودة إلى الألعاب",
+		"Open game in new tab": "افتح اللعبة في علامة تبويب جديدة",
+		"Provider website": "موقع المزود",
+		"Free-play provider demos use separate demo balances. They do not spend or add GoldBet365 credits. No purchases, prizes or withdrawals.": "تستخدم الألعاب التجريبية أرصدة منفصلة، ولا تغير رصيد GoldBet365. لا مشتريات أو جوائز أو سحوبات.",
+		"The provider could not launch this game. Please try again or use the provider website.": "تعذر تشغيل اللعبة. حاول مجددًا أو استخدم موقع المزود.",
+		"Taking longer than expected? Open the game in a new tab. Provider availability may vary.": "هل يستغرق التحميل وقتًا طويلاً؟ افتح اللعبة في علامة تبويب جديدة. قد يختلف توفر الخدمة لدى المزود."
 	}
 }

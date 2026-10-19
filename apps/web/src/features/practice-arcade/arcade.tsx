@@ -1,6 +1,7 @@
 "use client";
 
 import { casinoGames } from "@gold-bet-clean-money365/api/casino-catalog";
+import { useI18n } from "@gold-bet-clean-money365/i18n";
 import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import { MotionConfig, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
@@ -10,79 +11,109 @@ import { RoundFeedback } from "@/components/casino/round-feedback";
 import { SiteHeader } from "@/components/sports/page-chrome";
 import { type ArcadeId, arcadeGames, pockets } from "./games";
 import "./arcade.css";
+import { ProviderGames } from "./provider-games";
 
 const number = (n: number) =>
 	n.toLocaleString("en", { maximumFractionDigits: 2 });
 
 export function ArcadeLobby() {
+	const { t } = useI18n();
+	const [provider, setProvider] = useState("originals");
 	return (
 		<MotionConfig reducedMotion="user">
 			<div className="arcade">
 				<SiteHeader />
-				<main className="arcade-shell">
-					<section className="arcade-hero">
-						<span className="arcade-kicker">GOLDBET365 / THE PLAYGROUND</span>
-						<h1>
-							Small moments.
-							<br />
-							<em>Big energy.</em>
-						</h1>
-						<p>
-							Fifteen distinct games. One play-credit balance. Choose your table
-							and play at your own pace.
-						</p>
-						<span className="arcade-pill">
-							No purchases · No cash value · No withdrawals
-						</span>
-					</section>
-					<div className="arcade-cards">
-						{arcadeGames.map((g, i) => (
-							<motion.div
-								key={g.id}
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: i * 0.08 }}
-							>
-								<Link
-									className={`arcade-card card-${g.id}`}
-									href={{ pathname: `/casino/${g.id}` }}
-								>
-									<span className="arcade-card-icon" aria-hidden="true">
-										{g.icon}
-									</span>
-									<span className="arcade-kicker">0{i + 1} / ARCADE</span>
-									<h2>{g.name}</h2>
-									<p>{g.description}</p>
-									<b>Let's play ↗</b>
-								</Link>
-							</motion.div>
-						))}
-					</div>
-					<h2 className="arcade-collection-title">The classic collection</h2>
-					<div className="arcade-cards">
-						{casinoGames
-							.filter((g) => !arcadeGames.some((a) => a.id === g.id))
-							.map((g) => (
-								<Link
+				<nav
+					aria-label={t("Game providers")}
+					className="mx-auto flex max-w-[1240px] flex-wrap gap-2 px-6 pt-6"
+				>
+					{[
+						["originals", "Originals"],
+						["casino-api-pro", "Casino API Pro"],
+						["vfair", "vFair Games"],
+					].map(([id, label]) => (
+						<button
+							key={id}
+							type="button"
+							aria-pressed={provider === id}
+							onClick={() => setProvider(id)}
+							className={`min-h-11 rounded-xl border px-4 py-2 font-semibold text-sm transition focus-visible:outline-2 focus-visible:outline-[#e9bd62] ${provider === id ? "border-[#e9bd62] bg-[#e9bd62] text-black" : "border-white/20 text-white hover:bg-white/10"}`}
+						>
+							{t(label)}
+						</button>
+					))}
+				</nav>
+				{provider !== "originals" ? (
+					<ProviderGames
+						key={provider}
+						provider={provider === "vfair" ? "vfair" : "casino-api-pro"}
+					/>
+				) : (
+					<main className="arcade-shell">
+						<section className="arcade-hero">
+							<span className="arcade-kicker">GOLDBET365 / THE PLAYGROUND</span>
+							<h1>
+								Small moments.
+								<br />
+								<em>Big energy.</em>
+							</h1>
+							<p>
+								Fifteen distinct games. One play-credit balance. Choose your
+								table and play at your own pace.
+							</p>
+							<span className="arcade-pill">
+								No purchases · No cash value · No withdrawals
+							</span>
+						</section>
+						<div className="arcade-cards">
+							{arcadeGames.map((g, i) => (
+								<motion.div
 									key={g.id}
-									className="arcade-card classic-card"
-									href={`/casino/${g.id}`}
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: i * 0.08 }}
 								>
-									<span className="arcade-card-icon" aria-hidden="true">
-										{g.icon}
-									</span>
-									<span className="arcade-kicker">CLASSIC COLLECTION</span>
-									<h2>{g.name}</h2>
-									<p>{g.category} · Original edition</p>
-									<b>Open table ↗</b>
-								</Link>
+									<Link
+										className={`arcade-card card-${g.id}`}
+										href={{ pathname: `/casino/${g.id}` }}
+									>
+										<span className="arcade-card-icon" aria-hidden="true">
+											{g.icon}
+										</span>
+										<span className="arcade-kicker">0{i + 1} / ARCADE</span>
+										<h2>{g.name}</h2>
+										<p>{g.description}</p>
+										<b>Let's play ↗</b>
+									</Link>
+								</motion.div>
 							))}
-					</div>
-					<p className="arcade-note">
-						Original GoldBet365 practice games. Outcomes are random; these
-						credits cannot be bought or redeemed for money or prizes.
-					</p>
-				</main>
+						</div>
+						<h2 className="arcade-collection-title">The classic collection</h2>
+						<div className="arcade-cards">
+							{casinoGames
+								.filter((g) => !arcadeGames.some((a) => a.id === g.id))
+								.map((g) => (
+									<Link
+										key={g.id}
+										className="arcade-card classic-card"
+										href={`/casino/${g.id}`}
+									>
+										<span className="arcade-card-icon" aria-hidden="true">
+											{g.icon}
+										</span>
+										<span className="arcade-kicker">CLASSIC COLLECTION</span>
+										<h2>{g.name}</h2>
+										<p>{g.category} · Original edition</p>
+										<b>Open table ↗</b>
+									</Link>
+								))}
+						</div>
+						<p className="arcade-note">
+							Original GoldBet365 practice games. Outcomes are random; these
+							credits cannot be bought or redeemed for money or prizes.
+						</p>
+					</main>
+				)}
 			</div>
 		</MotionConfig>
 	);

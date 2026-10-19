@@ -288,3 +288,11 @@ The web app accepts these **public** build-time identifiers in Vercel (redeploy 
 Use manual display ads; keep Auto ads/anchor/vignette formats off to avoid covering game and bet controls. The only placement is a labelled, responsive shadcn card between the home content and site overview, away from betting controls. It loads near the viewport, requests each slot once, and collapses if Google reports no fill or the script fails. Missing IDs never show fake ads. Do not click your own ads or generate artificial ad impressions to test. Approval, availability and revenue are Google's decisions; this site's simulated sports/casino content may limit monetization.
 
 References: [AdSense site connection](https://support.google.com/adsense/answer/7584263), [ads.txt](https://support.google.com/adsense/answer/12171612), [certified consent platforms](https://support.google.com/adsense/answer/13554116).
+
+### External casino demo tabs
+
+The casino lobby keeps Originals alongside Casino API Pro and vFair Games. External tabs run provider-hosted **demo balances**, separate from stored GoldBet365 credits; no wallet callbacks, operator credentials or personal account identifiers are sent. Game interfaces and languages inside the frames are controlled by the providers.
+
+Casino API Pro launches a fresh session through its documented public `/v1/public/demo/session` endpoint via `/api/casino/demo`. The adapter validates game slugs and HTTPS launch hosts, uses anonymous random visitor identifiers, a ten-second timeout, no redirects/cache, same-origin checks and a bounded, best-effort per-instance cooldown. This cooldown is not a distributed production rate limiter. Provider embedding requires an HTTPS parent (`frame-ancestors https:`); HTTP localhost can launch but cannot embed, so use the new-tab fallback. Provider uptime and game availability remain external dependencies.
+
+vFair embeds its public fun-play sites for Dice, Mines, Limbo, Plinko and Keno only after selecting a game. This does not provision a self-hosted vFair backend or grant production partner API access. Self-hosting its Apache-2.0 code is a separate infrastructure project (PostgreSQL, Redis, RabbitMQ and Socket.IO); no such services are added to this MongoDB workspace.
