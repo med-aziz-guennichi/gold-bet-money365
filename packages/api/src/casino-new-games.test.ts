@@ -3,9 +3,9 @@ import test from "node:test";
 import { casinoGames } from "./casino-catalog";
 import { playCasino } from "./casino-engine";
 
-test("catalog has fifteen unique games, five additions, and no Dino", () => {
-	assert.equal(casinoGames.length, 15);
-	assert.equal(new Set(casinoGames.map((g) => g.id)).size, 15);
+test("catalog has twenty unique games, earlier additions, and no Dino", () => {
+	assert.equal(casinoGames.length, 20);
+	assert.equal(new Set(casinoGames.map((g) => g.id)).size, 20);
 	assert.equal(
 		casinoGames.some((g) => String(g.id) === "dino"),
 		false,

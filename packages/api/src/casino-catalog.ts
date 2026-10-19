@@ -15,7 +15,8 @@ import { game as sic_bo } from "@gold-bet-clean-money365/casino-sic-bo";
 import { game as slots } from "@gold-bet-clean-money365/casino-slots";
 import { game as video_poker } from "@gold-bet-clean-money365/casino-video-poker";
 import { game as wheel } from "@gold-bet-clean-money365/casino-wheel";
-export const CASINO_VERSION = "2026-10-17.4";
+import { originalGames } from "./original-games";
+export const CASINO_VERSION = "2026-10-19.1";
 export const casinoGames = [
 	roulette,
 	blackjack,
@@ -32,6 +33,7 @@ export const casinoGames = [
 	keno,
 	wheel,
 	limbo,
+	...originalGames,
 ] as const;
 export type CasinoGameId = GameId | "coin" | "dice" | "keno" | "wheel";
 export type CasinoInput = {

@@ -21,7 +21,12 @@ export type GameId =
 	| "dice"
 	| "keno"
 	| "wheel"
-	| "limbo";
+	| "limbo"
+	| "scratch-nine"
+	| "poker-dice"
+	| "hand-duel"
+	| "lucky-seven"
+	| "three-card";
 export type Action = {
 	type: "hit" | "stand" | "reveal" | "cashout" | "draw" | "jump";
 	index?: number;

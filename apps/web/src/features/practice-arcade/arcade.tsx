@@ -1,6 +1,7 @@
 "use client";
 
 import { casinoGames } from "@gold-bet-clean-money365/api/casino-catalog";
+import { originalGames } from "@gold-bet-clean-money365/api/original-games";
 import { useI18n } from "@gold-bet-clean-money365/i18n";
 import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import { MotionConfig, motion, useReducedMotion } from "motion/react";
@@ -58,13 +59,37 @@ export function ArcadeLobby() {
 								<em>Big energy.</em>
 							</h1>
 							<p>
-								Fifteen distinct games. One play-credit balance. Choose your
-								table and play at your own pace.
+								{t(
+									"Twenty distinct games. One play-credit balance. Choose your table and play at your own pace.",
+								)}
 							</p>
 							<span className="arcade-pill">
 								No purchases · No cash value · No withdrawals
 							</span>
 						</section>
+						<h2 className="arcade-collection-title">{t("New originals")}</h2>
+						<div className="arcade-cards">
+							{originalGames.map((game) => (
+								<Link
+									key={game.id}
+									className="arcade-card classic-card"
+									href={`/casino/${game.id}`}
+								>
+									<span className="arcade-card-icon" aria-hidden="true">
+										{game.icon}
+									</span>
+									<span className="arcade-kicker">{t("NEW ORIGINAL")}</span>
+									<h2>{t(game.name)}</h2>
+									<p>
+										{t(game.category)} · {t("Saved play credits")}
+									</p>
+									<b>{t("Open table ↗")}</b>
+								</Link>
+							))}
+						</div>
+						<h2 className="arcade-collection-title">
+							{t("Arcade collection")}
+						</h2>
 						<div className="arcade-cards">
 							{arcadeGames.map((g, i) => (
 								<motion.div
@@ -91,7 +116,11 @@ export function ArcadeLobby() {
 						<h2 className="arcade-collection-title">The classic collection</h2>
 						<div className="arcade-cards">
 							{casinoGames
-								.filter((g) => !arcadeGames.some((a) => a.id === g.id))
+								.filter(
+									(g) =>
+										!arcadeGames.some((a) => a.id === g.id) &&
+										!originalGames.some((a) => a.id === g.id),
+								)
 								.map((g) => (
 									<Link
 										key={g.id}

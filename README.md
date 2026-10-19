@@ -291,6 +291,8 @@ References: [AdSense site connection](https://support.google.com/adsense/answer/
 
 ### External casino demo tabs
 
+The Originals collection also includes five owned instant games: Scratch Nine, Poker Dice, Hand Duel, Lucky Seven, and Three Card Studio. Their server engines use the same authenticated, rate-limited casino service and atomic wallet ledger as existing Originals. Stake, outcome, payout and history are saved together; practice mode remains separate. Fixed paytables and probabilities are published per game, without stake-dependent outcome manipulation. Exhaustive tests cover all 7,776 five-dice rolls, 22,100 three-card hands, 10,000 scratch tickets and every duel/two-dice outcome. No additional provider subscription or hosting service is required beyond the existing application's quotas.
+
 The casino lobby keeps Originals alongside Casino API Pro and vFair Games. External tabs run provider-hosted **demo balances**, separate from stored GoldBet365 credits; no wallet callbacks, operator credentials or personal account identifiers are sent. Game interfaces and languages inside the frames are controlled by the providers.
 
 Casino API Pro launches a fresh session through its documented public `/v1/public/demo/session` endpoint via `/api/casino/demo`. The adapter validates game slugs and HTTPS launch hosts, uses anonymous random visitor identifiers, a ten-second timeout, no redirects/cache, same-origin checks and a bounded, best-effort per-instance cooldown. This cooldown is not a distributed production rate limiter. Provider embedding requires an HTTPS parent (`frame-ancestors https:`); HTTP localhost can launch but cannot embed, so use the new-tab fallback. Provider uptime and game availability remain external dependencies.

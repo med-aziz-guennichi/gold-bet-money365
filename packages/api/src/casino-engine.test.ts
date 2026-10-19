@@ -20,8 +20,8 @@ function sequence(values: number[]) {
 		return n;
 	};
 }
-test("fifteen distinct engines and exact integer returns", () => {
-	assert.equal(new Set(casinoGames.map((g) => g.id)).size, 15);
+test("twenty distinct engines and exact integer returns", () => {
+	assert.equal(new Set(casinoGames.map((g) => g.id)).size, 20);
 	assert.equal(casinoPayout(101, 195), 196);
 	assert.equal(casinoPayout(100000, 6500), 6500000);
 });

@@ -18,11 +18,36 @@ export const tables: Record<
 	Exclude<GameId, "dino">,
 	ComponentType<TableProps>
 > = {
- coin: load(() => import("@gold-bet-clean-money365/casino-coin/table")),
- dice: load(() => import("@gold-bet-clean-money365/casino-dice/table")),
- keno: load(() => import("@gold-bet-clean-money365/casino-keno/table")),
- wheel: load(() => import("@gold-bet-clean-money365/casino-wheel/table")),
- limbo: load(() => import("@gold-bet-clean-money365/casino-limbo/table")),
+	"scratch-nine": load(() =>
+		import("@/features/practice-arcade/original-tables").then((m) => ({
+			Table: m.ScratchTable,
+		})),
+	),
+	"poker-dice": load(() =>
+		import("@/features/practice-arcade/original-tables").then((m) => ({
+			Table: m.PokerDiceTable,
+		})),
+	),
+	"hand-duel": load(() =>
+		import("@/features/practice-arcade/original-tables").then((m) => ({
+			Table: m.HandDuelTable,
+		})),
+	),
+	"lucky-seven": load(() =>
+		import("@/features/practice-arcade/original-tables").then((m) => ({
+			Table: m.LuckySevenTable,
+		})),
+	),
+	"three-card": load(() =>
+		import("@/features/practice-arcade/original-tables").then((m) => ({
+			Table: m.ThreeCardTable,
+		})),
+	),
+	coin: load(() => import("@gold-bet-clean-money365/casino-coin/table")),
+	dice: load(() => import("@gold-bet-clean-money365/casino-dice/table")),
+	keno: load(() => import("@gold-bet-clean-money365/casino-keno/table")),
+	wheel: load(() => import("@gold-bet-clean-money365/casino-wheel/table")),
+	limbo: load(() => import("@gold-bet-clean-money365/casino-limbo/table")),
 	roulette: load(
 		() => import("@gold-bet-clean-money365/casino-roulette/table"),
 	),

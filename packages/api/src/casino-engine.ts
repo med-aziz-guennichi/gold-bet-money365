@@ -11,6 +11,7 @@ import { play as sic_bo } from "@gold-bet-clean-money365/casino-sic-bo/engine";
 import { play as slots } from "@gold-bet-clean-money365/casino-slots/engine";
 import { play as wheel } from "@gold-bet-clean-money365/casino-wheel/engine";
 import type { CasinoGameId } from "./casino-catalog";
+import { playOriginal } from "./original-engines";
 
 export { bankerDraws } from "@gold-bet-clean-money365/casino-core/cards";
 export { plinkoReturns } from "@gold-bet-clean-money365/casino-plinko/engine";
@@ -22,6 +23,12 @@ export function playCasino(
 	random: RandomInt,
 ) {
 	switch (game) {
+		case "scratch-nine":
+		case "poker-dice":
+		case "hand-duel":
+		case "lucky-seven":
+		case "three-card":
+			return playOriginal(game, choice, random);
 		case "roulette":
 			return roulette(choice, numbers, random);
 		case "baccarat":
