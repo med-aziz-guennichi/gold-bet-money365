@@ -400,7 +400,15 @@
 		"GoldBet365 does not provide purchases, withdrawals or redeemable prizes. Credit amounts displayed with TND, USD or EUR are game units and are not money held for you.": "GoldBet365 ne propose ni achats, ni retraits, ni prix échangeables. Les montants affichés en TND, USD ou EUR sont des unités de jeu et ne constituent pas des fonds détenus pour vous.",
 		"Parent": "Responsable",
 		"Admin allocates this amount to the new fournisseur.": "Le gestionnaire attribue ce montant au nouveau fournisseur.",
-		"Deducted from the selected parent wallet. The account and transfer are created together.": "Déduit du portefeuille parent sélectionné. Le compte et le transfert sont créés ensemble."
+		"Deducted from the selected parent wallet. The account and transfer are created together.": "Déduit du portefeuille parent sélectionné. Le compte et le transfert sont créés ensemble.",
+		"Advertisement": "Publicité",
+		"Analytics preferences": "Préférences de mesure d’audience",
+		"Your privacy, your choice": "Votre confidentialité, votre choix",
+		"Reject analytics": "Refuser Analytics",
+		"Accept analytics": "Accepter Analytics",
+		"Optional Google Analytics helps us understand visits to public pages. It stays off unless you accept. Your account, wallet, bets and login pages are not measured.": "Google Analytics nous aide à comprendre les visites des pages publiques. Il reste désactivé sans votre accord. Votre compte, portefeuille, paris et pages de connexion ne sont pas mesurés.",
+		"Optional analytics and advertising": "Mesure d’audience et publicité facultatives",
+		"When configured, Google Analytics measures visits to public pages only after you accept analytics. We do not send account names, phone numbers, balances, bet receipts or search queries. You can reject analytics or change your choice using Analytics preferences. AdSense advertisements, when enabled, use Google’s advertising services and its separate consent message. Advertising cookies and personalization are managed through that message. Ads may be unavailable or blocked without affecting the application.": "Une fois configuré, Google Analytics mesure les visites des pages publiques uniquement après votre accord. Nous ne transmettons ni noms de comptes, ni numéros de téléphone, ni soldes, ni reçus de paris, ni recherches. Vous pouvez refuser ou modifier votre choix dans les préférences de mesure d’audience. Les publicités AdSense, si elles sont activées, utilisent les services de Google et son message de consentement distinct, qui gère les cookies publicitaires et la personnalisation. L’absence ou le blocage des annonces n’affecte pas l’application."
 	},
 	"ar": {
 		"Welcome back": "مرحباً بعودتك",
@@ -803,6 +811,14 @@
 		"GoldBet365 does not provide purchases, withdrawals or redeemable prizes. Credit amounts displayed with TND, USD or EUR are game units and are not money held for you.": "لا يوفر GoldBet365 مشتريات أو سحوبات أو جوائز قابلة للاستبدال. الأرصدة المعروضة بالدينار أو الدولار أو اليورو هي وحدات لعب وليست أموالاً محفوظة لك.",
 		"Parent": "الحساب الرئيسي",
 		"Admin allocates this amount to the new fournisseur.": "يخصص المدير هذا المبلغ للمزوّد الجديد.",
-		"Deducted from the selected parent wallet. The account and transfer are created together.": "يُخصم من محفظة الحساب الرئيسي المحدد. يُنشأ الحساب والتحويل معاً."
+		"Deducted from the selected parent wallet. The account and transfer are created together.": "يُخصم من محفظة الحساب الرئيسي المحدد. يُنشأ الحساب والتحويل معاً.",
+		"Advertisement": "إعلان",
+		"Analytics preferences": "تفضيلات التحليلات",
+		"Your privacy, your choice": "خصوصيتك، اختيارك",
+		"Reject analytics": "رفض التحليلات",
+		"Accept analytics": "قبول التحليلات",
+		"Optional Google Analytics helps us understand visits to public pages. It stays off unless you accept. Your account, wallet, bets and login pages are not measured.": "تساعدنا تحليلات Google الاختيارية على فهم زيارات الصفحات العامة. تبقى معطّلة ما لم توافق. لا نقيس صفحات حسابك أو محفظتك أو رهاناتك أو تسجيل الدخول.",
+		"Optional analytics and advertising": "التحليلات والإعلانات الاختيارية",
+		"When configured, Google Analytics measures visits to public pages only after you accept analytics. We do not send account names, phone numbers, balances, bet receipts or search queries. You can reject analytics or change your choice using Analytics preferences. AdSense advertisements, when enabled, use Google’s advertising services and its separate consent message. Advertising cookies and personalization are managed through that message. Ads may be unavailable or blocked without affecting the application.": "عند تهيئتها، تقيس تحليلات Google زيارات الصفحات العامة بعد موافقتك فقط. لا نرسل أسماء الحسابات أو أرقام الهواتف أو الأرصدة أو إيصالات الرهانات أو عبارات البحث. يمكنك الرفض أو تغيير اختيارك من تفضيلات التحليلات. تستخدم إعلانات AdSense عند تفعيلها خدمات Google ورسالة موافقة منفصلة لإدارة ملفات الارتباط الإعلانية والتخصيص. لا يؤثر غياب الإعلانات أو حظرها على التطبيق."
 	}
 }

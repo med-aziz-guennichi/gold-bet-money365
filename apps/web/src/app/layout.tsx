@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Figtree, Geist, Geist_Mono, Outfit } from "next/font/google";
+import { GoogleAnalytics } from "@/components/google/analytics";
+import { google } from "@/lib/google-config";
 
 import "../index.css";
 import Providers from "@/components/providers";
@@ -61,6 +63,9 @@ export const metadata: Metadata = {
 		title: "GoldBet365 | Sports & Casino",
 	},
 	description: SITE_DESCRIPTION,
+	...(google.publisherId
+		? { other: { "google-adsense-account": google.publisherId } }
+		: {}),
 };
 
 export default function RootLayout({
@@ -78,7 +83,10 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
-				<Providers>{children}</Providers>
+				<Providers>
+					{children}
+					<GoogleAnalytics />
+				</Providers>
 			</body>
 		</html>
 	);

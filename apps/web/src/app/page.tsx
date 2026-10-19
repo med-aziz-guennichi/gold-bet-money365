@@ -1,3 +1,4 @@
+import { HomeAdCard } from "@/components/google/ad-card";
 import { SiteOverview } from "@/components/site-overview";
 import { publicMetadata, SITE_DESCRIPTION, SITE_URL } from "@/lib/seo";
 import Home from "./home";
@@ -37,6 +38,7 @@ export default function HomePage() {
 				}}
 			/>
 			<Home />
+			<HomeAdCard />
 			<SiteOverview />
 		</>
 	);

@@ -12,6 +12,10 @@ export default function Page() {
 			introduction="How GoldBet365 uses account information for this private play-credit application."
 			sections={[
 				{
+					heading: "Optional analytics and advertising",
+					text: "When configured, Google Analytics measures visits to public pages only after you accept analytics. We do not send account names, phone numbers, balances, bet receipts or search queries. You can reject analytics or change your choice using Analytics preferences. AdSense advertisements, when enabled, use Google’s advertising services and its separate consent message. Advertising cookies and personalization are managed through that message. Ads may be unavailable or blocked without affecting the application.",
+				},
+				{
 					heading: "Information stored",
 					text: "We store your account name, phone number, password hash, account hierarchy, play-credit transactions, accepted bets, game rounds, notifications and management audit records. These records support login, access control, account history and investigating disputes.",
 				},

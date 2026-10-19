@@ -275,3 +275,16 @@ Public `/support` and `/privacy` pages explain managed-account assistance, store
 ### Branch currencies
 
 Administrators choose TND (default), USD or EUR when creating a fournisseur. Clients and users inherit the validated parent currency; it cannot be changed through profile updates. Existing records without a currency remain TND. Wallet transfers, sports receipts, casino rounds and ledger history retain their denomination. These are non-redeemable play-credit denominations with three-decimal integer precision (legacy `*Millimes` field names are retained); there is no foreign-exchange conversion or mixed-currency balance total.
+
+### Google Analytics and AdSense
+
+The web app accepts these **public** build-time identifiers in Vercel (redeploy after changes):
+
+- `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID`: the GoldBet365 GA4 web stream measurement ID. Enhanced measurement must stay disabled in that stream: the app sends consented, sanitized public-page views itself. Private dashboard, login, wallet, bet and round-history pages are excluded. The Analytics preferences card supports acceptance, refusal and withdrawal. No account data or query strings are attached.
+- `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID`: your `ca-pub-` publisher ID. Enables the verification meta tag and `/ads.txt` without requesting ads.
+- `NEXT_PUBLIC_ADSENSE_HOME_SLOT`: a responsive display ad unit ID created in that publisher account.
+- `NEXT_PUBLIC_ADSENSE_ENABLED`: defaults to `false`. Set to `true` **only after** Google approves this site and the publisher finishes payment/identity requirements and publishes applicable Google-certified consent messages under AdSense Privacy & messaging. The app's Analytics preferences are not an advertising CMP.
+
+Use manual display ads; keep Auto ads/anchor/vignette formats off to avoid covering game and bet controls. The only placement is a labelled, responsive shadcn card between the home content and site overview, away from betting controls. It loads near the viewport, requests each slot once, and collapses if Google reports no fill or the script fails. Missing IDs never show fake ads. Do not click your own ads or generate artificial ad impressions to test. Approval, availability and revenue are Google's decisions; this site's simulated sports/casino content may limit monetization.
+
+References: [AdSense site connection](https://support.google.com/adsense/answer/7584263), [ads.txt](https://support.google.com/adsense/answer/12171612), [certified consent platforms](https://support.google.com/adsense/answer/13554116).
