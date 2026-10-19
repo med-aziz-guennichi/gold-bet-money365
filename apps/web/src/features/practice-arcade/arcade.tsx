@@ -1,7 +1,5 @@
 "use client";
 
-import { casinoGames } from "@gold-bet-clean-money365/api/casino-catalog";
-import { originalGames } from "@gold-bet-clean-money365/api/original-games";
 import { useI18n } from "@gold-bet-clean-money365/i18n";
 import { Button } from "@gold-bet-clean-money365/ui/components/button";
 import { MotionConfig, motion, useReducedMotion } from "motion/react";
@@ -12,6 +10,8 @@ import { RoundFeedback } from "@/components/casino/round-feedback";
 import { SiteHeader } from "@/components/sports/page-chrome";
 import { type ArcadeId, arcadeGames, pockets } from "./games";
 import "./arcade.css";
+import { CasinoCollection } from "./casino-collection";
+import { FlightBoard } from "./flight-board";
 import { ProviderGames } from "./provider-games";
 
 const number = (n: number) =>
@@ -50,98 +50,7 @@ export function ArcadeLobby() {
 						provider={provider === "vfair" ? "vfair" : "casino-api-pro"}
 					/>
 				) : (
-					<main className="arcade-shell">
-						<section className="arcade-hero">
-							<span className="arcade-kicker">GOLDBET365 / THE PLAYGROUND</span>
-							<h1>
-								Small moments.
-								<br />
-								<em>Big energy.</em>
-							</h1>
-							<p>
-								{t(
-									"Twenty distinct games. One play-credit balance. Choose your table and play at your own pace.",
-								)}
-							</p>
-							<span className="arcade-pill">
-								No purchases · No cash value · No withdrawals
-							</span>
-						</section>
-						<h2 className="arcade-collection-title">{t("New originals")}</h2>
-						<div className="arcade-cards">
-							{originalGames.map((game) => (
-								<Link
-									key={game.id}
-									className="arcade-card classic-card"
-									href={`/casino/${game.id}`}
-								>
-									<span className="arcade-card-icon" aria-hidden="true">
-										{game.icon}
-									</span>
-									<span className="arcade-kicker">{t("NEW ORIGINAL")}</span>
-									<h2>{t(game.name)}</h2>
-									<p>
-										{t(game.category)} · {t("Saved play credits")}
-									</p>
-									<b>{t("Open table ↗")}</b>
-								</Link>
-							))}
-						</div>
-						<h2 className="arcade-collection-title">
-							{t("Arcade collection")}
-						</h2>
-						<div className="arcade-cards">
-							{arcadeGames.map((g, i) => (
-								<motion.div
-									key={g.id}
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ delay: i * 0.08 }}
-								>
-									<Link
-										className={`arcade-card card-${g.id}`}
-										href={{ pathname: `/casino/${g.id}` }}
-									>
-										<span className="arcade-card-icon" aria-hidden="true">
-											{g.icon}
-										</span>
-										<span className="arcade-kicker">0{i + 1} / ARCADE</span>
-										<h2>{g.name}</h2>
-										<p>{g.description}</p>
-										<b>Let's play ↗</b>
-									</Link>
-								</motion.div>
-							))}
-						</div>
-						<h2 className="arcade-collection-title">The classic collection</h2>
-						<div className="arcade-cards">
-							{casinoGames
-								.filter(
-									(g) =>
-										!arcadeGames.some((a) => a.id === g.id) &&
-										!originalGames.some((a) => a.id === g.id),
-								)
-								.map((g) => (
-									<Link
-										key={g.id}
-										className="arcade-card classic-card"
-										href={`/casino/${g.id}`}
-									>
-										<span className="arcade-card-icon" aria-hidden="true">
-											{g.icon}
-										</span>
-										<span className="arcade-kicker">CLASSIC COLLECTION</span>
-										<h2>{g.name}</h2>
-										<p>{g.category} · Original edition</p>
-										<b>Open table ↗</b>
-									</Link>
-								))}
-						</div>
-						<p className="arcade-note">
-							Original GoldBet365 practice games. Outcomes are random; these
-							credits cannot be bought or redeemed for money or prizes.
-						</p>
-					</main>
+					<CasinoCollection />
 				)}
 			</div>
 		</MotionConfig>
@@ -149,6 +58,7 @@ export function ArcadeLobby() {
 }
 
 export function ArcadeRoom({ id }: { id: ArcadeId }) {
+	const { t } = useI18n();
 	const game = arcadeGames.find((g) => g.id === id)!;
 	const room = useGameRoom(id, true);
 	const {
@@ -316,7 +226,15 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 								disabled={round.active || locked || room.restoreError}
 								onClick={start}
 							>
-								{id === "plinko" ? "Drop a ball" : "Start round"}
+								{t(
+									busy
+										? "Checking round…"
+										: id === "plinko"
+											? "Drop a ball"
+											: id === "crash"
+												? "Start flight"
+												: "Start round",
+								)}
 							</Button>
 
 							{id !== "plinko" && (
@@ -326,7 +244,8 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 									disabled={!canCollect}
 									onClick={collect}
 								>
-									Collect {number(round.stake * round.multiplier)} credits
+									{t(busy ? "Confirming cash-out…" : "Collect")}{" "}
+									{number(round.stake * round.multiplier)} {t("credits")}
 								</Button>
 							)}
 							{mode === "practice" && (
@@ -415,39 +334,11 @@ export function ArcadeRoom({ id }: { id: ArcadeId }) {
 									reduced={!!reduced}
 								/>
 							) : id === "crash" ? (
-								<div className="arcade-flight">
-									<svg viewBox="0 0 600 320" aria-hidden="true">
-										<defs>
-											<linearGradient id="orbit-line">
-												<stop stopColor="#6a48bf" />
-												<stop offset="1" stopColor="#d9bcff" />
-											</linearGradient>
-										</defs>
-										<path
-											d="M30 290 Q360 290 555 35"
-											stroke="url(#orbit-line)"
-											strokeWidth="5"
-											fill="none"
-										/>
-										<motion.circle
-											r="9"
-											fill="#ebd6ff"
-											animate={{
-												cx: 30 + Math.min(1, (round.multiplier - 1) / 5) * 525,
-												cy:
-													290 -
-													Math.min(1, (round.multiplier - 1) / 5) ** 2 * 255,
-											}}
-										/>
-									</svg>
-									<div className="arcade-big-number">
-										{round.multiplier.toFixed(2)}
-										<small>×</small>
-										<span>
-											{round.active ? "IN FLIGHT" : "READY FOR LIFTOFF"}
-										</span>
-									</div>
-								</div>
+								<FlightBoard
+									active={active}
+									multiplier={multiplier}
+									outcome={outcome}
+								/>
 							) : null}
 							<div className="arcade-stage-bottom">
 								<span>

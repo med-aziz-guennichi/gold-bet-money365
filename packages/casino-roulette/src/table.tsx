@@ -92,6 +92,7 @@ export function Table(p: TableProps) {
 					<button
 						type="button"
 						className={`zero ${p.numbers[0] === 0 && p.choice === "number" ? "selected" : ""}`}
+						aria-pressed={p.numbers[0] === 0 && p.choice === "number"}
 						onClick={() => {
 							p.onChoice("number");
 							p.onNumber(0);
@@ -104,6 +105,11 @@ export function Table(p: TableProps) {
 						<button
 							type="button"
 							key={n}
+							aria-pressed={p.choice === "number" && p.numbers[0] === n}
+							style={{
+								gridColumn: Math.floor((n - 1) / 3) + 2,
+								gridRow: 3 - ((n - 1) % 3),
+							}}
 							className={`${reds.has(n) ? "red-pocket" : "black-pocket"} ${p.choice === "number" && p.numbers[0] === n ? "selected" : ""}`}
 							disabled={p.disabled}
 							onClick={() => {

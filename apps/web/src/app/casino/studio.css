@@ -1358,3 +1358,70 @@
 		font-size: 10px;
 	}
 }
+/* A consistent table frame; each game keeps its own board and controls. */
+.studio-page {
+	background: #0b1010;
+}
+.studio-breadcrumb {
+	min-height: 44px;
+}
+.studio-breadcrumb button {
+	min-height: 40px;
+}
+.studio-title {
+	margin-block: 24px;
+}
+.studio-mode button {
+	min-height: 42px;
+}
+.studio-panel {
+	background: #151f1b;
+	border-color: #39483e;
+	border-radius: 18px;
+	box-shadow: 0 12px 28px #0002;
+}
+.game-stage {
+	border-radius: 20px;
+	border-color: #8a744a;
+}
+.studio-action {
+	min-height: 48px;
+}
+.game-stage button:focus-visible {
+	outline: 3px solid #f5d78e;
+	outline-offset: 3px;
+}
+.game-stage .studio-card {
+	box-shadow: 0 8px 18px #0005;
+}
+.game-stage .bet-zone {
+	transition:
+		border-color 0.15s,
+		background-color 0.15s,
+		transform 0.15s;
+}
+.game-stage .bet-zone:hover:enabled {
+	transform: translateY(-2px);
+}
+.theme-slots .game-stage {
+	background: radial-gradient(ellipse at top, #3e244a, #160e20 75%);
+}
+.theme-limbo .game-stage,
+.theme-wheel .game-stage {
+	background: radial-gradient(ellipse at top, #2c254b, #131521 75%);
+}
+.theme-dice .game-stage,
+.theme-keno .game-stage {
+	background: radial-gradient(ellipse at top, #193f50, #0c202b 75%);
+}
+.theme-coin .game-stage {
+	background: radial-gradient(ellipse at top, #4c3a20, #221a10 75%);
+}
+@media (prefers-reduced-motion: reduce) {
+	.game-stage .bet-zone {
+		transition: none;
+	}
+	.game-stage .bet-zone:hover:enabled {
+		transform: none;
+	}
+}

@@ -483,3 +483,234 @@
 	background: #3f3523;
 	color: #f4d387;
 }
+.flight-board {
+	position: relative;
+	width: 100%;
+	min-height: 390px;
+	isolation: isolate;
+	background: #101114;
+	border: 1px solid #2b2c31;
+	border-radius: 18px;
+	overflow: hidden;
+}
+.flight-board-brand {
+	position: absolute;
+	top: 22px;
+	inset-inline-start: 24px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	z-index: 1;
+}
+.flight-board-brand b {
+	font-style: italic;
+	font-size: 24px;
+	letter-spacing: 2px;
+	color: #edc97e;
+}
+.flight-board-brand span {
+	font-size: 9px;
+	letter-spacing: 2px;
+	color: #8e929b;
+}
+.flight-chart {
+	width: 100%;
+	display: block;
+	direction: ltr;
+}
+.flight-readout {
+	position: absolute;
+	inset: 24% 8% auto;
+	text-align: center;
+	pointer-events: none;
+	display: grid;
+	gap: 7px;
+}
+.flight-readout > span {
+	font-size: 12px;
+	color: #b9bbc2;
+}
+.flight-readout strong {
+	font-size: clamp(45px, 7vw, 86px);
+	font-weight: 800;
+	line-height: 1.15;
+	letter-spacing: -3px;
+	font-variant-numeric: tabular-nums;
+	color: #f4e6c4;
+}
+.flight-readout small {
+	font-size: 12px;
+	color: #9b9ea8;
+}
+.is-crashed .flight-readout strong {
+	color: #fa7777;
+}
+.flight-caption {
+	position: absolute;
+	bottom: 15px;
+	inset-inline: 24px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 10px;
+	color: #9b9ea8;
+}
+.flight-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #e9bd62;
+}
+.room-crash .arcade-console {
+	grid-template-columns: minmax(0, 1fr);
+	background: #16171b;
+	border-color: #303136;
+	border-radius: 20px;
+	padding: 14px;
+	gap: 14px;
+}
+.room-crash .arcade-stage {
+	grid-row: 1;
+	min-height: 0;
+	padding: 0;
+	background: none;
+	display: block;
+	overflow: visible;
+}
+.room-crash .arcade-stage-label,
+.room-crash .arcade-stage-bottom {
+	display: none;
+}
+.room-crash .arcade-controls {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px 20px;
+	border: 1px solid #34353b;
+	border-radius: 16px;
+	background: #202126;
+	padding: 22px;
+}
+.room-crash .arcade-controls .arcade-mode {
+	grid-column: 1 / -1;
+}
+.room-crash .arcade-controls p {
+	margin: 0;
+}
+.room-crash .arcade-controls .arcade-primary,
+.room-crash .arcade-controls .arcade-collect {
+	min-height: 62px;
+	font-size: 18px;
+	grid-column: 2;
+}
+.room-crash .arcade-controls .arcade-primary {
+	background: #dcb967;
+}
+.room-crash .arcade-controls .arcade-collect {
+	background: #345b36;
+	color: #d4f0bd;
+	border-color: #5b8a48;
+}
+.room-crash .arcade-controls .arcade-collect:enabled {
+	box-shadow: 0 0 0 2px #9cce6355;
+}
+.room-crash .arcade-controls input {
+	background: #141519;
+	border-color: #484951;
+	font-variant-numeric: tabular-nums;
+}
+.room-crash .arcade-controls .arcade-recovery {
+	grid-column: 1 / -1;
+}
+.room-crash .arcade-balance {
+	font-size: 26px;
+}
+.room-crash .arcade-history {
+	margin-top: 18px;
+}
+@media (max-width: 650px) {
+	.room-crash .arcade-console {
+		display: grid;
+		padding: 8px;
+		gap: 8px;
+	}
+	.room-crash .arcade-controls {
+		padding: 14px;
+		gap: 12px;
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.room-crash .arcade-controls > * {
+		grid-column: 1;
+	}
+	.flight-board {
+		min-height: 280px;
+	}
+	.flight-chart {
+		height: 280px;
+	}
+	.flight-board-brand {
+		top: 15px;
+		inset-inline-start: 15px;
+	}
+	.flight-board-brand span {
+		font-size: 7px;
+		letter-spacing: 1px;
+	}
+	.flight-readout {
+		inset: 30% 4% auto;
+	}
+	.flight-readout strong {
+		font-size: 52px;
+	}
+	.flight-caption {
+		inset-inline: 14px;
+		font-size: 9px;
+	}
+	.flight-readout small {
+		font-size: 10px;
+	}
+}
+.room-crash .arcade-controls > .arcade-kicker {
+	grid-area: 2 / 1;
+}
+.room-crash .arcade-controls > .arcade-balance {
+	grid-area: 3 / 1;
+}
+.room-crash .arcade-controls > p:first-of-type {
+	grid-area: 4 / 1;
+}
+.room-crash .arcade-controls > label {
+	grid-area: 2 / 2;
+}
+.room-crash .arcade-controls > input {
+	grid-area: 3 / 2;
+}
+.room-crash .arcade-controls > .arcade-quick {
+	grid-area: 4 / 2;
+}
+.room-crash .arcade-controls > .arcade-primary {
+	grid-area: 5 / 1;
+}
+.room-crash .arcade-controls > .arcade-collect {
+	grid-area: 5 / 2;
+}
+@media (max-width: 650px) {
+	.room-crash .arcade-controls > *,
+	.room-crash .arcade-controls > .arcade-kicker,
+	.room-crash .arcade-controls > .arcade-balance,
+	.room-crash .arcade-controls > p:first-of-type,
+	.room-crash .arcade-controls > label,
+	.room-crash .arcade-controls > input,
+	.room-crash .arcade-controls > .arcade-quick,
+	.room-crash .arcade-controls > .arcade-primary,
+	.room-crash .arcade-controls > .arcade-collect {
+		grid-area: auto;
+	}
+}
+.room-crash .flight-chart {
+	height: 400px;
+}
+@media (max-width: 650px) {
+	.room-crash .flight-chart {
+		height: 280px;
+	}
+}

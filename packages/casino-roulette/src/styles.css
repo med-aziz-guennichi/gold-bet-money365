@@ -133,3 +133,108 @@
 		min-height: 55px;
 	}
 }
+/* European table: twelve columns, three rows, and a single zero. */
+.roulette-room {
+	grid-template-columns: minmax(0, 1fr);
+	padding: 28px;
+	gap: 26px;
+}
+.roulette-apparatus {
+	max-width: 330px;
+}
+.roulette-felt {
+	min-width: 0;
+	border: 1px solid #d8c58e55;
+	border-radius: 16px;
+	padding: 20px;
+	background: #0d4836;
+}
+.roulette-grid {
+	grid-template-columns: 42px repeat(12, minmax(0, 1fr));
+	grid-template-rows: repeat(3, 44px);
+	gap: 3px;
+	direction: ltr;
+}
+.roulette-grid .zero {
+	grid-column: 1;
+	grid-row: 1 / 4;
+}
+.roulette-grid button {
+	font-size: 14px;
+	min-width: 0;
+	color: #fff;
+	position: relative;
+	cursor: pointer;
+}
+.roulette-grid button:hover:enabled {
+	filter: brightness(1.35);
+}
+.roulette-grid button.selected::after {
+	content: "";
+	position: absolute;
+	width: 15px;
+	height: 15px;
+	border: 3px dashed #fff2c0;
+	border-radius: 50%;
+	background: #d4a342;
+	bottom: 2px;
+	right: 2px;
+	box-shadow: 0 2px 6px #0008;
+}
+.roulette-grid button:focus-visible {
+	outline: 3px solid #fff1bd;
+	outline-offset: 2px;
+	z-index: 1;
+}
+.roulette-result {
+	font-size: 12px;
+	line-height: 1.6;
+	letter-spacing: 0.08em;
+}
+.roulette-outside {
+	gap: 8px;
+}
+.roulette-outside .bet-zone {
+	min-height: 60px;
+}
+.roulette-outside .bet-zone strong {
+	font-size: 12px;
+}
+.roulette-grid button:disabled {
+	cursor: wait;
+}
+.roulette-apparatus svg {
+	display: block;
+}
+.roulette-felt .studio-action {
+	width: 100%;
+	min-height: 50px;
+}
+@media (max-width: 650px) {
+	.roulette-room {
+		padding: 18px 12px;
+		gap: 18px;
+	}
+	.roulette-apparatus {
+		max-width: 240px;
+	}
+	.roulette-felt {
+		padding: 12px;
+	}
+	.roulette-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-rows: none;
+		grid-auto-rows: 44px;
+	}
+	.roulette-grid > button {
+		grid-column: auto !important;
+		grid-row: auto !important;
+	}
+	.roulette-grid > .zero {
+		grid-column: 1 / -1 !important;
+	}
+	.roulette-outside {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px;
+	}
+}
